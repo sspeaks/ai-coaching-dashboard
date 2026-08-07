@@ -24,7 +24,7 @@ venv/
 env/
 ENV/
 .test-runtime/
-services/*/tests/.runtime/
+services/*/tests/.runtime*/
 
 # Frontend dependencies and generated output
 node_modules/
