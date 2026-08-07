@@ -1,0 +1,20 @@
+{
+  "profile_version": 1,
+  "operations": {
+    "health": {"method": "GET", "path": "/healthz", "status": [200]},
+    "create_session": {"method": "POST", "path": "/v1/sessions", "status": [201], "id_path": "id"},
+    "upload_media": {"method": "PUT", "path": "/v1/sessions/{session_id}/media", "status": [200, 201], "sha256_path": "sha256", "size_path": "size_bytes"},
+    "download_media": {"method": "GET", "path": "/v1/sessions/{session_id}/media", "status": [200]},
+    "enqueue_processing": {"method": "POST", "path": "/v1/sessions/{session_id}/processing-jobs", "status": [200, 201, 202], "id_path": "id"},
+    "create_revision": {"method": "POST", "path": "/v1/sessions/{session_id}/transcript-revisions", "status": [201], "revision_path": "revision"},
+    "list_revisions": {"method": "GET", "path": "/v1/sessions/{session_id}/transcript-revisions", "status": [200], "items_path": "items"},
+    "get_ledger": {"method": "GET", "path": "/v1/sessions/{session_id}/ledger", "status": [200], "revision_path": "transcript_revision"},
+    "delete_session": {"method": "DELETE", "path": "/v1/sessions/{session_id}?copies=all", "status": [200, 202], "copies_path": "deleted_copies"},
+    "list_audit": {"method": "GET", "path": "/v1/audit?session_id={session_id}", "status": [200], "items_path": "items"},
+    "metrics": {"method": "GET", "path": "/metrics", "status": [200]},
+    "egress_config": {"method": "GET", "path": "/v1/system/egress-policy", "status": [200], "provider_path": "transcription_provider"}
+  },
+  "required_deleted_copies": ["application_metadata", "original_media", "provider_media", "derived_artifacts"],
+  "required_metric_fragments": ["processing_runtime_seconds", "storage_bytes", "provider_api_cost"],
+  "required_audit_actions": ["TRANSCRIPT_REVISION_CREATED", "SESSION_DELETION_REQUESTED", "COPY_DELETED"]
+}

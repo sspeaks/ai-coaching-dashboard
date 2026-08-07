@@ -1,0 +1,35 @@
+{
+  "base_url_environment": "WEB_BASE_URL",
+  "scenarios": [
+    {
+      "id": "seek-from-feedback",
+      "steps": ["open-session", "open-ledger-entry:i01", "click-evidence:feedback"],
+      "assertions": ["player-seek-within-seconds:2", "quote-visible", "source-segment-highlighted"]
+    },
+    {
+      "id": "uncertainty-not-asserted",
+      "steps": ["open-session", "open-ledger-entry:i05"],
+      "assertions": ["uncertainty-visible", "verification-state:UNVERIFIED", "verify-requires-user-action"]
+    },
+    {
+      "id": "correct-transcript-preserve-history",
+      "steps": ["open-transcript", "edit-segment:s003", "save-revision", "wait-ledger-regeneration"],
+      "assertions": ["revision-incremented", "previous-revision-viewable", "ledger-cites-new-revision"]
+    },
+    {
+      "id": "reject-critical-claim",
+      "steps": ["open-ledger-entry:i01", "set-verification-state:REJECTED", "enter-reason", "save"],
+      "assertions": ["state:REJECTED", "audit-entry-visible", "exact-feedback-not-silently-rewritten"]
+    },
+    {
+      "id": "delete-session-copies",
+      "steps": ["open-session-settings", "request-delete", "confirm-copy-list", "confirm-delete"],
+      "assertions": ["configured-copies-listed", "session-inaccessible", "audit-confirmation-visible"]
+    },
+    {
+      "id": "cost-observability",
+      "steps": ["open-system-metrics"],
+      "assertions": ["runtime-visible", "storage-visible", "provider-api-cost-visible"]
+    }
+  ]
+}

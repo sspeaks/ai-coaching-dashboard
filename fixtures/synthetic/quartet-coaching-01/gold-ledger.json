@@ -1,0 +1,96 @@
+{
+  "fixture_id": "quartet-coaching-01",
+  "transcript_revision": 3,
+  "model_provenance": {"model": "human-gold", "prompt_version": "gold-v1"},
+  "entries": [
+    {
+      "id": "i01", "topic": "bass onset",
+      "exact_feedback": "Bass, do not scoop into the first note. Land directly on the center.",
+      "paraphrase": "The bass should begin directly on the target pitch without approaching from below.",
+      "subject": "bass", "action": {"normalized": "avoid_scoop", "polarity": "negative", "critical": true},
+      "evidence": {"before": {"segment_id": "s002", "timestamp": 13.0}, "feedback": {"segment_id": "s003", "timestamp": 19.0}, "after": {"segment_id": "s005", "timestamp": 35.0}, "result": {"segment_id": "s006", "timestamp": 41.0}},
+      "observed_result": "improved", "confidence": 1.0, "uncertainty": null, "verification_state": "UNVERIFIED"
+    },
+    {
+      "id": "i02", "topic": "bass onset exercise",
+      "exact_feedback": "Speak the word once on pitch, then sing the tag again.",
+      "paraphrase": "Use a spoken-on-pitch repetition before retrying the tag.",
+      "subject": "bass", "action": {"normalized": "speak_on_pitch_then_retry", "polarity": "positive", "critical": false},
+      "evidence": {"feedback": {"segment_id": "s004", "timestamp": 24.0}, "after": {"segment_id": "s005", "timestamp": 35.0}, "result": {"segment_id": "s006", "timestamp": 41.0}},
+      "observed_result": "improved", "confidence": 1.0, "uncertainty": null, "verification_state": "UNVERIFIED"
+    },
+    {
+      "id": "i03", "topic": "lead diphthong",
+      "exact_feedback": "Lead, delay the second half of the diphthong in time.",
+      "paraphrase": "The lead should sustain the first vowel longer before changing the diphthong.",
+      "subject": "lead", "action": {"normalized": "delay_diphthong", "polarity": "positive", "critical": true},
+      "evidence": {"before": {"segment_id": "s007", "timestamp": 47.0}, "feedback": {"segment_id": "s008", "timestamp": 51.0}},
+      "observed_result": "not_evaluated", "confidence": 1.0, "uncertainty": null, "verification_state": "UNVERIFIED"
+    },
+    {
+      "id": "i04", "topic": "tenor release",
+      "exact_feedback": "Tenor, release exactly with the lead.",
+      "paraphrase": "The tenor and lead releases should align.",
+      "subject": "tenor", "action": {"normalized": "align_release_with_lead", "polarity": "positive", "critical": true},
+      "evidence": {"before": {"segment_id": "s009", "timestamp": 58.0}, "feedback": {"segment_id": "s010", "timestamp": 62.0}},
+      "observed_result": "not_evaluated", "confidence": 1.0, "uncertainty": null, "verification_state": "UNVERIFIED"
+    },
+    {
+      "id": "i05", "topic": "baritone balance",
+      "exact_feedback": "Baritone, maybe soften the third.",
+      "paraphrase": "A possibly coach-originated comment suggests reducing the baritone third.",
+      "subject": "baritone", "action": {"normalized": "soften_third", "polarity": "positive", "critical": true},
+      "evidence": {"before": {"segment_id": "s011", "timestamp": 69.0}, "feedback": {"segment_id": "s012", "timestamp": 72.0}},
+      "observed_result": "not_evaluated", "confidence": 0.45, "uncertainty": "Speaker identity is uncertain because speech overlaps quartet singing.", "verification_state": "UNVERIFIED"
+    },
+    {
+      "id": "i06", "topic": "humming exercise",
+      "exact_feedback": "Hum the phrase together first.",
+      "paraphrase": "The quartet should rehearse the phrase on a hum before adding words.",
+      "subject": "quartet", "action": {"normalized": "hum_phrase_first", "polarity": "positive", "critical": false},
+      "evidence": {"feedback": {"segment_id": "s013", "timestamp": 77.0}, "after": {"segment_id": "s014", "timestamp": 81.0}},
+      "observed_result": "not_evaluated", "confidence": 1.0, "uncertainty": null, "verification_state": "UNVERIFIED"
+    },
+    {
+      "id": "i07", "topic": "pickup breath",
+      "exact_feedback": "Everyone breathe together before the pickup.",
+      "paraphrase": "Coordinate a shared breath before the pickup.",
+      "subject": "quartet", "action": {"normalized": "breathe_together", "polarity": "positive", "critical": true},
+      "evidence": {"feedback": {"segment_id": "s017", "timestamp": 94.0}, "after": {"segment_id": "s018", "timestamp": 100.0}},
+      "observed_result": "not_evaluated", "confidence": 1.0, "uncertainty": null, "verification_state": "UNVERIFIED"
+    },
+    {
+      "id": "i08", "topic": "tag tempo",
+      "exact_feedback": "Do not speed through the tag.",
+      "paraphrase": "Maintain the established tempo through the tag.",
+      "subject": "quartet", "action": {"normalized": "avoid_acceleration", "polarity": "negative", "critical": true},
+      "evidence": {"before": {"segment_id": "s018", "timestamp": 102.0}, "feedback": {"segment_id": "s019", "timestamp": 106.0}},
+      "observed_result": "not_evaluated", "confidence": 1.0, "uncertainty": null, "verification_state": "UNVERIFIED"
+    },
+    {
+      "id": "i09", "topic": "measure repetition",
+      "exact_feedback": "Repeat measures twelve through fourteen twice.",
+      "paraphrase": "Practice measures 12-14 two times.",
+      "subject": "quartet", "action": {"normalized": "repeat_measures_12_14_twice", "polarity": "positive", "critical": true},
+      "evidence": {"feedback": {"segment_id": "s020", "timestamp": 110.0}, "after": {"segment_id": "s021", "timestamp": 117.0}},
+      "observed_result": "not_evaluated", "confidence": 1.0, "uncertainty": null, "verification_state": "UNVERIFIED"
+    },
+    {
+      "id": "i10", "topic": "starting pitch owner",
+      "exact_feedback": "Lead, take responsibility for giving the starting pitch.",
+      "paraphrase": "The lead owns supplying the quartet's starting pitch.",
+      "subject": "lead", "action": {"normalized": "give_starting_pitch", "polarity": "positive", "critical": true},
+      "evidence": {"feedback": {"segment_id": "s022", "timestamp": 122.0}},
+      "observed_result": "not_evaluated", "confidence": 1.0, "uncertainty": null, "verification_state": "UNVERIFIED"
+    },
+    {
+      "id": "i11", "topic": "ring without loudness",
+      "exact_feedback": "Keep the volume where it is; increase the ring, not the loudness.",
+      "paraphrase": "Preserve volume while increasing resonance rather than singing louder.",
+      "subject": "quartet", "action": {"normalized": "increase_ring_not_volume", "polarity": "negative", "critical": true},
+      "evidence": {"before": {"segment_id": "s023", "timestamp": 129.0}, "feedback": {"segment_id": "s024", "timestamp": 134.0}},
+      "observed_result": "not_evaluated", "confidence": 1.0, "uncertainty": null, "verification_state": "UNVERIFIED"
+    }
+  ],
+  "no_action_segments": ["s025", "s026"]
+}

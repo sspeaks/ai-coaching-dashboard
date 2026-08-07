@@ -1,0 +1,30 @@
+{
+  "fixture_id": "quartet-coaching-01",
+  "transcript_revision": 3,
+  "entries": [
+    {
+      "id": "i01",
+      "topic": "bass onset",
+      "exact_feedback": "Bass, scoop into the first note.",
+      "paraphrase": "The bass should approach the pitch from below.",
+      "subject": "bass",
+      "action": {"normalized": "encourage_scoop", "polarity": "positive", "critical": true},
+      "evidence": {"feedback": {"segment_id": "s003", "timestamp": 19.0}},
+      "confidence": 0.99,
+      "uncertainty": null,
+      "verification_state": "VERIFIED"
+    },
+    {
+      "id": "invented-01",
+      "topic": "tenor pitch",
+      "exact_feedback": "Tenor, raise the final note a semitone.",
+      "paraphrase": "Raise the tenor ending.",
+      "subject": "tenor",
+      "action": {"normalized": "raise_final_semitone", "polarity": "positive", "critical": true},
+      "evidence": {"feedback": {"segment_id": "s025", "timestamp": 141.0}},
+      "confidence": 0.98,
+      "uncertainty": null,
+      "verification_state": "VERIFIED"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "fixture_id": "quartet-coaching-01",
+  "title": "Synthetic quartet coaching evaluation session",
+  "license": "CC0-1.0",
+  "redistributable": true,
+  "contains_real_people": false,
+  "contains_copyrighted_recording": false,
+  "media": {
+    "included": false,
+    "reason": "The fixture is a synthetic timestamped transcript. Tests generate non-musical bytes when upload media is required.",
+    "expected_duration_seconds": 151.0
+  },
+  "participants": [
+    {"id": "coach", "role": "coach"},
+    {"id": "lead", "role": "singer", "voice_part": "lead"},
+    {"id": "tenor", "role": "singer", "voice_part": "tenor"},
+    {"id": "baritone", "role": "singer", "voice_part": "baritone"},
+    {"id": "bass", "role": "singer", "voice_part": "bass"}
+  ],
+  "coverage": [
+    "clear coach speech",
+    "quartet singing",
+    "coach demonstration",
+    "overlapping speech",
+    "exercise and retry",
+    "uncertain attribution",
+    "negative instruction",
+    "no-action passage"
+  ]
+}

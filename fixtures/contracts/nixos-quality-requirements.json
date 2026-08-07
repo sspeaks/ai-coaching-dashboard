@@ -1,0 +1,19 @@
+{
+  "required_flake_outputs": [
+    "nixosModules",
+    "checks"
+  ],
+  "required_vm_checks": [
+    "fresh-deploy",
+    "backup-restore"
+  ],
+  "required_configuration_concepts": [
+    "caddy",
+    "oauth2-proxy",
+    "postgres",
+    "backup",
+    "restore",
+    "container",
+    "provider"
+  ]
+}

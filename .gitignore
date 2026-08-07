@@ -1,0 +1,33 @@
+# Squad: ignore runtime state (logs, inbox, sessions)
+# Note: .squad/casting/* is identity and MUST be committed to main, not ignored
+.squad/orchestration-log/
+.squad/log/
+.squad/decisions/inbox/
+.squad/sessions/
+.squad/.scratch/
+.squad/.cache/
+# Squad: SubSquad activation file (local to this machine)
+.squad-workstream
+
+# Python build products, environments, and caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+.venv-*/
+venv/
+env/
+ENV/
+.test-runtime/
+services/*/tests/.runtime/
+
+# Frontend dependencies and generated output
+node_modules/
+apps/web/dist/
+packages/web-client/dist/
+coverage/

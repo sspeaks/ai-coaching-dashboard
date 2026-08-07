@@ -1,0 +1,131 @@
+import { useRef, useState, type FormEvent } from "react";
+import type { EvidenceApiClient, SessionDetail } from "@quartet-coach/web-client";
+
+interface UploadPanelProps {
+  client: EvidenceApiClient;
+  onUploaded: (session: SessionDetail) => void;
+}
+
+export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
+  const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
+  const [progress, setProgress] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!file || file.size === 0) {
+      setError("Choose a non-empty recording to upload.");
+      return;
+    }
+
+    setError(null);
+    setUploading(true);
+    setProgress(0);
+    const controller = new AbortController();
+    abortRef.current = controller;
+    let sessionId: string | null = null;
+    try {
+      const ticket = await client.initiateUpload({
+        fileName: file.name,
+        contentType: file.type || "application/octet-stream",
+        sizeBytes: file.size,
+        title: title.trim() || undefined,
+      });
+      sessionId = ticket.session.id;
+      await client.uploadFile(
+        ticket.upload,
+        file,
+        setProgress,
+        controller.signal,
+      );
+      const session = await client.completeUpload(
+        ticket.session.id,
+        ticket.upload.id,
+      );
+      setFile(null);
+      setTitle("");
+      setProgress(null);
+      onUploaded(session);
+    } catch (caught) {
+      if (caught instanceof DOMException && caught.name === "AbortError") {
+        if (sessionId) {
+          await client.cancelSession(sessionId).catch(() => undefined);
+        }
+        setError("Upload cancelled.");
+      } else {
+        setError(caught instanceof Error ? caught.message : "Upload failed.");
+      }
+    } finally {
+      abortRef.current = null;
+      setUploading(false);
+    }
+  }
+
+  return (
+    <section className="panel upload-panel" aria-labelledby="upload-heading">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">New recording</p>
+          <h2 id="upload-heading">Start an evidence record</h2>
+        </div>
+      </div>
+      <form onSubmit={submit}>
+        <label>
+          Session title <span className="optional">(optional)</span>
+          <input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            disabled={uploading}
+            placeholder="For example: August coaching session"
+          />
+        </label>
+        <label>
+          Recording
+          <input
+            type="file"
+            accept="audio/*,.m4a,.mp3,.wav,.flac,.aac,.ogg,.opus,.mp4"
+            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+            disabled={uploading}
+          />
+        </label>
+        <p className="supporting-text">
+          The original recording is retained until someone explicitly deletes
+          the session.
+        </p>
+        {progress !== null && (
+          <div className="upload-progress" aria-live="polite">
+            <div className="progress-row">
+              <span>Uploading {file?.name}</span>
+              <strong>{progress}%</strong>
+            </div>
+            <progress value={progress} max="100">
+              {progress}%
+            </progress>
+          </div>
+        )}
+        {error && (
+          <div className="inline-alert inline-alert--danger" role="alert">
+            {error}
+          </div>
+        )}
+        <div className="button-row">
+          <button className="button button--primary" disabled={!file || uploading}>
+            {uploading ? "Uploading…" : "Upload recording"}
+          </button>
+          {uploading && (
+            <button
+              className="button button--quiet"
+              type="button"
+              onClick={() => abortRef.current?.abort()}
+            >
+              Cancel upload
+            </button>
+          )}
+        </div>
+      </form>
+    </section>
+  );
+}

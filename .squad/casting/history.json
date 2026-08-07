@@ -1,0 +1,22 @@
+{
+  "universe_usage_history": [
+    {
+      "universe": "The Matrix",
+      "assignment_id": "2026-08-06-ai-coaching-dashboard",
+      "used_at": "2026-08-06T18:29:43.244-07:00"
+    }
+  ],
+  "assignment_cast_snapshots": {
+    "2026-08-06-ai-coaching-dashboard": {
+      "universe": "The Matrix",
+      "agents": {
+        "lead": "Morpheus",
+        "audio-ai-backend": "Neo",
+        "frontend": "Trinity",
+        "nixos-platform": "Tank",
+        "quality-evaluation": "Switch"
+      },
+      "created_at": "2026-08-06T18:29:43.244-07:00"
+    }
+  }
+}

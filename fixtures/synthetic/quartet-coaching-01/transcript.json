@@ -1,0 +1,32 @@
+{
+  "fixture_id": "quartet-coaching-01",
+  "revision": 3,
+  "segments": [
+    {"id": "s001", "start": 0.0, "end": 7.5, "speaker": "coach", "kind": "speech", "text": "We will work the tag first, then the opening."},
+    {"id": "s002", "start": 8.0, "end": 18.0, "speaker": "quartet", "kind": "singing", "text": "[quartet sings the tag; bass approaches the opening note from below]"},
+    {"id": "s003", "start": 18.4, "end": 23.2, "speaker": "coach", "kind": "speech", "text": "Bass, do not scoop into the first note. Land directly on the center."},
+    {"id": "s004", "start": 23.4, "end": 29.0, "speaker": "coach", "kind": "speech", "text": "Speak the word once on pitch, then sing the tag again."},
+    {"id": "s005", "start": 30.0, "end": 40.0, "speaker": "quartet", "kind": "singing", "text": "[quartet retries the tag with a centered bass onset]"},
+    {"id": "s006", "start": 40.2, "end": 43.0, "speaker": "coach", "kind": "speech", "text": "Yes, the onset is cleaner."},
+    {"id": "s007", "start": 44.0, "end": 50.0, "speaker": "lead", "kind": "singing", "text": "[lead demonstrates the word time]"},
+    {"id": "s008", "start": 50.2, "end": 55.5, "speaker": "coach", "kind": "speech", "text": "Lead, delay the second half of the diphthong in time."},
+    {"id": "s009", "start": 56.0, "end": 61.0, "speaker": "tenor", "kind": "singing", "text": "[tenor and lead sing the release]"},
+    {"id": "s010", "start": 61.1, "end": 65.0, "speaker": "coach", "kind": "speech", "text": "Tenor, release exactly with the lead."},
+    {"id": "s011", "start": 66.0, "end": 72.0, "speaker": "quartet", "kind": "singing", "text": "[quartet sustains a chord while coach begins speaking]"},
+    {"id": "s012", "start": 70.8, "end": 75.0, "speaker": "unknown", "kind": "overlap", "text": "[uncertain coach speech over singing] Baritone, maybe soften the third."},
+    {"id": "s013", "start": 76.0, "end": 79.0, "speaker": "coach", "kind": "speech", "text": "Hum the phrase together first."},
+    {"id": "s014", "start": 79.5, "end": 84.0, "speaker": "quartet", "kind": "singing", "text": "[quartet hums the phrase]"},
+    {"id": "s015", "start": 84.2, "end": 87.0, "speaker": "coach", "kind": "speech", "text": "Now sing it with the words."},
+    {"id": "s016", "start": 87.5, "end": 93.0, "speaker": "quartet", "kind": "singing", "text": "[quartet sings the phrase with words]"},
+    {"id": "s017", "start": 93.2, "end": 97.0, "speaker": "coach", "kind": "speech", "text": "Everyone breathe together before the pickup."},
+    {"id": "s018", "start": 98.0, "end": 105.0, "speaker": "quartet", "kind": "singing", "text": "[quartet sings the pickup and accelerates in the tag]"},
+    {"id": "s019", "start": 105.2, "end": 108.5, "speaker": "coach", "kind": "speech", "text": "Do not speed through the tag."},
+    {"id": "s020", "start": 109.0, "end": 113.0, "speaker": "coach", "kind": "speech", "text": "Repeat measures twelve through fourteen twice."},
+    {"id": "s021", "start": 113.5, "end": 121.0, "speaker": "quartet", "kind": "singing", "text": "[quartet repeats the passage twice]"},
+    {"id": "s022", "start": 121.2, "end": 125.0, "speaker": "coach", "kind": "speech", "text": "Lead, take responsibility for giving the starting pitch."},
+    {"id": "s023", "start": 126.0, "end": 133.0, "speaker": "quartet", "kind": "singing", "text": "[quartet sings a resonant chord at moderate volume]"},
+    {"id": "s024", "start": 133.2, "end": 138.0, "speaker": "coach", "kind": "speech", "text": "Keep the volume where it is; increase the ring, not the loudness."},
+    {"id": "s025", "start": 139.0, "end": 145.0, "speaker": "coach", "kind": "speech", "text": "That room is colder than yesterday. Let us take a short break."},
+    {"id": "s026", "start": 146.0, "end": 151.0, "speaker": "quartet", "kind": "silence", "text": "[chairs move; no coaching instruction]"}
+  ]
+}
