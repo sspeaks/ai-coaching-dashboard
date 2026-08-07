@@ -33,6 +33,10 @@ let
   // lib.optionalAttrs cfg.speakr.enable {
     EVIDENCE_SPEAKR_BASE_URL = "http://speakr:${toString cfg.speakr.containerPort}";
   };
+  extractionWorkerEnvironment = lib.optionalAttrs cfg.extractionGateway.enable {
+    EVIDENCE_EXTRACTION_PROVIDER = "http_json";
+    EVIDENCE_EXTRACTION_ENDPOINT = "http://extraction-gateway:${toString cfg.extractionGateway.containerPort}/";
+  };
   apiEnvironment = evidenceEnvironment // {
     AI_COACHING_GATEWAY_LISTEN_ADDRESS = "0.0.0.0:${toString cfg.evidenceApi.containerPort}";
     AI_COACHING_GATEWAY_BACKEND_ADDRESS = "127.0.0.1:18000";
@@ -219,6 +223,41 @@ in
       };
     };
 
+    extractionGateway = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Run the OpenAI-backed structured extraction gateway used by the evidence worker's http_json provider.";
+      };
+
+      image = mkImageOption {
+        description = "Extraction gateway image. Use the flake's extraction-gateway-image package locally or a pinned registry digest.";
+      };
+      imageFile = mkImageFileOption "Locally built extraction gateway image tarball.";
+
+      containerPort = lib.mkOption {
+        type = lib.types.port;
+        default = 8080;
+        description = "Port the extraction gateway listens on inside its container.";
+      };
+
+      environmentFiles = lib.mkOption {
+        type = lib.types.listOf lib.types.path;
+        default = [ "${cfg.secretsDir}/extraction-gateway.env" ];
+        description = ''
+          Env files with `EXTRACTION_GATEWAY_OPENAI_API_KEY` and
+          `EXTRACTION_GATEWAY_INBOUND_API_KEY`. The inbound key must match
+          the worker's `EVIDENCE_EXTRACTION_API_KEY`.
+        '';
+      };
+
+      extraEnvironment = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        default = { };
+        description = "Additional non-secret environment variables passed to the extraction gateway container.";
+      };
+    };
+
     webFrontend = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -292,6 +331,12 @@ in
         imageFile = cfg.evidenceWorker.imageFile;
       })
       ++ (imageAssertions {
+        componentPath = "services.aiCoaching.extractionGateway";
+        enable = cfg.extractionGateway.enable;
+        image = cfg.extractionGateway.image;
+        imageFile = cfg.extractionGateway.imageFile;
+      })
+      ++ (imageAssertions {
         componentPath = "services.aiCoaching.webFrontend";
         enable = cfg.webFrontend.enable && cfg.webFrontend.mode == "container";
         image = cfg.webFrontend.image;
@@ -351,15 +396,31 @@ in
           networks = [ cfg.network.name ];
           hostname = "evidence-worker";
           environmentFiles = cfg.evidenceWorker.environmentFiles;
-          environment = cfg.evidenceWorker.extraEnvironment // evidenceEnvironment;
+          environment = cfg.evidenceWorker.extraEnvironment // evidenceEnvironment // extractionWorkerEnvironment;
           volumes = [
             "${cfg.dataDir}/media:${sharedMediaPath}:rw"
             "${cfg.dataDir}/evidence-worker:/data/worker:rw"
           ];
-          dependsOn = lib.optional cfg.evidenceApi.enable "evidence-api";
+          dependsOn =
+            (lib.optional cfg.evidenceApi.enable "evidence-api")
+            ++ (lib.optional cfg.extractionGateway.enable "extraction-gateway");
           # No published ports: the worker is a background job consumer
           # only, reachable by nothing but other containers on the private
           # network (and nothing needs to reach it).
+          pull = "missing";
+        };
+      })
+
+      (lib.mkIf cfg.extractionGateway.enable {
+        extraction-gateway = {
+          image = cfg.extractionGateway.image;
+          imageFile = cfg.extractionGateway.imageFile;
+          networks = [ cfg.network.name ];
+          hostname = "extraction-gateway";
+          environmentFiles = cfg.extractionGateway.environmentFiles;
+          environment = cfg.extractionGateway.extraEnvironment;
+          # No published ports: only the evidence worker calls this service
+          # over the private Podman network.
           pull = "missing";
         };
       })
@@ -400,6 +461,9 @@ in
             after = lib.optional cfg.postgresql.enable "ai-coaching-postgresql-password.service";
           }
         ];
+      })
+      (lib.mkIf cfg.extractionGateway.enable {
+        podman-extraction-gateway = commonServiceOverrides;
       })
       (lib.mkIf (cfg.webFrontend.enable && cfg.webFrontend.mode == "container") {
         podman-web-frontend = commonServiceOverrides;

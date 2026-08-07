@@ -55,6 +55,51 @@ let
   };
   contractCaddyConfig =
     contractSystem.config.services.caddy.virtualHosts."contract.invalid".extraConfig;
+  extractionGatewaySystem = lib.nixosSystem {
+    inherit system;
+    specialArgs.inputs.ai-coaching-dashboard = self;
+    modules = [
+      self.nixosModules.aiCoaching
+      (import ../deploy/example-configuration.nix)
+      {
+        services.aiCoaching = {
+          extractionGateway = {
+            enable = true;
+            image = lib.mkForce "ai-coaching/extraction-gateway:flake";
+            imageFile = lib.mkForce artifacts.extractionGatewayImage;
+          };
+          backup.enable = lib.mkForce false;
+        };
+      }
+      (import ../deploy/eval-only-stub-hardware.nix)
+    ];
+  };
+  extractionGatewayContainers =
+    extractionGatewaySystem.config.virtualisation.oci-containers.containers;
+  externalTlsSystem = lib.nixosSystem {
+    inherit system;
+    specialArgs.inputs.ai-coaching-dashboard = self;
+    modules = [
+      self.nixosModules.aiCoaching
+      (import ../deploy/example-configuration.nix)
+      {
+        services.aiCoaching = {
+          domain = lib.mkForce "external.invalid";
+          caddy = {
+            acmeEmail = lib.mkForce null;
+            externalTls = {
+              enable = true;
+              httpPort = 18080;
+            };
+          };
+          backup.enable = lib.mkForce false;
+        };
+      }
+      (import ../deploy/eval-only-stub-hardware.nix)
+    ];
+  };
+  externalTlsConfig =
+    externalTlsSystem.config.services.caddy.virtualHosts."http://external.invalid:18080".extraConfig;
   badRegistryPin = builtins.tryEval (
     builtins.deepSeq
       (lib.nixosSystem {
@@ -216,6 +261,7 @@ in
     pkgs.runCommand "ai-coaching-fresh-deploy" { } ''
       test -s ${artifacts.evidenceApiImage}
       test -s ${artifacts.evidenceWorkerImage}
+      test -s ${artifacts.extractionGatewayImage}
       test -s ${artifacts.webFrontendImage}
       test -f ${artifacts.webFrontend}/index.html
       test -x ${artifacts.proxyGateway}/bin/ai-coaching-proxy-gateway
@@ -223,6 +269,8 @@ in
         | ${pkgs.gnugrep}/bin/grep -F '"ai-coaching/evidence-api:flake"'
       ${pkgs.gnutar}/bin/tar -xOf ${artifacts.evidenceWorkerImage} manifest.json \
         | ${pkgs.gnugrep}/bin/grep -F '"ai-coaching/evidence-worker:flake"'
+      ${pkgs.gnutar}/bin/tar -xOf ${artifacts.extractionGatewayImage} manifest.json \
+        | ${pkgs.gnugrep}/bin/grep -F '"ai-coaching/extraction-gateway:flake"'
       ${pkgs.gnutar}/bin/tar -xOf ${artifacts.webFrontendImage} manifest.json \
         | ${pkgs.gnugrep}/bin/grep -F '"ai-coaching/web-frontend:flake"'
       ${pkgs.caddy}/bin/caddy adapt \
@@ -233,8 +281,52 @@ in
       evaluated=${deployConfig.system.build.toplevel.drvPath}
       api-image=${artifacts.evidenceApiImage}
       worker-image=${artifacts.evidenceWorkerImage}
+      extraction-gateway-image=${artifacts.extractionGatewayImage}
       frontend-image=${artifacts.webFrontendImage}
       EOF
+    '';
+
+  extraction-gateway-module =
+    assert extractionGatewayContainers.extraction-gateway.image == "ai-coaching/extraction-gateway:flake";
+    assert extractionGatewayContainers.extraction-gateway.imageFile == artifacts.extractionGatewayImage;
+    assert
+      builtins.elem "/var/lib/ai-coaching/secrets/extraction-gateway.env"
+        extractionGatewayContainers.extraction-gateway.environmentFiles;
+    assert
+      extractionGatewayContainers.evidence-worker.environment.EVIDENCE_EXTRACTION_PROVIDER
+      == "http_json";
+    assert
+      extractionGatewayContainers.evidence-worker.environment.EVIDENCE_EXTRACTION_ENDPOINT
+      == "http://extraction-gateway:8080/";
+    assert
+      builtins.elem "extraction-gateway" extractionGatewayContainers.evidence-worker.dependsOn;
+    assert
+      extractionGatewaySystem.config.systemd.services.podman-extraction-gateway.unitConfig.ConditionPathExists
+      == writerRestoreCondition;
+    pkgs.runCommand "ai-coaching-extraction-gateway-module" { } ''
+      echo ${lib.escapeShellArg extractionGatewaySystem.config.system.build.toplevel.drvPath} > "$out"
+    '';
+
+  external-tls-proxy =
+    assert !externalTlsSystem.config.services.caddy.virtualHosts ? "external.invalid";
+    assert externalTlsSystem.config.networking.firewall.allowedTCPPorts == [ 18080 ];
+    assert externalTlsSystem.config.services.oauth2-proxy.cookie.secure;
+    assert externalTlsSystem.config.services.oauth2-proxy.reverseProxy;
+    assert
+      externalTlsSystem.config.services.oauth2-proxy.trustedProxyIP == [
+        "127.0.0.1/32"
+        "::1/128"
+      ];
+    assert lib.hasInfix "request_header -X-Forwarded-Proto" externalTlsConfig;
+    assert lib.hasInfix "header_up X-Forwarded-Proto https" externalTlsConfig;
+    assert lib.hasInfix "header_up X-Forwarded-Host {host}" externalTlsConfig;
+    assert lib.hasInfix "header_up X-Forwarded-Port 443" externalTlsConfig;
+    pkgs.runCommand "ai-coaching-external-tls-proxy" { } ''
+      ${pkgs.caddy}/bin/caddy adapt \
+        --adapter caddyfile \
+        --config ${externalTlsSystem.config.services.caddy.configFile} \
+        >/dev/null
+      echo ${lib.escapeShellArg externalTlsSystem.config.system.build.toplevel.drvPath} > "$out"
     '';
 
   backup-restore = pkgs.runCommand "ai-coaching-backup-restore" { } ''

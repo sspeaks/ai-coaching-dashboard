@@ -8,6 +8,7 @@ Caddy is the only public listener. Production requests use this path:
 browser -> Caddy -> oauth2-proxy OIDC forward-auth -> API gateway -> FastAPI
 browser -> Caddy -> oauth2-proxy OIDC forward-auth -> frontend
 Speakr webhook -> Caddy -> signed route -> API gateway -> FastAPI
+evidence worker -> extraction gateway -> OpenAI
 ```
 
 Caddy removes every client-supplied identity, group, forwarded-trust, and
@@ -15,6 +16,15 @@ internal hop-auth header. oauth2-proxy uses explicit issuer, client ID, scopes,
 verified email claim, groups claim, callback, and loopback trusted-proxy
 configuration. Caddy copies only oauth2-proxy's authenticated
 `X-Auth-Request-Email` and `X-Auth-Request-Groups` response headers.
+When TLS is terminated by an upstream reverse proxy, set
+`services.aiCoaching.caddy.externalTls.enable = true` and choose
+`services.aiCoaching.caddy.externalTls.httpPort`. The dashboard vhost then
+listens as plain HTTP (`http://<domain>:<httpPort>`) and does not request ACME
+certificates locally. Caddy still strips client-supplied forwarded headers
+before auth, then sends oauth2-proxy explicit HTTPS forwarded headers so
+`--reverse-proxy`, secure cookies, and redirects match the public HTTPS URL;
+oauth2-proxy continues to trust only loopback because Caddy is its immediate
+proxy.
 
 The frontend and FastAPI contracts are both rooted at `/api`; neither Caddy nor
 the API gateway strips that prefix. Before proxying an API or signed webhook
@@ -38,6 +48,14 @@ API and worker both mount the host's `dataDir/media` at `/data/media`.
 media paths are valid in either process and originals survive replacement,
 restart, and upgrade.
 
+Structured ledger extraction is isolated behind the optional extraction gateway
+container. The worker speaks the existing `http_json` contract to the gateway
+over the private Podman network; only the gateway receives transcript text and
+the OpenAI API key. The gateway is a single-process FastAPI/Uvicorn service with
+no persistent volume and is expected to use roughly 80-150 MB RSS plus transient
+request buffers. Ledger entry `confidence` values are model-self-reported and
+uncalibrated; they are not probabilities and must not replace human review.
+
 ## Reproducible outputs
 
 ```sh
@@ -46,6 +64,7 @@ nix build .#evidence-backend
 nix build .#web-frontend
 nix build .#evidence-api-image
 nix build .#evidence-worker-image
+nix build .#extraction-gateway-image
 nix build .#web-frontend-image
 ```
 
@@ -53,6 +72,7 @@ The image names embedded in the archives are:
 
 - `ai-coaching/evidence-api:flake`
 - `ai-coaching/evidence-worker:flake`
+- `ai-coaching/extraction-gateway:flake`
 - `ai-coaching/web-frontend:flake`
 
 Inspect them locally:
@@ -60,9 +80,11 @@ Inspect them locally:
 ```sh
 nix build .#evidence-api-image --out-link result-api
 nix build .#evidence-worker-image --out-link result-worker
+nix build .#extraction-gateway-image --out-link result-extraction
 nix build .#web-frontend-image --out-link result-frontend
 podman load --input ./result-api
 podman load --input ./result-worker
+podman load --input ./result-extraction
 podman load --input ./result-frontend
 podman image inspect ai-coaching/evidence-api:flake
 ```
@@ -145,12 +167,111 @@ Create `/var/lib/ai-coaching/secrets` as root and use mode `0400` for files:
 | `proxy-auth.env` | Exactly `AI_COACHING_PROXY_AUTH_SECRET=<at least 32 random characters>`; loaded only by Caddy and the API gateway |
 | `speakr.env` | First-boot `ADMIN_USERNAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, stable `SECRET_KEY`, and Speakr-supported transcription/text-model credentials |
 | `evidence-api.env` | `EVIDENCE_DATABASE_URL`, the user-bound `EVIDENCE_SPEAKR_API_TOKEN`, and `EVIDENCE_SPEAKR_WEBHOOK_SECRET` |
-| `evidence-worker.env` | `EVIDENCE_DATABASE_URL`, the same user-bound `EVIDENCE_SPEAKR_API_TOKEN`, and—unless extraction is deliberately disabled—`EVIDENCE_EXTRACTION_PROVIDER=http_json`, `EVIDENCE_EXTRACTION_ENDPOINT`, and `EVIDENCE_EXTRACTION_API_KEY` |
+| `evidence-worker.env` | `EVIDENCE_DATABASE_URL`, the same user-bound `EVIDENCE_SPEAKR_API_TOKEN`, and—when extraction is enabled—`EVIDENCE_EXTRACTION_API_KEY` |
+| `extraction-gateway.env` | `EXTRACTION_GATEWAY_OPENAI_API_KEY` and `EXTRACTION_GATEWAY_INBOUND_API_KEY`; the inbound key must equal the worker's `EVIDENCE_EXTRACTION_API_KEY` |
 
 Do not put values in Nix expressions. The module sets non-secret production
 contract values (auth mode, exact trusted email/group headers, loopback-only
 trusted proxy networks, role groups, media root, and Speakr network URL)
 directly and they override conflicting env-file values.
+
+To enable structured extraction, configure the gateway image and keep the shared
+bearer token in both secret env files:
+
+```nix
+services.aiCoaching.extractionGateway = {
+  enable = true;
+  image = "ai-coaching/extraction-gateway:flake";
+  imageFile = inputs.ai-coaching-dashboard.packages.${pkgs.stdenv.hostPlatform.system}.extraction-gateway-image;
+};
+```
+
+The module then sets the worker's non-secret routing values:
+
+```text
+EVIDENCE_EXTRACTION_PROVIDER=http_json
+EVIDENCE_EXTRACTION_ENDPOINT=http://extraction-gateway:8080/
+```
+
+Set these secrets out-of-band:
+
+```text
+# evidence-worker.env
+EVIDENCE_EXTRACTION_API_KEY=<shared-random-token>
+
+# extraction-gateway.env
+EXTRACTION_GATEWAY_OPENAI_API_KEY=<openai-api-key>
+EXTRACTION_GATEWAY_INBOUND_API_KEY=<same-shared-random-token>
+EXTRACTION_GATEWAY_OPENAI_MODEL=gpt-4o
+EXTRACTION_GATEWAY_OPENAI_BASE_URL=https://api.openai.com/v1
+EXTRACTION_GATEWAY_REQUEST_TIMEOUT_SECONDS=120
+```
+
+## Authentik UI setup
+
+Create this manually in the Authentik admin UI; do not use the Authentik API.
+For the `streams.sspeaks.net` deployment, use the slug `ai-coaching` so the
+issuer URL is exactly:
+
+```text
+https://auth.sspeaks.net/application/o/ai-coaching/
+```
+
+1. Go to **Applications → Providers → Create**.
+2. Provider type: **OAuth2/OpenID Provider**.
+3. Name: `AI Coaching Dashboard`.
+4. Authorization flow: Authentik's default explicit consent or default
+   authorization flow.
+5. Client type: **Confidential**.
+6. Client ID: `ai-coaching` if the UI allows setting it; otherwise copy the
+   generated **Client ID** from the provider detail page and set
+   `services.aiCoaching.oidc.clientID` to that value in the host config.
+7. Copy the generated **Client Secret** from the same provider page into the
+   deployment secret named `ai-coaching-oidc-client-secret`.
+8. Redirect URIs / redirect URI regex:
+
+   ```text
+   https://streams.sspeaks.net/oauth2/callback
+   ```
+
+9. Signing key / algorithm: use Authentik's default RSA signing key with
+   **RS256**.
+10. Subject mode: **Based on the User's ID**.
+11. Scope mappings: include `openid`, `email`, `profile`, and an explicit
+    `groups` mapping. The Nix config requests these scopes and sets
+    `groupsClaim = "groups"`, so oauth2-proxy will copy the received
+    `groups` claim into `X-Auth-Request-Groups` for the backend.
+12. Create the explicit groups scope mapping if it is not already present:
+    go to **Customization → Property Mappings → Create → OAuth2/OpenID Scope
+    Mapping** and set:
+
+    ```text
+    Name: AI Coaching groups
+    Scope name: groups
+    Description: Group names for AI Coaching Dashboard RBAC
+    Expression:
+    return {
+        "groups": [group.name for group in request.user.groups.all()],
+    }
+    ```
+
+    Add this mapping to the provider's Scope mappings. Authentik's built-in
+    `profile` mapping also commonly emits `groups` as group names, but this
+    explicit mapping makes the deployment contract unambiguous.
+13. Go to **Applications → Applications → Create**.
+14. Name: `AI Coaching Dashboard`.
+15. Slug: `ai-coaching`.
+16. Provider: select the provider created above.
+17. Security-critical access gate: bind the Application to the existing
+    Authentik `quartet-members` group (or an equivalent allow policy) so only
+    that group can launch the app. The Nix config intentionally sets
+    `emailDomains = [ "*" ]`, which oauth2-proxy documents as "authenticate
+    any email", so dashboard access is otherwise as broad as whatever
+    Authentik will authenticate. This binding is an access gate only; it is
+    also the dashboard admin role source: Nix maps `quartet-members` to
+    `adminGroups`, and admins satisfy editor-only endpoints such as creating
+    sessions and uploading media. Confirm Authentik emits the plain group name
+    `quartet-members` in the `groups` claim (not a UUID, path, or DN).
 
 Create the hop credential without printing it:
 
@@ -183,11 +304,11 @@ ADMIN_USERNAME=<initial-admin-name>
 ADMIN_EMAIL=<initial-admin-address>
 ADMIN_PASSWORD=<strong-unique-password>
 SECRET_KEY=<stable-random-secret>
-TEXT_MODEL_BASE_URL=<provider-url>
-TEXT_MODEL_API_KEY=<provider-key>
-TEXT_MODEL_NAME=<model>
-TRANSCRIPTION_API_KEY=<provider-key>
-TRANSCRIPTION_MODEL=<model>
+TEXT_MODEL_BASE_URL=https://api.openai.com/v1
+TEXT_MODEL_API_KEY=<OpenAI API key>
+TEXT_MODEL_NAME=gpt-4.1-mini
+TRANSCRIPTION_API_KEY=<OpenAI API key>
+TRANSCRIPTION_MODEL=gpt-4o-mini-transcribe
 ```
 
 Use Speakr's documented `ASR_BASE_URL` settings instead of the transcription

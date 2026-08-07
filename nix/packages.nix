@@ -13,6 +13,7 @@ let
       ../packages/contracts
       ../services/evidence-api
       ../services/evidence-worker
+      ../services/extraction-gateway
       ../services/media-adapter
     ];
   };
@@ -52,6 +53,7 @@ let
     pythonImportsCheck = [
       "evidence_api.app"
       "evidence_worker.worker"
+      "extraction_gateway.app"
       "media_adapter"
     ];
   };
@@ -115,6 +117,7 @@ let
   imageNames = {
     evidenceApi = "ai-coaching/evidence-api";
     evidenceWorker = "ai-coaching/evidence-worker";
+    extractionGateway = "ai-coaching/extraction-gateway";
     webFrontend = "ai-coaching/web-frontend";
     tag = "flake";
   };
@@ -161,6 +164,30 @@ let
     };
   };
 
+  extractionGatewayImage = pkgs.dockerTools.buildLayeredImage {
+    name = imageNames.extractionGateway;
+    inherit (imageNames) tag;
+    contents = [
+      evidenceBackend
+      pkgs.cacert
+    ];
+    config = {
+      Entrypoint = [ "${evidenceBackend}/bin/extraction-gateway" ];
+      Cmd = [
+        "--host"
+        "0.0.0.0"
+        "--port"
+        "8080"
+      ];
+      Env = [
+        "PYTHONUNBUFFERED=1"
+        "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+      ];
+      ExposedPorts."8080/tcp" = { };
+      WorkingDir = "/data";
+    };
+  };
+
   webFrontendImage = pkgs.dockerTools.buildLayeredImage {
     name = imageNames.webFrontend;
     inherit (imageNames) tag;
@@ -191,6 +218,7 @@ in
     webFrontend
     evidenceApiImage
     evidenceWorkerImage
+    extractionGatewayImage
     webFrontendImage
     imageNames
     ;

@@ -33,6 +33,7 @@
           web-frontend = artifacts.webFrontend;
           evidence-api-image = artifacts.evidenceApiImage;
           evidence-worker-image = artifacts.evidenceWorkerImage;
+          extraction-gateway-image = artifacts.extractionGatewayImage;
           web-frontend-image = artifacts.webFrontendImage;
           default = artifacts.webFrontend;
         }

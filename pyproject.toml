@@ -24,16 +24,18 @@ test = ["pytest>=8.3,<9"]
 [project.scripts]
 evidence-api = "evidence_api.app:run"
 evidence-worker = "evidence_worker.worker:run"
+extraction-gateway = "extraction_gateway.app:run"
 
 [tool.setuptools.packages.find]
 where = [
   "packages/contracts",
   "services/evidence-api",
   "services/evidence-worker",
+  "services/extraction-gateway",
   "services/media-adapter",
 ]
-include = ["coaching_contracts*", "evidence_api*", "evidence_worker*", "media_adapter*"]
+include = ["coaching_contracts*", "evidence_api*", "evidence_worker*", "extraction_gateway*", "media_adapter*"]
 
 [tool.pytest.ini_options]
-testpaths = ["services/evidence-api/tests", "services/evidence-worker/tests"]
+testpaths = ["services/evidence-api/tests", "services/evidence-worker/tests", "services/extraction-gateway/tests"]
 addopts = "-q"

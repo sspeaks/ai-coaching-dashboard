@@ -52,6 +52,11 @@ let
   forwardAuth = lib.optionalString oidc.enable ''
     forward_auth 127.0.0.1:${toString oidc.port} {
       uri /oauth2/auth
+      ${lib.optionalString caddy.externalTls.enable ''
+        header_up X-Forwarded-Proto https
+        header_up X-Forwarded-Host {host}
+        header_up X-Forwarded-Port 443
+      ''}
       copy_headers X-Auth-Request-User X-Auth-Request-Email X-Auth-Request-Groups X-Auth-Request-Preferred-Username
     }
   '';
@@ -87,6 +92,16 @@ let
           reverse_proxy 127.0.0.1:${toString cfg.webFrontend.hostPort}
         }
       '';
+  caddySite =
+    if caddy.externalTls.enable then
+      "http://${cfg.domain}:${toString caddy.externalTls.httpPort}"
+    else
+      cfg.domain;
+  externalTlsOauth2ProxyHeaders = lib.optionalString caddy.externalTls.enable ''
+    header_up X-Forwarded-Proto https
+    header_up X-Forwarded-Host {host}
+    header_up X-Forwarded-Port 443
+  '';
 in
 {
   options.services.aiCoaching = {
@@ -212,6 +227,25 @@ in
         default = "";
         description = "Additional trusted operator Caddy directives appended after module routes.";
       };
+
+      externalTls = {
+        enable = lib.mkOption {
+          type = lib.types.bool;
+          default = false;
+          description = ''
+            Serve plain HTTP on `httpPort` because TLS is terminated by an
+            operator-managed reverse proxy in front of this host. This keeps
+            oauth2-proxy cookies secure and its redirects HTTPS-aware while
+            disabling this host's ACME/automatic HTTPS for the dashboard vhost.
+          '';
+        };
+
+        httpPort = lib.mkOption {
+          type = lib.types.port;
+          default = 8080;
+          description = "Plain HTTP port Caddy listens on when external TLS termination is enabled.";
+        };
+      };
     };
   };
 
@@ -250,6 +284,14 @@ in
           oidc.adminGroups ++ oidc.editorGroups
         );
         message = "oidc.adminGroups and oidc.editorGroups must contain non-empty group names without commas.";
+      }
+      {
+        assertion = !caddy.externalTls.enable || oidc.enable;
+        message = "caddy.externalTls.enable is supported only with OIDC enabled so secure cookie and redirect behavior remains explicit.";
+      }
+      {
+        assertion = !caddy.externalTls.enable || caddy.acmeEmail == null;
+        message = "caddy.acmeEmail must be null when caddy.externalTls.enable is true because this host does not manage ACME for the dashboard vhost.";
       }
     ];
 
@@ -301,7 +343,7 @@ in
     services.caddy = lib.mkIf caddy.enable {
       enable = true;
       email = caddy.acmeEmail;
-      virtualHosts.${cfg.domain} = {
+      virtualHosts.${caddySite} = {
         listenAddresses = lib.optionals (cfg.bindAddress != "0.0.0.0") [ cfg.bindAddress ];
         extraConfig = ''
           encode gzip zstd
@@ -312,7 +354,9 @@ in
 
           ${lib.optionalString oidc.enable ''
             handle /oauth2/* {
-              reverse_proxy 127.0.0.1:${toString oidc.port}
+              reverse_proxy 127.0.0.1:${toString oidc.port} {
+                ${externalTlsOauth2ProxyHeaders}
+              }
             }
           ''}
 
@@ -338,9 +382,13 @@ in
       };
     };
 
-    networking.firewall.allowedTCPPorts = lib.optionals caddy.enable [
-      80
-      443
-    ];
+    networking.firewall.allowedTCPPorts =
+      lib.optionals (caddy.enable && !caddy.externalTls.enable) [
+        80
+        443
+      ]
+      ++ lib.optionals (caddy.enable && caddy.externalTls.enable) [
+        caddy.externalTls.httpPort
+      ];
   };
 }
