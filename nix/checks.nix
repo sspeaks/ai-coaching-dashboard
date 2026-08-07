@@ -318,6 +318,9 @@ in
         "::1/128"
       ];
     assert lib.hasInfix "request_header -X-Forwarded-Proto" externalTlsConfig;
+    assert lib.hasInfix "@error status 401" externalTlsConfig;
+    assert lib.hasInfix "redir * /oauth2/start?rd=https://{host}{uri}" externalTlsConfig;
+
     assert lib.hasInfix "header_up X-Forwarded-Proto https" externalTlsConfig;
     assert lib.hasInfix "header_up X-Forwarded-Host {host}" externalTlsConfig;
     assert lib.hasInfix "header_up X-Forwarded-Port 443" externalTlsConfig;

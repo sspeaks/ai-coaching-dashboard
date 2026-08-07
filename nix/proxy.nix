@@ -49,6 +49,12 @@ let
     header: "request_header -${header}"
   ) untrustedHeaders;
 
+  # Scheme used when sending an unauthenticated browser to the sign-in flow.
+  # Under external TLS termination Caddy itself listens on plain HTTP, so
+  # {scheme} would resolve to "http" and oauth2-proxy would build an
+  # http:// redirect URI that no longer matches the registered OIDC callback.
+  redirectScheme = if caddy.externalTls.enable then "https" else "{scheme}";
+
   forwardAuth = lib.optionalString oidc.enable ''
     forward_auth 127.0.0.1:${toString oidc.port} {
       uri /oauth2/auth
@@ -58,6 +64,13 @@ let
         header_up X-Forwarded-Port 443
       ''}
       copy_headers X-Auth-Request-User X-Auth-Request-Email X-Auth-Request-Groups X-Auth-Request-Preferred-Username
+
+      # Without this, Caddy passes oauth2-proxy's 401 straight back to the
+      # browser and the user can never reach the identity provider.
+      @error status 401
+      handle_response @error {
+        redir * /oauth2/start?rd=${redirectScheme}://{host}{uri}
+      }
     }
   '';
 
