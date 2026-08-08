@@ -1,8 +1,17 @@
+import json
 import logging
 
 import pytest
 
-from extraction_gateway.openai_client import OpenAIClientError, OpenAITimeoutError
+from extraction_gateway.app import ModelExtractionResponse
+from extraction_gateway.openai_client import (
+    _UNSUPPORTED_SCHEMA_KEYWORDS as UNSUPPORTED_SCHEMA_KEYWORDS,
+)
+from extraction_gateway.openai_client import (
+    OpenAIClientError,
+    OpenAITimeoutError,
+    to_strict_schema,
+)
 
 from conftest import make_client
 
@@ -214,3 +223,46 @@ def test_openai_errors_propagate_as_clean_errors(
 
     assert response.status_code == expected_status
     assert response.json()["detail"]["code"] == expected_code
+
+
+def _strict_mode_violations(node, path="#"):
+    violations = []
+    if isinstance(node, dict):
+        if "properties" in node or node.get("type") == "object":
+            if node.get("additionalProperties") is not False:
+                violations.append(f"{path}: additionalProperties is not false")
+            missing = set(node.get("properties", {})) - set(node.get("required", []))
+            if missing:
+                violations.append(f"{path}: not required -> {sorted(missing)}")
+        for key, value in node.items():
+            if key in UNSUPPORTED_SCHEMA_KEYWORDS:
+                violations.append(f"{path}: unsupported keyword {key}")
+            violations.extend(_strict_mode_violations(value, f"{path}/{key}"))
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            violations.extend(_strict_mode_violations(value, f"{path}[{index}]"))
+    return violations
+
+
+def test_ledger_schema_sent_to_openai_satisfies_strict_mode():
+    strict = to_strict_schema(ModelExtractionResponse.model_json_schema())
+
+    assert _strict_mode_violations(strict) == []
+
+
+def test_strict_schema_drops_free_form_maps_and_keeps_ledger_fields():
+    strict = to_strict_schema(ModelExtractionResponse.model_json_schema())
+    entry = strict["$defs"]["LedgerEntryCreate"]
+
+    assert "extraction_metadata" not in entry["properties"]
+    assert "topic" in entry["required"]
+    assert "exact_coach_feedback" in entry["required"]
+
+
+def test_strict_schema_does_not_mutate_the_input():
+    original = ModelExtractionResponse.model_json_schema()
+    snapshot = json.dumps(original, sort_keys=True)
+
+    to_strict_schema(original)
+
+    assert json.dumps(original, sort_keys=True) == snapshot

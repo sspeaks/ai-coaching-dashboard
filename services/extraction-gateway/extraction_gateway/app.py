@@ -200,6 +200,7 @@ def _coerce_entries(payload: Any, body: ExtractionRequest) -> GatewayExtractionR
     try:
         response = ModelExtractionResponse.model_validate(payload)
     except ValidationError as exc:
+        logger.warning("model response failed ledger validation errors=%s", exc.errors()[:3])
         raise _http_error(
             "invalid_model_response",
             f"model response did not match the ledger schema: {exc.errors()[0]['msg']}",
@@ -268,6 +269,7 @@ def create_app(
             if isinstance(exc, OpenAITimeoutError)
             else status.HTTP_502_BAD_GATEWAY
         )
+        logger.warning("extraction upstream failure code=%s detail=%s", exc.code, exc)
         return JSONResponse(
             status_code=status_code,
             content={"detail": {"code": exc.code, "message": str(exc)}},
