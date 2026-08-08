@@ -100,7 +100,11 @@ def _build_messages(body: ExtractionRequest) -> list[dict[str, str]]:
             "content": (
                 "Extract source-grounded coaching ledger entries from transcript "
                 "segments. Return only JSON matching the supplied schema. Treat "
-                "segment IDs and timestamps as evidence constraints."
+                "segment IDs and timestamps as evidence constraints. "
+                "`exact_coach_feedback` must be copied character for character "
+                "from the text of a cited segment -- never paraphrased, "
+                "summarized, tidied up, or stitched together across segments. "
+                "Use null whenever no such verbatim span exists."
             ),
         },
         {
@@ -135,6 +139,20 @@ def _supported_by_evidence(
         token = next(iter(value_tokens))
         return token in allowed_short_values and token in evidence_tokens
     return len(value_tokens & evidence_tokens) / len(value_tokens) >= 0.6
+
+
+def _is_verbatim_quote(value: str | None, cited_text: list[str]) -> bool:
+    if value is None:
+        return True
+    # Must match evidence-api's rule exactly: it rejects the whole extraction if
+    # the quote is not a substring of the cited segment text, so anything this
+    # lets through has to survive that check verbatim.
+    quote = _normalize_quote_text(value)
+    return bool(quote) and quote in _normalize_quote_text(" ".join(cited_text))
+
+
+def _normalize_quote_text(value: str) -> str:
+    return re.sub(r"\s+", " ", value).strip().casefold()
 
 
 def _normalize_entry(
@@ -185,6 +203,12 @@ def _normalize_entry(
     evidence_text = "\n".join(cited_text)
     data = entry.model_dump(mode="json")
     data["evidence"] = normalized_evidence
+    if not _is_verbatim_quote(entry.exact_coach_feedback, cited_text):
+        # The model paraphrased rather than quoted. Storing a paraphrase in a
+        # field that means "what the coach actually said" would fabricate a
+        # quote, and evidence-api rejects the entire extraction over one such
+        # entry. Drop the quote and keep the cited entry.
+        data["exact_coach_feedback"] = None
     if not _supported_by_evidence(
         entry.applies_to,
         evidence_text,

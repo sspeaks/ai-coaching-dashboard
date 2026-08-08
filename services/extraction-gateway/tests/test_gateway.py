@@ -266,3 +266,46 @@ def test_strict_schema_does_not_mutate_the_input():
     to_strict_schema(original)
 
     assert json.dumps(original, sort_keys=True) == snapshot
+
+
+def test_paraphrased_coach_feedback_is_nulled_not_stored_as_a_quote(
+    settings, extraction_body, auth_headers
+):
+    payload = {
+        "entries": [
+            ledger_entry(exact_coach_feedback="The coach asked the lead to relax.")
+        ]
+    }
+
+    with make_client(settings, payload=payload) as (client, _):
+        response = client.post("/", json=extraction_body, headers=auth_headers)
+
+    assert response.status_code == 200
+    entries = response.json()["entries"]
+    assert len(entries) == 1
+    assert entries[0]["exact_coach_feedback"] is None
+
+
+def test_verbatim_coach_feedback_survives_whitespace_and_case_differences(
+    settings, extraction_body, auth_headers
+):
+    payload = {
+        "entries": [
+            ledger_entry(exact_coach_feedback="Lead,   release   the   SOUND.")
+        ]
+    }
+
+    with make_client(settings, payload=payload) as (client, _):
+        response = client.post("/", json=extraction_body, headers=auth_headers)
+
+    assert response.json()["entries"][0]["exact_coach_feedback"] == (
+        "Lead,   release   the   SOUND."
+    )
+
+
+def test_the_model_is_told_to_quote_verbatim(settings, extraction_body, auth_headers):
+    with make_client(settings, payload={"entries": []}) as (client, fake):
+        client.post("/", json=extraction_body, headers=auth_headers)
+
+    system_prompt = fake.calls[0]["messages"][0]["content"]
+    assert "character for character" in system_prompt
