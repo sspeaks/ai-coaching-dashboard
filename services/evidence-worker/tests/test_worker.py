@@ -6,12 +6,14 @@ from fastapi.testclient import TestClient
 from sqlalchemy import update
 from sqlalchemy.orm.exc import StaleDataError
 
+import pytest
 from coaching_contracts import (
     EvidenceReference,
     JobStatus,
     JobType,
     LedgerEntryCreate,
     SessionState,
+    TranscriptSegment,
 )
 from evidence_api.app import create_app
 from evidence_api.db import (
@@ -1661,3 +1663,88 @@ def test_recover_abandoned_jobs_handles_concurrent_version_conflict_without_abor
     with factory() as db:
         ambiguous_job = db.get(JobRecord, ambiguous_job_id)
         assert ambiguous_job.status == JobStatus.CANCELLED.value
+
+
+def _speakr_transcript_adapter(monkeypatch, payload):
+    def handle_request(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=payload)
+
+    adapter = SpeakrHttpAdapter("https://speakr.invalid", "test-token")
+    monkeypatch.setattr(
+        adapter,
+        "_client",
+        lambda: httpx.Client(
+            base_url=adapter.base_url,
+            headers={"X-API-Token": adapter.api_token},
+            transport=httpx.MockTransport(handle_request),
+        ),
+    )
+    return adapter
+
+
+def test_speakr_segments_are_normalized_to_the_transcript_contract(monkeypatch):
+    adapter = _speakr_transcript_adapter(
+        monkeypatch,
+        {
+            "format": "json",
+            "segments": [
+                {
+                    "id": "s1",
+                    "start_time": 1.1,
+                    "end_time": 2.0,
+                    "sentence": "Lead, release the sound.",
+                    "speaker": "A",
+                },
+                {"start": 2.0, "end": 3.5, "text": "Better."},
+            ],
+        },
+    )
+
+    segments = adapter.get_transcript("recording-1")
+
+    assert [TranscriptSegment.model_validate(item).model_dump() for item in segments] == [
+        {
+            "segment_id": "s1",
+            "start_ms": 1100,
+            "end_ms": 2000,
+            "text": "Lead, release the sound.",
+            "provider_speaker_label": "A",
+        },
+        {
+            "segment_id": "speakr-1",
+            "start_ms": 2000,
+            "end_ms": 3500,
+            "text": "Better.",
+            "provider_speaker_label": None,
+        },
+    ]
+
+
+def test_speakr_transcript_without_segments_is_an_error_not_an_empty_transcript(
+    monkeypatch,
+):
+    adapter = _speakr_transcript_adapter(
+        monkeypatch,
+        {"format": "json", "segments": [], "raw": "a transcript with no timestamps"},
+    )
+
+    with pytest.raises(AdapterResponseError):
+        adapter.get_transcript("recording-1")
+
+
+@pytest.mark.parametrize(
+    "segment",
+    [
+        {"start_time": 1.0, "sentence": "no end"},
+        {"start_time": 2.0, "end_time": 2.0, "sentence": "empty range"},
+        {"start_time": 2.0, "end_time": 1.0, "sentence": "reversed"},
+        {"start_time": 1.0, "end_time": 2.0},
+    ],
+)
+def test_speakr_rejects_segments_it_cannot_faithfully_represent(monkeypatch, segment):
+    adapter = _speakr_transcript_adapter(
+        monkeypatch, {"format": "json", "segments": [segment]}
+    )
+
+    with pytest.raises(AdapterResponseError):
+        adapter.get_transcript("recording-1")

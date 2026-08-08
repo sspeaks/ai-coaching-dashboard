@@ -308,8 +308,15 @@ TEXT_MODEL_BASE_URL=https://api.openai.com/v1
 TEXT_MODEL_API_KEY=<OpenAI API key>
 TEXT_MODEL_NAME=gpt-4.1-mini
 TRANSCRIPTION_API_KEY=<OpenAI API key>
-TRANSCRIPTION_MODEL=gpt-4o-mini-transcribe
+TRANSCRIPTION_MODEL=gpt-4o-transcribe-diarize
 ```
+
+`TRANSCRIPTION_MODEL` must name a model that returns **timestamped segments**.
+Speakr only requests timestamps from diarization-capable models; every other
+model returns one undifferentiated block of text with an empty `segments` list,
+and the dashboard rejects such a transcript rather than storing an empty
+revision. Ledger evidence cites transcript ranges, so a transcript without
+timestamps cannot be cited and no ledger entries can be extracted from it.
 
 Use Speakr's documented `ASR_BASE_URL` settings instead of the transcription
 API variables when operating a self-hosted ASR service. Apply mode `0400`,
