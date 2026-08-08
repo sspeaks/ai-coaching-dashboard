@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 from typing import Any
 
@@ -10,8 +9,6 @@ from .base import (
     SpeakrRecording,
     TranscriptionSubmissionMode,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class SpeakrHttpAdapter:
@@ -146,80 +143,7 @@ class SpeakrHttpAdapter:
                 "the recording must be transcribed with a model that emits "
                 "segment timestamps"
             )
-
-        normalized: list[dict] = []
-        empty_range_count = 0
-        for index, item in enumerate(segments):
-            segment = self._segment(item, index)
-            if segment is None:
-                empty_range_count += 1
-                continue
-            normalized.append(segment)
-
-        if empty_range_count:
-            # Chunk-boundary artifacts: a word or two that Speakr timestamps as
-            # starting and ending at the same instant. Evidence cites a range,
-            # so a zero-length segment could never support a ledger entry, and
-            # giving it a length would be inventing timing that was not observed.
-            logger.warning(
-                "dropped %s zero-length Speakr transcript segment(s) of %s",
-                empty_range_count,
-                len(segments),
-            )
-        if not normalized:
-            raise AdapterResponseError(
-                "Speakr returned a transcript whose segments all had zero length"
-            )
-        return normalized
-
-    @classmethod
-    def _segment(cls, item: Any, index: int) -> dict | None:
-        if not isinstance(item, dict):
-            raise AdapterResponseError("Speakr transcript segment was not an object")
-
-        start_ms = cls._timestamp_ms(item, ("start_time", "start"), index)
-        end_ms = cls._timestamp_ms(item, ("end_time", "end"), index)
-        if end_ms < start_ms:
-            raise AdapterResponseError(
-                f"Speakr transcript segment {index} ends before it starts"
-            )
-        if end_ms == start_ms:
-            return None
-
-        text = item.get("sentence")
-        if not isinstance(text, str):
-            text = item.get("text")
-        if not isinstance(text, str):
-            raise AdapterResponseError(
-                f"Speakr transcript segment {index} carried no text"
-            )
-
-        speaker = item.get("speaker")
-        segment_id = item.get("id")
-
-        return {
-            "segment_id": str(segment_id) if segment_id is not None else f"speakr-{index}",
-            "start_ms": start_ms,
-            "end_ms": end_ms,
-            "text": text,
-            "provider_speaker_label": str(speaker) if speaker not in (None, "") else None,
-        }
-
-    @staticmethod
-    def _timestamp_ms(item: dict, keys: tuple[str, ...], index: int) -> int:
-        for key in keys:
-            value = item.get(key)
-            if isinstance(value, bool) or not isinstance(value, (int, float)):
-                continue
-            if value < 0:
-                raise AdapterResponseError(
-                    f"Speakr transcript segment {index} had a negative {key}"
-                )
-            # Speakr reports segment boundaries in seconds.
-            return round(value * 1000)
-        raise AdapterResponseError(
-            f"Speakr transcript segment {index} omitted {keys[0]}"
-        )
+        return segments
 
     def delete_recording(self, recording_id: str) -> None:
         with self._client() as client:

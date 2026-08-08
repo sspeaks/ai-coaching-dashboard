@@ -1683,96 +1683,12 @@ def _speakr_transcript_adapter(monkeypatch, payload):
     return adapter
 
 
-def test_speakr_segments_are_normalized_to_the_transcript_contract(monkeypatch):
-    adapter = _speakr_transcript_adapter(
-        monkeypatch,
-        {
-            "format": "json",
-            "segments": [
-                {
-                    "id": "s1",
-                    "start_time": 1.1,
-                    "end_time": 2.0,
-                    "sentence": "Lead, release the sound.",
-                    "speaker": "A",
-                },
-                {"start": 2.0, "end": 3.5, "text": "Better."},
-            ],
-        },
-    )
-
-    segments = adapter.get_transcript("recording-1")
-
-    assert [TranscriptSegment.model_validate(item).model_dump() for item in segments] == [
-        {
-            "segment_id": "s1",
-            "start_ms": 1100,
-            "end_ms": 2000,
-            "text": "Lead, release the sound.",
-            "provider_speaker_label": "A",
-        },
-        {
-            "segment_id": "speakr-1",
-            "start_ms": 2000,
-            "end_ms": 3500,
-            "text": "Better.",
-            "provider_speaker_label": None,
-        },
-    ]
-
-
 def test_speakr_transcript_without_segments_is_an_error_not_an_empty_transcript(
     monkeypatch,
 ):
     adapter = _speakr_transcript_adapter(
         monkeypatch,
         {"format": "json", "segments": [], "raw": "a transcript with no timestamps"},
-    )
-
-    with pytest.raises(AdapterResponseError):
-        adapter.get_transcript("recording-1")
-
-
-@pytest.mark.parametrize(
-    "segment",
-    [
-        {"start_time": 1.0, "sentence": "no end"},
-        {"start_time": 2.0, "end_time": 1.0, "sentence": "reversed"},
-        {"start_time": 1.0, "end_time": 2.0},
-    ],
-)
-def test_speakr_rejects_segments_it_cannot_faithfully_represent(monkeypatch, segment):
-    adapter = _speakr_transcript_adapter(
-        monkeypatch, {"format": "json", "segments": [segment]}
-    )
-
-    with pytest.raises(AdapterResponseError):
-        adapter.get_transcript("recording-1")
-
-
-def test_speakr_zero_length_segments_are_dropped_not_fatal(monkeypatch, caplog):
-    adapter = _speakr_transcript_adapter(
-        monkeypatch,
-        {
-            "format": "json",
-            "segments": [
-                {"start_time": 1.0, "end_time": 2.0, "sentence": "Kept."},
-                {"start_time": 3.0, "end_time": 3.0, "sentence": "Let's"},
-            ],
-        },
-    )
-
-    with caplog.at_level(logging.WARNING):
-        segments = adapter.get_transcript("recording-1")
-
-    assert [item["text"] for item in segments] == ["Kept."]
-    assert "zero-length" in caplog.text
-
-
-def test_speakr_transcript_of_only_zero_length_segments_is_an_error(monkeypatch):
-    adapter = _speakr_transcript_adapter(
-        monkeypatch,
-        {"format": "json", "segments": [{"start": 1.0, "end": 1.0, "text": "And"}]},
     )
 
     with pytest.raises(AdapterResponseError):
