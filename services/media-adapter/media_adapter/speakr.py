@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -9,6 +10,8 @@ from .base import (
     SpeakrRecording,
     TranscriptionSubmissionMode,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class SpeakrHttpAdapter:
@@ -143,19 +146,45 @@ class SpeakrHttpAdapter:
                 "the recording must be transcribed with a model that emits "
                 "segment timestamps"
             )
-        return [self._segment(item, index) for index, item in enumerate(segments)]
+
+        normalized: list[dict] = []
+        empty_range_count = 0
+        for index, item in enumerate(segments):
+            segment = self._segment(item, index)
+            if segment is None:
+                empty_range_count += 1
+                continue
+            normalized.append(segment)
+
+        if empty_range_count:
+            # Chunk-boundary artifacts: a word or two that Speakr timestamps as
+            # starting and ending at the same instant. Evidence cites a range,
+            # so a zero-length segment could never support a ledger entry, and
+            # giving it a length would be inventing timing that was not observed.
+            logger.warning(
+                "dropped %s zero-length Speakr transcript segment(s) of %s",
+                empty_range_count,
+                len(segments),
+            )
+        if not normalized:
+            raise AdapterResponseError(
+                "Speakr returned a transcript whose segments all had zero length"
+            )
+        return normalized
 
     @classmethod
-    def _segment(cls, item: Any, index: int) -> dict:
+    def _segment(cls, item: Any, index: int) -> dict | None:
         if not isinstance(item, dict):
             raise AdapterResponseError("Speakr transcript segment was not an object")
 
         start_ms = cls._timestamp_ms(item, ("start_time", "start"), index)
         end_ms = cls._timestamp_ms(item, ("end_time", "end"), index)
-        if end_ms <= start_ms:
+        if end_ms < start_ms:
             raise AdapterResponseError(
-                f"Speakr transcript segment {index} ends at or before it starts"
+                f"Speakr transcript segment {index} ends before it starts"
             )
+        if end_ms == start_ms:
+            return None
 
         text = item.get("sentence")
         if not isinstance(text, str):
