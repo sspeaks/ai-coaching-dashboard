@@ -309,6 +309,7 @@ TEXT_MODEL_API_KEY=<OpenAI API key>
 TEXT_MODEL_NAME=gpt-4.1-mini
 TRANSCRIPTION_API_KEY=<OpenAI API key>
 TRANSCRIPTION_MODEL=gpt-4o-transcribe-diarize
+CHUNK_LIMIT=300S
 ```
 
 `TRANSCRIPTION_MODEL` must name a model that returns **timestamped segments**.
@@ -317,6 +318,13 @@ model returns one undifferentiated block of text with an empty `segments` list,
 and the dashboard rejects such a transcript rather than storing an empty
 revision. Ledger evidence cites transcript ranges, so a transcript without
 timestamps cannot be cited and no ledger entries can be extracted from it.
+
+`CHUNK_LIMIT` bounds how much audio Speakr sends per request. Diarization is far
+slower than plain transcription, and Speakr's connector default of twenty
+minutes per chunk exceeds the OpenAI client's ten-minute timeout on a
+rehearsal-length recording -- the request then retries, times out again, and the
+recording never leaves `PROCESSING`. Five-minute chunks complete well inside
+that timeout.
 
 Use Speakr's documented `ASR_BASE_URL` settings instead of the transcription
 API variables when operating a self-hosted ASR service. Apply mode `0400`,
