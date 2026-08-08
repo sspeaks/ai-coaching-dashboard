@@ -191,6 +191,26 @@ in
         description = "Allowed authenticated email domains. Empty denies every login.";
       };
 
+      allowUnverifiedEmail = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Accept an id_token whose email_verified claim is not true.
+
+          authentik 2025.10 and later deliberately emit email_verified = false
+          because authentik has no email-verification feature and will not
+          assert something it cannot prove, so every authentik login fails the
+          default check with "email in id_token isn't verified".
+
+          The evidence API uses this email as the principal subject, which is
+          what ledger entries are attributed to. Only enable this when the
+          identity provider is the sole authority for that address — users are
+          admin-provisioned and cannot self-register or change their own email.
+          If users can set their own address, enabling this lets one user be
+          attributed as another.
+        '';
+      };
+
       port = lib.mkOption {
         type = lib.types.port;
         default = 4180;
@@ -337,7 +357,7 @@ in
         skip-auth-strip-headers = true;
         oidc-email-claim = oidc.emailClaim;
         oidc-groups-claim = oidc.groupsClaim;
-        insecure-oidc-allow-unverified-email = false;
+        insecure-oidc-allow-unverified-email = oidc.allowUnverifiedEmail;
       };
     };
 

@@ -92,6 +92,7 @@ let
               httpPort = 18080;
             };
           };
+          oidc.allowUnverifiedEmail = true;
           backup.enable = lib.mkForce false;
         };
       }
@@ -220,6 +221,7 @@ in
     assert containers.evidence-api.environment.EVIDENCE_MEDIA_ROOT == "/data/media";
     assert containers.evidence-worker.environment.EVIDENCE_MEDIA_ROOT == "/data/media";
     assert containers.evidence-api.environment.EVIDENCE_AUTH_MODE == "trusted_proxy";
+    assert !deployConfig.services.oauth2-proxy.extraConfig.insecure-oidc-allow-unverified-email;
     assert containers.evidence-api.environment.EVIDENCE_TRUSTED_EMAIL_HEADER == "x-auth-request-email";
     assert
       containers.evidence-api.environment.EVIDENCE_TRUSTED_GROUPS_HEADER == "x-auth-request-groups";
@@ -311,6 +313,8 @@ in
     assert !externalTlsSystem.config.services.caddy.virtualHosts ? "external.invalid";
     assert externalTlsSystem.config.networking.firewall.allowedTCPPorts == [ 18080 ];
     assert externalTlsSystem.config.services.oauth2-proxy.cookie.secure;
+    assert
+      externalTlsSystem.config.services.oauth2-proxy.extraConfig.insecure-oidc-allow-unverified-email;
     assert externalTlsSystem.config.services.oauth2-proxy.reverseProxy;
     assert
       externalTlsSystem.config.services.oauth2-proxy.trustedProxyIP == [
