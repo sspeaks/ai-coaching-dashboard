@@ -33,14 +33,16 @@ class NixOsQualityTests(unittest.TestCase):
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
         outputs = json.loads(completed.stdout)
+        # Newer Nix versions may wrap flake-show results under an "outputs" key.
+        flake_outputs = outputs.get("outputs", outputs)
         missing_outputs = [
             output
             for output in REQUIREMENTS["required_flake_outputs"]
-            if output not in outputs
+            if output not in flake_outputs
         ]
         self.assertFalse(missing_outputs, f"flake outputs omit {missing_outputs}")
         system = f"{platform.machine().replace('amd64', 'x86_64')}-linux"
-        system_checks = outputs.get("checks", {}).get(system, {})
+        system_checks = flake_outputs.get("checks", {}).get(system, {})
         missing_checks = [
             check
             for check in REQUIREMENTS["required_vm_checks"]
