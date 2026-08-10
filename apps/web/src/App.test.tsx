@@ -146,7 +146,10 @@ describe("evidence ledger app", () => {
 
     await screen.findByText("No recordings yet");
     expect(screen.queryByLabelText(/recording name/i)).toBeNull();
-    await user.click(screen.getAllByRole("button", { name: "Upload a recording" })[0]);
+    expect(
+      screen.queryByRole("button", { name: "Upload a recording" }),
+    ).toBeNull();
+    await user.click(screen.getByRole("link", { name: "Upload" }));
     expect(
       screen.getByText(/sent to Speakr for transcription/i),
     ).toBeVisible();
@@ -198,12 +201,10 @@ describe("evidence ledger app", () => {
     );
   });
 
-  it("opens a session on its summary rather than the full ledger", async () => {
-    const user = userEvent.setup();
+  it("opens the newest session summary on the feedback page", async () => {
     const client = createClient();
     render(<App client={client} />);
 
-    await openFirstRecording(user);
     // The dense ledger is a drill-down; the headline items are what a singer
     // should land on after a rehearsal.
     expect(await screen.findByText("Releasing the sound")).toBeVisible();
@@ -214,6 +215,18 @@ describe("evidence ledger app", () => {
     expect(
       screen.queryByText("Speaker identity needs human confirmation."),
     ).toBeNull();
+  });
+
+  it("shows a plain-language page for unknown URLs", async () => {
+    const user = userEvent.setup();
+    const client = createClient();
+    window.history.pushState({}, "", "/not-a-real-page");
+    render(<App client={client} />);
+
+    expect(await screen.findByText("This page does not exist.")).toBeVisible();
+    expect(screen.getByText(/go back to the feedback list/i)).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Back to feedback" }));
+    expect(await screen.findByText("Hear what the coach worked on.")).toBeVisible();
   });
 
   it("warns when the summary no longer matches the reviewed ledger", async () => {

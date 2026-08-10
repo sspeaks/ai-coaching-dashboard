@@ -30,3 +30,11 @@
 - Moved upload off the front page while preserving the Rai/Fact-Checker-approved consent disclosure copy unchanged inside the upload flow.
 - Kept destructive recording deletion reachable on the management page and hid recording controls from the feedback reading surface.
 - Verified `cd apps/web && npm run typecheck`, `npm test`, and `npm run build` pass.
+
+## 2026-08-10T15:42-07:00 — Issues #15/#16/#17/#18 feedback-first polish
+
+- Removed upload calls-to-action from the feedback page; upload remains reachable only through main navigation and management.
+- Auto-opened the newest session on the feedback page so landing-to-summary is zero clicks when recordings exist, while the session list keeps other recordings one click away.
+- Added a dark-only tokenized theme with checked contrast pairs for normal, muted, status, alert, button, consent disclosure, and timestamp-link colors.
+- Added a plain-language catch-all page for unknown URLs with focus on main content and a direct button back to feedback.
+- Verified `cd apps/web && npm run typecheck`, `npm test`, and `npm run build` pass.
