@@ -26,10 +26,9 @@ export function LedgerReview({
   if (session.interventions.length === 0) {
     return (
       <div className="empty-state">
-        <h3>No ledger entries available</h3>
+        <h3>No coaching notes yet</h3>
         <p>
-          Entries appear after transcript processing and evidence extraction.
-          Transcript corrections remain in Speakr.
+          Notes appear here after the recording is ready.
         </p>
       </div>
     );
@@ -109,29 +108,37 @@ function InterventionCard({
     <article className="ledger-card" aria-labelledby={`intervention-${intervention.id}`}>
       <div className="ledger-card__heading">
         <div>
-          <p className="eyebrow">Intervention {index + 1}</p>
+          <p className="eyebrow">Note {index + 1}</p>
           <h3 id={`intervention-${intervention.id}`}>
-            {intervention.topic || "Untitled coaching intervention"}
+            {intervention.topic || "Coaching note"}
           </h3>
         </div>
         <VerificationBadge status={intervention.verificationStatus} />
       </div>
 
-      <div className="confidence-panel">
-        <div>
-          <span className="field-label">Extraction confidence</span>
-          <strong>{confidence == null ? "Not available" : `${confidence}%`}</strong>
-        </div>
-        {confidence != null && (
-          <meter min="0" max="100" low={60} high={80} optimum={100} value={confidence}>
-            {confidence}%
-          </meter>
-        )}
-        <p>
-          Confidence reflects extraction certainty, not whether the coaching
-          statement or a musical outcome is correct.
-        </p>
-      </div>
+      {confidence != null && (
+        <details className="note-details">
+          <summary>How sure is the assistant about this note?</summary>
+          <div className="confidence-panel">
+            <strong>{confidence}%</strong>
+            <meter
+              min="0"
+              max="100"
+              low={60}
+              high={80}
+              optimum={100}
+              value={confidence}
+            >
+              {confidence}%
+            </meter>
+            <p>
+              This number is only about how clearly the assistant found the note
+              in the transcript. It does not prove the coach's point or the
+              musical result.
+            </p>
+          </div>
+        </details>
+      )}
 
       {intervention.uncertaintyReasons.length > 0 && (
         <div className="uncertainty-box">
@@ -146,30 +153,30 @@ function InterventionCard({
 
       <div className="ledger-grid">
         <LedgerField
-          label="Exact coach feedback"
+          label="Coach's exact words"
           value={intervention.exactCoachFeedback}
           quote
         />
-        <LedgerField label="Interpretation" value={intervention.interpretation} />
-        <LedgerField label="Applies to" value={intervention.appliesTo} />
+        <LedgerField label="Plain-language meaning" value={intervention.interpretation} />
+        <LedgerField label="Who it applies to" value={intervention.appliesTo} />
         <LedgerField label="Song or passage" value={intervention.songReference} />
-        <LedgerField label="Problem heard before" value={intervention.problemBefore} />
+        <LedgerField label="What the coach heard before" value={intervention.problemBefore} />
         <LedgerField
-          label="Exercise or requested change"
+          label="What the coach asked us to try"
           value={intervention.exerciseOrRequestedChange}
         />
-        <LedgerField label="Observed result" value={intervention.observedResult} />
-        <LedgerField label="Next action" value={intervention.nextAction} />
+        <LedgerField label="What happened after we tried it" value={intervention.observedResult} />
+        <LedgerField label="Next step" value={intervention.nextAction} />
         <LedgerField
-          label="Unresolved question"
+          label="Question to check"
           value={intervention.unresolvedQuestion}
         />
       </div>
 
       <div className="evidence-section">
-        <span className="field-label">Source evidence</span>
+        <span className="field-label">Source moments</span>
         {intervention.evidence.length === 0 ? (
-          <p className="missing-value">No timestamped evidence was supplied.</p>
+          <p className="missing-value">No timestamped source was supplied.</p>
         ) : (
           <ul className="evidence-links">
             {intervention.evidence.map((evidence) => (
@@ -185,7 +192,7 @@ function InterventionCard({
       </div>
 
       <fieldset className="review-controls">
-        <legend>Human review</legend>
+        <legend>Mark this note</legend>
         <div className="segmented-control">
           {(["VERIFIED", "REJECTED"] as const).map((status) => (
             <label key={status}>
@@ -197,12 +204,12 @@ function InterventionCard({
                 onChange={() => setChoice(status)}
                 disabled={saving}
               />
-              {status === "VERIFIED" ? "Verify" : "Reject"}
+              {status === "VERIFIED" ? "Looks right" : "Needs correction"}
             </label>
           ))}
         </div>
         <label>
-          Review note <span className="optional">(optional)</span>
+          Your note <span className="optional">(optional)</span>
           <textarea
             value={note}
             onChange={(event) => setNote(event.target.value)}
@@ -210,8 +217,8 @@ function InterventionCard({
             disabled={saving}
           />
           <span className="supporting-text">
-            Edit transcript text in Speakr, then use “Refresh from Speakr” to
-            preserve and import a new revision.
+            If the transcript itself is wrong, fix it in the transcript editor
+            and then check for transcript updates from Recording options.
           </span>
         </label>
         {error && (
@@ -224,7 +231,7 @@ function InterventionCard({
           onClick={saveReview}
           disabled={!choice || saving}
         >
-          {saving ? "Saving…" : "Save review"}
+          {saving ? "Saving…" : "Save"}
         </button>
       </fieldset>
     </article>
@@ -250,7 +257,9 @@ function LedgerField({
           <p>{value}</p>
         )
       ) : (
-        <p className="missing-value">Not provided</p>
+        <p className="missing-value">
+          {quote ? "No exact quote was captured." : "Not mentioned."}
+        </p>
       )}
     </div>
   );
@@ -271,7 +280,7 @@ function EvidenceButton({
         className="evidence-link"
         onClick={() => onSeek(evidence.startMs / 1000)}
         disabled={!enabled}
-        title={enabled ? "Seek recording to this evidence" : "Audio is unavailable"}
+        title={enabled ? "Play the recording from this moment" : "Audio is unavailable"}
       >
         <span>{evidenceRoleLabel(evidence.role)}</span>
         <strong>{formatTimestampMs(evidence.startMs)}</strong>
@@ -285,10 +294,12 @@ function VerificationBadge({ status }: { status: VerificationStatus }) {
   return (
     <span className={`verification verification--${status.toLowerCase()}`}>
       {status === "UNVERIFIED"
-        ? "Needs review"
+        ? "Not checked"
         : status === "NEEDS_REVIEW"
-          ? "Needs re-review"
-        : status.charAt(0) + status.slice(1).toLowerCase()}
+          ? "Check again"
+          : status === "VERIFIED"
+            ? "Checked"
+            : "Needs correction"}
     </span>
   );
 }

@@ -71,7 +71,7 @@ export function SessionOverviewPanel({
   if (loading) {
     return (
       <div className="overview-panel" aria-busy="true">
-        <p className="supporting-text">Loading the session summary…</p>
+        <p className="supporting-text">Opening the coaching notes…</p>
       </div>
     );
   }
@@ -80,16 +80,19 @@ export function SessionOverviewPanel({
     <div className="overview-panel">
       <div className="ledger-heading">
         <div>
-          <p className="eyebrow">What the coach worked on</p>
-          <h3>Session summary</h3>
+          <p className="eyebrow">Step 2</p>
+          <h3>What the coach worked on</h3>
         </div>
-        <button
-          className="button button--quiet"
-          onClick={regenerate}
-          disabled={regenerating}
-        >
-          {regenerating ? "Regenerating…" : "Regenerate summary"}
-        </button>
+        <details className="inline-details">
+          <summary>Options</summary>
+          <button
+            className="button button--quiet button--compact"
+            onClick={regenerate}
+            disabled={regenerating}
+          >
+            {regenerating ? "Updating…" : "Update summary"}
+          </button>
+        </details>
       </div>
 
       {error && (
@@ -100,17 +103,20 @@ export function SessionOverviewPanel({
 
       {overview?.stale && (
         <div className="inline-alert" role="status">
-          <strong>This summary is out of date.</strong> The ledger changed after
-          it was written, so it does not reflect your latest review.
+          <strong>This summary may be out of date.</strong> Someone changed the
+          detailed notes after it was written. Use Options to update it.
         </div>
       )}
 
       {!overview || overview.themes.length === 0 ? (
-        <p className="missing-value">
-          {session.interventionCount > 0
-            ? "This session has not been summarized yet."
-            : "There is nothing to summarize until the recording has been processed."}
-        </p>
+        <div className="empty-state">
+          <h3>No summary yet</h3>
+          <p>
+            {session.interventionCount > 0
+              ? "The detailed notes are available. Use Options to create a short summary."
+              : "The coaching notes will appear after the recording is ready."}
+          </p>
+        </div>
       ) : (
         <>
           <ol className="theme-list">
@@ -126,8 +132,8 @@ export function SessionOverviewPanel({
                 <div className="theme-item__moments">
                   <span className="supporting-text">
                     {theme.moments.length === 1
-                      ? "Worked on at"
-                      : `Worked on ${theme.moments.length} times, at`}
+                      ? "Hear it at"
+                      : `Hear the ${theme.moments.length} source moments`}
                   </span>
                   {theme.moments.map((moment) => (
                     <button
@@ -137,7 +143,7 @@ export function SessionOverviewPanel({
                       disabled={!audioAvailable}
                       title={
                         audioAvailable
-                          ? "Play the recording from here"
+                          ? "Play the recording from this moment"
                           : "Audio playback is not available for this session"
                       }
                     >
@@ -149,14 +155,15 @@ export function SessionOverviewPanel({
             ))}
           </ol>
           <p className="supporting-text">
-            Summarized from {overview.interventionCount} recorded interventions.
-            Each item points at where its evidence sits in the recording.
+            This summary is made only from timestamped coaching notes. Use the
+            time buttons to hear the source; exact quotes are shown only when
+            the transcript captured the coach's words verbatim.
           </p>
         </>
       )}
 
       <button className="button button--secondary" onClick={onShowAll}>
-        Show all {session.interventionCount} interventions
+        See every coaching note ({session.interventionCount})
       </button>
     </div>
   );

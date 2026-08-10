@@ -17,14 +17,16 @@ interface AppProps {
 
 export function App({ client, mockMode = false }: AppProps) {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // One recording is open at a time. Nothing opens on its own, so the app
+  // always starts on the short list a singer recognises.
+  const [openId, setOpenId] = useState<string | null>(null);
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [loadingList, setLoadingList] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unauthorized, setUnauthorized] = useState(false);
-  const selectedIdRef = useRef(selectedId);
-  selectedIdRef.current = selectedId;
+  const openIdRef = useRef(openId);
+  openIdRef.current = openId;
 
   const handleError = useCallback((caught: unknown) => {
     if (caught instanceof DOMException && caught.name === "AbortError") return;
@@ -42,9 +44,9 @@ export function App({ client, mockMode = false }: AppProps) {
       try {
         const next = await client.listSessions(signal);
         setSessions(next);
-        const current = selectedIdRef.current;
-        if (!current || !next.some((session) => session.id === current)) {
-          setSelectedId(next[0]?.id ?? null);
+        const current = openIdRef.current;
+        if (current && !next.some((session) => session.id === current)) {
+          setOpenId(null);
         }
       } catch (caught) {
         handleError(caught);
@@ -62,7 +64,7 @@ export function App({ client, mockMode = false }: AppProps) {
   }, [loadSessions]);
 
   useEffect(() => {
-    if (!selectedId) {
+    if (!openId) {
       setDetail(null);
       return;
     }
@@ -70,12 +72,12 @@ export function App({ client, mockMode = false }: AppProps) {
     setLoadingDetail(true);
     setError(null);
     client
-      .getSession(selectedId, controller.signal)
+      .getSession(openId, controller.signal)
       .then(setDetail)
       .catch(handleError)
       .finally(() => setLoadingDetail(false));
     return () => controller.abort();
-  }, [client, handleError, selectedId]);
+  }, [client, handleError, openId]);
 
   useEffect(() => {
     if (!sessions.some((session) => isActiveSessionState(session.state))) return;
@@ -92,9 +94,7 @@ export function App({ client, mockMode = false }: AppProps) {
         .then((next) => {
           setDetail(next);
           setSessions((current) =>
-            current.map((item) =>
-              item.id === next.id ? toSummary(next) : item,
-            ),
+            current.map((item) => (item.id === next.id ? toSummary(next) : item)),
           );
         })
         .catch(handleError);
@@ -102,9 +102,7 @@ export function App({ client, mockMode = false }: AppProps) {
     return () => window.clearInterval(timer);
   }, [client, detail?.id, detail?.state, handleError]);
 
-  function upsertSession(session: SessionDetail) {
-    setDetail(session);
-    setSelectedId(session.id);
+  function rememberSession(session: SessionDetail) {
     setSessions((current) => {
       const nextSummary = toSummary(session);
       const existing = current.findIndex((item) => item.id === session.id);
@@ -113,10 +111,21 @@ export function App({ client, mockMode = false }: AppProps) {
     });
   }
 
+  function handleChanged(session: SessionDetail) {
+    setDetail(session);
+    rememberSession(session);
+  }
+
+  // An upload is added to the list but does not steal the screen: there is
+  // nothing to read until processing finishes.
+  function handleUploaded(session: SessionDetail) {
+    rememberSession(session);
+  }
+
   function handleDeleted(sessionId: string) {
     setSessions((current) => current.filter((session) => session.id !== sessionId));
     setDetail(null);
-    setSelectedId(null);
+    setOpenId(null);
     void loadSessions();
   }
 
@@ -129,62 +138,67 @@ export function App({ client, mockMode = false }: AppProps) {
       </a>
       <header className="app-header">
         <div>
-          <p className="brand-kicker">Private coaching archive</p>
-          <h1>Evidence Ledger</h1>
+          <p className="brand-kicker">Private quartet archive</p>
+          <h1>Quartet coaching</h1>
         </div>
-        <div className="header-actions">
-          <span className="protected-label">Authenticated access</span>
-          <a className="button button--quiet" href="/oauth2/sign_out">
-            Sign out
-          </a>
-        </div>
+        <a className="button button--quiet" href="/oauth2/sign_out">
+          Sign out
+        </a>
       </header>
       {mockMode && (
         <div className="demo-banner" role="status">
-          <strong>Local demo data mode.</strong> No requests are being sent to the
-          evidence API, and all displayed content is synthetic.
+          <strong>Demo mode.</strong> Everything on this page is made-up example
+          content.
         </div>
       )}
       <main id="main-content" className="app-shell">
-        <UploadPanel client={client} onUploaded={upsertSession} />
         {error && (
-          <div className="inline-alert inline-alert--danger app-error" role="alert">
+          <div className="inline-alert inline-alert--danger" role="alert">
             <span>{error}</span>
             <button className="button button--quiet" onClick={() => void loadSessions()}>
               Try again
             </button>
           </div>
         )}
-        <div className="workspace">
-          <SessionList
-            sessions={sessions}
-            selectedId={selectedId}
-            loading={loadingList}
-            onSelect={setSelectedId}
-            onRefresh={() => void loadSessions()}
-          />
-          {loadingDetail ? (
-            <section className="panel detail-loading" role="status">
-              <span className="spinner" aria-hidden="true" />
-              Loading session evidence…
-            </section>
-          ) : detail ? (
-            <SessionDetailView
-              session={detail}
-              client={client}
-              onChanged={upsertSession}
-              onDeleted={handleDeleted}
-            />
-          ) : (
-            <section className="panel detail-empty">
-              <h2>Select a session</h2>
+        {openId === null ? (
+          <>
+            <section className="welcome-panel" aria-labelledby="welcome-heading">
+              <p className="eyebrow">For quartet members</p>
+              <h2 id="welcome-heading">Upload a recording. Read the coaching notes.</h2>
               <p>
-                Choose a session to review processing status, source audio, and
-                evidence-linked coaching interventions.
+                Choose an audio file from rehearsal or coaching. We listen for the
+                coach's feedback, summarize the main points, and keep every point
+                linked to the place in the recording it came from.
               </p>
             </section>
-          )}
-        </div>
+            <UploadPanel client={client} onUploaded={handleUploaded} />
+            <SessionList
+              sessions={sessions}
+              loading={loadingList}
+              onOpen={setOpenId}
+              onRefresh={() => void loadSessions()}
+            />
+          </>
+        ) : (
+          <>
+            <button className="back-link" onClick={() => setOpenId(null)}>
+              ← All recordings
+            </button>
+            {loadingDetail || !detail ? (
+              <section className="panel detail-loading" role="status">
+                <span className="spinner" aria-hidden="true" />
+                Opening this recording…
+              </section>
+            ) : (
+              <SessionDetailView
+                session={detail}
+                client={client}
+                onChanged={handleChanged}
+                onDeleted={handleDeleted}
+              />
+            )}
+          </>
+        )}
       </main>
     </>
   );
@@ -198,12 +212,8 @@ function AuthenticationRequired() {
   return (
     <main className="auth-screen">
       <section className="panel auth-card">
-        <p className="eyebrow">Protected archive</p>
-        <h1>Sign in required</h1>
-        <p>
-          Your authenticated session is missing or no longer valid. The browser
-          never receives Speakr credentials.
-        </p>
+        <h1>Please sign in</h1>
+        <p>Your sign-in has expired. Sign in again to see your recordings.</p>
         <a
           className="button button--primary"
           href={`/oauth2/sign_in?rd=${encodeURIComponent(returnTo)}`}

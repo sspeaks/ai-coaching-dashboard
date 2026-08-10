@@ -5,7 +5,7 @@ import {
   type EvidenceApiClient,
   type SessionDetail as SessionDetailType,
 } from "@quartet-coach/web-client";
-import { formatDate } from "../lib/format";
+import { formatDate, sessionStatus } from "../lib/format";
 import { LedgerReview } from "./LedgerReview";
 import { SessionOverviewPanel } from "./SessionOverviewPanel";
 import { StatusBadge } from "./StatusBadge";
@@ -48,7 +48,7 @@ export function SessionDetail({
   async function deleteSession() {
     if (
       !window.confirm(
-        "Delete this session and its retained recording? This action cannot be undone.",
+        "Delete this recording and its coaching notes? This cannot be undone.",
       )
     ) {
       return;
@@ -75,12 +75,14 @@ export function SessionDetail({
 
   const canCancel =
     isActiveSessionState(session.state) && session.state !== "DELETE_PENDING";
+  const status = sessionStatus(session.state);
+  const readyForFeedback = status.tone === "ready";
 
   return (
     <section className="panel detail-panel" aria-labelledby="detail-heading">
       <div className="detail-header">
         <div>
-          <p className="eyebrow">Session record</p>
+          <p className="eyebrow">Recording</p>
           <h2 id="detail-heading">{session.title}</h2>
           <p className="detail-subtitle">
             {session.originalFileName} · Added {formatDate(session.createdAt)}
@@ -89,69 +91,77 @@ export function SessionDetail({
         <StatusBadge state={session.state} />
       </div>
 
-      <div className="session-actions">
-        <button
-          className="button button--secondary"
-          onClick={() =>
-            runAction("refresh", () => client.refreshFromSpeakr(session.id))
-          }
-          disabled={action !== null}
-        >
-          {action === "refresh" ? "Refreshing…" : "Refresh from Speakr"}
-        </button>
-        {session.speakrSessionUrl && (
-          <a
-            className="button button--quiet"
-            href={session.speakrSessionUrl}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Open transcript in Speakr
-          </a>
-        )}
-        {canCancel && (
+      <div className={`status-callout status-callout--${status.tone}`} role="status">
+        <strong>{status.label}</strong>
+        <p>
+          {status.detail ??
+            (readyForFeedback
+              ? "Your coaching notes are ready. Use the time buttons to hear the source in the recording."
+              : "We will show the coaching notes here when the recording is ready.")}
+        </p>
+        {session.progress != null &&
+          session.progress < 100 &&
+          isActiveSessionState(session.state) && (
+            <div className="processing-progress" aria-live="polite">
+              <div className="progress-row">
+                <span>Progress</span>
+                <strong>{session.progress}%</strong>
+              </div>
+              <progress value={session.progress} max="100" />
+            </div>
+          )}
+      </div>
+
+      <details className="advanced-panel">
+        <summary>Recording options</summary>
+        <div className="session-actions">
           <button
-            className="button button--quiet"
+            className="button button--secondary"
             onClick={() =>
-              runAction("cancel", () => client.cancelSession(session.id))
+              runAction("refresh", () => client.refreshFromSpeakr(session.id))
             }
             disabled={action !== null}
           >
-            {action === "cancel" ? "Cancelling…" : "Cancel processing"}
+            {action === "refresh" ? "Checking…" : "Check for transcript updates"}
           </button>
-        )}
-        <button
-          className="button button--danger"
-          onClick={deleteSession}
-          disabled={action !== null}
-        >
-          {action === "delete" ? "Deleting…" : "Delete session"}
-        </button>
-      </div>
-      <p className="supporting-text">
-        Refresh imports current processing and transcript-derived evidence from
-        Speakr. Transcript editing remains in Speakr.
-      </p>
-
-      {session.progress != null &&
-        session.progress < 100 &&
-        isActiveSessionState(session.state) && (
-          <div className="processing-progress" aria-live="polite">
-            <div className="progress-row">
-              <span>Current stage progress</span>
-              <strong>{session.progress}%</strong>
-            </div>
-            <progress value={session.progress} max="100" />
-          </div>
-        )}
+          {session.speakrSessionUrl && (
+            <a
+              className="button button--quiet"
+              href={session.speakrSessionUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open transcript editor
+            </a>
+          )}
+          {canCancel && (
+            <button
+              className="button button--quiet"
+              onClick={() =>
+                runAction("cancel", () => client.cancelSession(session.id))
+              }
+              disabled={action !== null}
+            >
+              {action === "cancel" ? "Cancelling…" : "Cancel"}
+            </button>
+          )}
+          <button
+            className="button button--danger"
+            onClick={deleteSession}
+            disabled={action !== null}
+          >
+            {action === "delete" ? "Deleting…" : "Delete recording"}
+          </button>
+        </div>
+      </details>
 
       {(session.error || isFailedSessionState(session.state)) && (
         <div className="inline-alert inline-alert--danger" role="alert">
-          <strong>Processing stopped.</strong>{" "}
+          <strong>We could not finish this recording.</strong>{" "}
           {session.error?.message ||
-            "The service did not provide a specific failure reason."}
+            "No specific reason was provided."}
           {session.error?.retryable && (
-            <span> Refresh from Speakr after the source issue is resolved.</span>
+            <span> Try checking for transcript updates after the issue is fixed.</span>
           )}
         </div>
       )}
@@ -163,8 +173,8 @@ export function SessionDetail({
 
       <div className="audio-section">
         <div>
-          <p className="eyebrow">Source recording</p>
-          <h3>Evidence playback</h3>
+          <p className="eyebrow">Source</p>
+          <h3>Listen to the recording</h3>
         </div>
         {session.audioUrl ? (
           <audio ref={audioRef} controls preload="metadata" src={session.audioUrl}>
@@ -172,12 +182,20 @@ export function SessionDetail({
           </audio>
         ) : (
           <p className="missing-value">
-            Audio playback is not available for this session yet.
+            The recording will be playable here after upload processing finishes.
           </p>
         )}
       </div>
 
-      {view === "summary" ? (
+      {!readyForFeedback && !isFailedSessionState(session.state) ? (
+        <div className="empty-state feedback-waiting">
+          <h3>Coaching notes are not ready yet</h3>
+          <p>
+            You can leave and come back later. This page will update while the
+            recording is being prepared.
+          </p>
+        </div>
+      ) : view === "summary" ? (
         <SessionOverviewPanel
           session={session}
           client={client}
@@ -189,19 +207,18 @@ export function SessionDetail({
         <>
           <div className="ledger-heading">
             <div>
-              <p className="eyebrow">Human-verified record</p>
-              <h3>Coaching interventions</h3>
+              <p className="eyebrow">Every note</p>
+              <h3>All timestamped coaching notes</h3>
             </div>
             <strong>
-              {session.reviewedInterventionCount}/{session.interventionCount}{" "}
-              reviewed
+              {session.interventionCount} notes
             </strong>
           </div>
           <button
             className="button button--quiet"
             onClick={() => setView("summary")}
           >
-            Back to summary
+            Back to main points
           </button>
           <LedgerReview
             session={session}
