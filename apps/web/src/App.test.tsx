@@ -121,6 +121,18 @@ describe("evidence ledger app", () => {
     window.history.pushState({}, "", "/");
   });
 
+  it("makes the skip link the first tab stop and moves focus to main content", async () => {
+    const user = userEvent.setup();
+    render(<App client={createClient()} />);
+
+    const skipLink = screen.getByRole("link", { name: "Skip to main content" });
+    await user.tab();
+    expect(skipLink).toHaveFocus();
+    await user.keyboard("{Enter}");
+
+    expect(screen.getByRole("main")).toHaveFocus();
+  });
+
   it("uploads a recording through the client abstraction", async () => {
     const user = userEvent.setup();
     const uploaded = {
@@ -227,6 +239,7 @@ describe("evidence ledger app", () => {
     expect(screen.getByText(/go back to the feedback list/i)).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Back to feedback" }));
     expect(await screen.findByText("Hear what the coach worked on.")).toBeVisible();
+    await waitFor(() => expect(screen.getByRole("main")).toHaveFocus());
   });
 
   it("warns when the summary no longer matches the reviewed ledger", async () => {

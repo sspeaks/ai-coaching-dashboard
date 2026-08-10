@@ -31,6 +31,7 @@ export function App({ client, mockMode = false }: AppProps) {
   const [unauthorized, setUnauthorized] = useState(false);
   const [autoOpenSuppressed, setAutoOpenSuppressed] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  const initialRouteRef = useRef(true);
   const openIdRef = useRef(openId);
   openIdRef.current = openId;
 
@@ -82,6 +83,10 @@ export function App({ client, mockMode = false }: AppProps) {
     if (route !== "feedback") {
       setOpenId(null);
       setAutoOpenSuppressed(false);
+    }
+    if (initialRouteRef.current) {
+      initialRouteRef.current = false;
+      return;
     }
     mainRef.current?.focus();
   }, [route]);
@@ -174,7 +179,14 @@ export function App({ client, mockMode = false }: AppProps) {
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
+      <a
+        className="skip-link"
+        href="#main-content"
+        onClick={(event) => {
+          event.preventDefault();
+          mainRef.current?.focus();
+        }}
+      >
         Skip to main content
       </a>
       <header className="app-header">
