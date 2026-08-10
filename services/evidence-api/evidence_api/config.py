@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     # would have silently deadlocked authentication; they now match the
     # documented NixOS deployment (see nix/containers.nix).
     trusted_email_header: str = "x-auth-request-email"
+    trusted_username_header: str = "x-auth-request-preferred-username"
+    trusted_user_header: str = "x-auth-request-user"
     trusted_groups_header: str = "x-auth-request-groups"
     # A credential-backed hop secret the edge/gateway must present on every
     # request in addition to identity headers. This is independent

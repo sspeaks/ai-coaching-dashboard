@@ -1,5 +1,6 @@
 import type {
   CoachingIntervention,
+  CurrentUser,
   EvidenceApiLedgerEntry,
   EvidenceApiClient,
   EvidenceApiSession,
@@ -100,6 +101,8 @@ export function createHttpEvidenceApiClient(
   }
 
   return {
+    getCurrentUser: (signal) => request<CurrentUser>("/me", { signal }),
+
     listSessions: async (signal) =>
       (
         await request<EvidenceApiSession[]>("/sessions", { signal })

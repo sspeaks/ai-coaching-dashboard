@@ -8,6 +8,7 @@ export {
 } from "./types";
 export type {
   CoachingIntervention,
+  CurrentUser,
   EvidenceApiLedgerEntry,
   EvidenceApiReference,
   EvidenceApiSession,

@@ -86,6 +86,23 @@ describe("HTTP evidence API client", () => {
     );
   });
 
+  it("reads the current authenticated user from the backend", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      jsonResponse({
+        username: "reverie",
+      }),
+    );
+    const client = createHttpEvidenceApiClient({ fetch: fetcher });
+
+    await expect(client.getCurrentUser()).resolves.toEqual({
+      username: "reverie",
+    });
+    expect(fetcher).toHaveBeenCalledWith(
+      "/api/me",
+      expect.objectContaining({ credentials: "same-origin" }),
+    );
+  });
+
   it("surfaces an authentication failure without exposing response details", async () => {
     const client = createHttpEvidenceApiClient({
       fetch: vi.fn<typeof fetch>().mockResolvedValue(

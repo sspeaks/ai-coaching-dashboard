@@ -89,6 +89,12 @@ export function createMockEvidenceApiClient(): EvidenceApiClient {
   };
 
   return {
+    async getCurrentUser() {
+      return {
+        username: "demo",
+      };
+    },
+
     async listSessions() {
       return [...sessions.values()]
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))

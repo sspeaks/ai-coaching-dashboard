@@ -24,6 +24,8 @@ let
     EVIDENCE_ENVIRONMENT = if cfg.devAuth.enable then "development" else "production";
     EVIDENCE_AUTH_MODE = if cfg.devAuth.enable then "development" else "trusted_proxy";
     EVIDENCE_TRUSTED_EMAIL_HEADER = "x-auth-request-email";
+    EVIDENCE_TRUSTED_USERNAME_HEADER = "x-auth-request-preferred-username";
+    EVIDENCE_TRUSTED_USER_HEADER = "x-auth-request-user";
     EVIDENCE_TRUSTED_GROUPS_HEADER = "x-auth-request-groups";
     EVIDENCE_TRUSTED_PROXY_NETWORKS = "127.0.0.1/32,::1/128";
     EVIDENCE_ADMIN_GROUPS = lib.concatStringsSep "," cfg.oidc.adminGroups;

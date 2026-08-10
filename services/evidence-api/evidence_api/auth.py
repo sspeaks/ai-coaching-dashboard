@@ -1,4 +1,5 @@
 import hmac
+import re
 from dataclasses import dataclass
 from enum import IntEnum
 from ipaddress import IPv6Address, ip_address, ip_network
@@ -15,6 +16,7 @@ class Role(IntEnum):
 @dataclass(frozen=True)
 class Principal:
     subject: str
+    username: str
     role: Role
 
 
@@ -40,6 +42,7 @@ def require_principal(request: Request) -> Principal:
             )
         return Principal(
             settings.development_user,
+            _display_username(settings.development_user, settings.development_user),
             Role[settings.development_role.upper()],
         )
 
@@ -94,6 +97,11 @@ def require_principal(request: Request) -> Principal:
                 "message": "authenticated proxy identity header is missing",
             },
         )
+    username = _display_username(
+        subject,
+        request.headers.get(settings.trusted_username_header),
+        request.headers.get(settings.trusted_user_header),
+    )
     groups = {
         item.strip().casefold()
         for item in request.headers.get(settings.trusted_groups_header, "").split(",")
@@ -108,7 +116,7 @@ def require_principal(request: Request) -> Principal:
         if groups & editor_groups
         else Role.VIEWER
     )
-    return Principal(subject.strip(), role)
+    return Principal(subject.strip(), username, role)
 
 
 def require_editor(
@@ -125,6 +133,39 @@ def require_admin(
 
 def _configured_groups(value: str) -> set[str]:
     return {item.strip().casefold() for item in value.split(",") if item.strip()}
+
+
+def _display_username(subject: str, *candidates: str | None) -> str:
+    clean_subject = subject.strip()
+    for candidate in candidates:
+        display_name = _safe_display_name(candidate, clean_subject)
+        if display_name is not None:
+            return display_name
+    return "Authenticated user"
+
+
+def _safe_display_name(candidate: str | None, subject: str) -> str | None:
+    if not candidate:
+        return None
+    value = candidate.strip()
+    if not value:
+        return None
+    if value.casefold() == subject.casefold():
+        return None
+    if "@" in value or "://" in value:
+        return None
+    if not re.fullmatch(r"[A-Za-z0-9._ -]+", value):
+        return None
+    if not re.search(r"[A-Za-z]", value):
+        return None
+    if re.fullmatch(
+        r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+        value,
+    ):
+        return None
+    if len(value) > 64:
+        return None
+    return value
 
 
 def _client_ip(request: Request):

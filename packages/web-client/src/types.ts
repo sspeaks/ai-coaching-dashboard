@@ -79,6 +79,10 @@ export interface EvidenceApiSessionSummary {
   generated_at: string;
 }
 
+export interface CurrentUser {
+  username: string;
+}
+
 export interface EvidenceApiReference {
   transcript_revision_id: string;
   start_ms: number;
@@ -210,6 +214,7 @@ export interface InterventionReview {
 }
 
 export interface EvidenceApiClient {
+  getCurrentUser(signal?: AbortSignal): Promise<CurrentUser>;
   listSessions(signal?: AbortSignal): Promise<SessionSummary[]>;
   getSession(id: string, signal?: AbortSignal): Promise<SessionDetail>;
   initiateUpload(request: UploadRequest): Promise<UploadTicket>;

@@ -234,6 +234,28 @@ https://auth.sspeaks.net/application/o/ai-coaching/
    https://streams.sspeaks.net/oauth2/callback
    ```
 
+   The dashboard ends both its oauth2-proxy cookie and the Authentik SSO
+   session by default. Without a post-logout redirect URI, the logout request
+   omits `post_logout_redirect_uri`; Authentik runs its normal invalidation
+   flow and shows its own signed-out page instead of returning to the
+   dashboard.
+
+   Optionally also allow this post-logout redirect URI if you want Authentik
+   to return users to the dashboard's `/signed-out` page after ending the SSO
+   session:
+
+   ```text
+   https://streams.sspeaks.net/signed-out
+   ```
+
+   Once registered, set:
+
+   ```nix
+   services.aiCoaching.oidc.singleLogout = {
+     postLogoutRedirectURL = "https://streams.sspeaks.net/signed-out";
+   };
+   ```
+
 9. Signing key / algorithm: use Authentik's default RSA signing key with
    **RS256**.
 10. Subject mode: **Based on the User's ID**.

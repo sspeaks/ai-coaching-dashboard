@@ -54,6 +54,22 @@ let
   # {scheme} would resolve to "http" and oauth2-proxy would build an
   # http:// redirect URI that no longer matches the registered OIDC callback.
   redirectScheme = if caddy.externalTls.enable then "https" else "{scheme}";
+  stripTrailingSlash =
+    value:
+    let
+      match = builtins.match "(.+)/" value;
+    in
+    if match == null then value else builtins.head match;
+  oidcEndSessionURL =
+    if oidc.singleLogout.endSessionURL != null then
+      oidc.singleLogout.endSessionURL
+    else
+      "${stripTrailingSlash oidc.issuerUrl}/end-session/";
+  oidcBackendLogoutURL =
+    "${oidcEndSessionURL}?id_token_hint={id_token}"
+    + lib.optionalString (
+      oidc.singleLogout.postLogoutRedirectURL != null
+    ) "&post_logout_redirect_uri=${oidc.singleLogout.postLogoutRedirectURL}";
 
   forwardAuth = lib.optionalString oidc.enable ''
     forward_auth 127.0.0.1:${toString oidc.port} {
@@ -222,6 +238,40 @@ in
         default = null;
         description = "OIDC callback URL; defaults to https://<domain>/oauth2/callback.";
       };
+
+      singleLogout = {
+        enable = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = ''
+            End the upstream OIDC SSO session when the dashboard sign-out link
+            is used. By default the request omits postLogoutRedirectURL, so
+            providers such as Authentik end the SSO session without requiring
+            a pre-registered redirect URI. Set postLogoutRedirectURL only after
+            registering it with the provider to return users to /signed-out.
+          '';
+        };
+
+        endSessionURL = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = ''
+            OIDC RP-initiated logout endpoint. Null derives Authentik's
+            default endpoint from issuerUrl by appending /end-session/.
+          '';
+        };
+
+        postLogoutRedirectURL = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          example = "https://streams.example.org/signed-out";
+          description = ''
+            Registered final browser destination after OIDC logout. When null,
+            the logout request is sent without post_logout_redirect_uri and the
+            identity provider chooses its own signed-out destination.
+          '';
+        };
+      };
     };
 
     devAuth.enable = lib.mkOption {
@@ -358,6 +408,10 @@ in
         oidc-email-claim = oidc.emailClaim;
         oidc-groups-claim = oidc.groupsClaim;
         insecure-oidc-allow-unverified-email = oidc.allowUnverifiedEmail;
+      }
+      // lib.optionalAttrs oidc.singleLogout.enable {
+        backend-logout-url = oidcBackendLogoutURL;
+        whitelist-domain = cfg.domain;
       };
     };
 
@@ -386,6 +440,10 @@ in
           ${stripUntrustedHeaders}
 
           ${lib.optionalString oidc.enable ''
+            handle /signed-out {
+              respond "Signed out. Your Quartet coaching session has ended. If Authentik returned you here, its sign-in session has also ended." 200
+            }
+
             handle /oauth2/* {
               reverse_proxy 127.0.0.1:${toString oidc.port} {
                 ${externalTlsOauth2ProxyHeaders}

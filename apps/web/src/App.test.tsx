@@ -54,6 +54,9 @@ function createSession(): SessionDetail {
 
 function createClient(session = createSession()): EvidenceApiClient {
   return {
+    getCurrentUser: vi.fn(async () => ({
+      username: "reverie",
+    })),
     listSessions: vi.fn(async () => [
       {
         ...session,
@@ -131,6 +134,34 @@ describe("evidence ledger app", () => {
     await user.keyboard("{Enter}");
 
     expect(screen.getByRole("main")).toHaveFocus();
+  });
+
+  it("shows the signed-in username and sends logout through the sticky sign-out route", async () => {
+    const client = createClient();
+    render(<App client={client} />);
+
+    expect(await screen.findByText("Signed in as reverie")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Sign out" })).toHaveAttribute(
+      "href",
+      "/oauth2/sign_out?rd=/signed-out",
+    );
+  });
+
+  it.each([
+    ["/", "Hear what the coach worked on."],
+    ["/upload", "Upload one coaching recording."],
+    ["/manage", "Recording controls"],
+    ["/not-a-real-page", "This page does not exist."],
+  ])("shows account controls on %s", async (path, pageText) => {
+    window.history.pushState({}, "", path);
+    render(<App client={createClient()} />);
+
+    expect(await screen.findByText(pageText)).toBeVisible();
+    expect(screen.getByText("Signed in as reverie")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Sign out" })).toHaveAttribute(
+      "href",
+      "/oauth2/sign_out?rd=/signed-out",
+    );
   });
 
   it("uploads a recording through the client abstraction", async () => {
@@ -227,6 +258,84 @@ describe("evidence ledger app", () => {
     expect(
       screen.queryByText("Speaker identity needs human confirmation."),
     ).toBeNull();
+  });
+
+  it("does not auto-open anything when there are no sessions", async () => {
+    const client = createClient();
+    vi.mocked(client.listSessions).mockResolvedValue([]);
+    render(<App client={client} />);
+
+    expect(await screen.findByText("No feedback yet")).toBeVisible();
+    expect(screen.getByText(/There are no coaching summaries yet/i)).toBeVisible();
+    expect(client.getSession).not.toHaveBeenCalled();
+  });
+
+  it("auto-opens the newest processing session", async () => {
+    const processing = {
+      ...createSession(),
+      id: "processing-session",
+      title: "Newest processing take",
+      state: "TRANSCRIBING" as const,
+      progress: 42,
+      audioUrl: null,
+      interventions: [],
+      interventionCount: 0,
+    };
+    const older = { ...createSession(), id: "older-session", title: "Older take" };
+    const client = createClient(processing);
+    vi.mocked(client.listSessions).mockResolvedValue([
+      { ...processing, interventions: undefined } as never,
+      { ...older, interventions: undefined } as never,
+    ]);
+    vi.mocked(client.getSession).mockImplementation(async (id) => {
+      if (id === "processing-session") return processing;
+      return older;
+    });
+
+    render(<App client={client} />);
+
+    expect(await screen.findByText("Newest processing take")).toBeVisible();
+    expect(await screen.findByText("42%")).toBeVisible();
+    expect(await screen.findByText("Coaching notes are not ready yet")).toBeVisible();
+    expect(client.getSession).toHaveBeenCalledWith(
+      "processing-session",
+      expect.any(AbortSignal),
+    );
+  });
+
+  it("auto-opens the newest failed session", async () => {
+    const failed = {
+      ...createSession(),
+      id: "failed-session",
+      title: "Newest failed take",
+      state: "FAILED" as const,
+      error: { message: "Speakr could not read the file.", retryable: true },
+      interventions: [],
+      interventionCount: 0,
+    };
+    const older = { ...createSession(), id: "older-session", title: "Older take" };
+    const client = createClient(failed);
+    vi.mocked(client.listSessions).mockResolvedValue([
+      { ...failed, interventions: undefined } as never,
+      { ...older, interventions: undefined } as never,
+    ]);
+    vi.mocked(client.getSession).mockImplementation(async (id) => {
+      if (id === "failed-session") return failed;
+      return older;
+    });
+
+    render(<App client={client} />);
+
+    expect(await screen.findByText("Newest failed take")).toBeVisible();
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "We could not finish this recording. Speakr could not read the file.",
+      ),
+    );
+    expect(client.getSession).toHaveBeenCalledWith(
+      "failed-session",
+      expect.any(AbortSignal),
+    );
   });
 
   it("shows a plain-language page for unknown URLs", async () => {

@@ -129,6 +129,18 @@ h3 {
   gap: 0.75rem;
 }
 
+.account-menu {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.account-menu__user {
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
 .protected-label {
   font-size: 0.8rem;
   color: var(--muted);
@@ -1013,6 +1025,12 @@ meter {
 
   .header-actions {
     justify-content: space-between;
+  }
+
+  .account-menu {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.6rem;
   }
 
   .app-shell {
