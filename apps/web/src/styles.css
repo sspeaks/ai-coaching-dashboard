@@ -322,7 +322,7 @@ textarea {
 .privacy-disclosure div {
   display: grid;
   gap: 0.6rem;
-  color: var(--muted);
+  color: var(--ink);
   font-size: 0.9rem;
 }
 
@@ -366,7 +366,7 @@ textarea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.55rem;
+  min-height: 2.75rem;
   padding: 0.65rem 0.95rem;
   border: 1px solid transparent;
   border-radius: 0.55rem;
