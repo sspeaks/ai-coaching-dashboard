@@ -440,3 +440,109 @@ def test_a_truncated_model_response_is_an_error_not_a_short_extraction():
             client.extract_json(messages=[], schema={"type": "object"})
     finally:
         httpx.Client = original
+
+
+def summary_request(**extra):
+    return {
+        "schema_version": "coaching-ledger-v1",
+        "session": {"id": "session-1", "title": "Coaching session"},
+        "transcript_revision_id": "revision-1",
+        "theme_count": 5,
+        "entries": [
+            {
+                "id": "entry-1",
+                "topic": "Release",
+                "exact_coach_feedback": "Lead, release the sound.",
+                "interpretation": None,
+                "applies_to": None,
+                "exercise_or_requested_change": None,
+                "next_action_and_owner": None,
+                "start_ms": 1000,
+                "end_ms": 2500,
+            }
+        ],
+        **extra,
+    }
+
+
+def test_summary_themes_cite_only_supplied_entries(settings, auth_headers):
+    payload = {
+        "themes": [
+            {
+                "title": "Releasing the sound",
+                "summary": "Worked on releasing tension.",
+                "ledger_entry_ids": ["entry-1", "entry-does-not-exist"],
+            }
+        ]
+    }
+
+    with make_client(settings, payload=payload) as (client, _):
+        response = client.post(
+            "/summarize", json=summary_request(), headers=auth_headers
+        )
+
+    assert response.status_code == 200
+    themes = response.json()["themes"]
+    # An id we never supplied is an invented citation and must not survive.
+    assert themes[0]["ledger_entry_ids"] == ["entry-1"]
+
+
+def test_a_theme_left_with_no_real_entries_is_discarded(settings, auth_headers):
+    payload = {
+        "themes": [
+            {
+                "title": "Invented",
+                "summary": "Nothing real backs this.",
+                "ledger_entry_ids": ["nope"],
+            }
+        ]
+    }
+
+    with make_client(settings, payload=payload) as (client, _):
+        response = client.post(
+            "/summarize", json=summary_request(), headers=auth_headers
+        )
+
+    assert response.json()["themes"] == []
+
+
+def test_an_entry_is_claimed_by_only_one_theme(settings, auth_headers):
+    payload = {
+        "themes": [
+            {
+                "title": "First",
+                "summary": "First theme.",
+                "ledger_entry_ids": ["entry-1"],
+            },
+            {
+                "title": "Second",
+                "summary": "Second theme claiming the same entry.",
+                "ledger_entry_ids": ["entry-1"],
+            },
+        ]
+    }
+
+    with make_client(settings, payload=payload) as (client, _):
+        response = client.post(
+            "/summarize", json=summary_request(), headers=auth_headers
+        )
+
+    themes = response.json()["themes"]
+    assert [theme["title"] for theme in themes] == ["First"]
+
+
+def test_summarizing_nothing_does_not_call_the_model(settings, auth_headers):
+    with make_client(settings, payload={"themes": []}) as (client, fake):
+        response = client.post(
+            "/summarize", json=summary_request(entries=[]), headers=auth_headers
+        )
+
+    assert response.json()["themes"] == []
+    assert fake.calls == []
+
+
+def test_summarize_requires_authentication(settings):
+    with make_client(settings, payload={"themes": []}) as (client, _):
+        response = client.post("/summarize", json=summary_request())
+
+    assert response.status_code == 401

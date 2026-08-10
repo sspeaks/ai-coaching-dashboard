@@ -3,7 +3,9 @@ import type {
   EvidenceApiLedgerEntry,
   EvidenceApiClient,
   EvidenceApiSession,
+  EvidenceApiSessionSummary,
   SessionDetail,
+  SessionOverview,
   SessionSummary,
   UploadRequest,
   UploadTarget,
@@ -150,6 +152,40 @@ export function createHttpEvidenceApiClient(
         },
       );
       return getSession(sessionId);
+    },
+
+    getOverview: async (sessionId, signal) => {
+      try {
+        const body = await request<EvidenceApiSessionSummary>(
+          `/sessions/${encodeURIComponent(sessionId)}/summary`,
+          { signal },
+        );
+        return {
+          id: body.id,
+          interventionCount: body.entry_count,
+          stale: body.stale,
+          generatedAt: body.generated_at,
+          themes: body.themes.map((theme) => ({
+            rank: theme.rank,
+            title: theme.title,
+            summary: theme.summary,
+            interventionIds: theme.ledger_entry_ids,
+            startMs: theme.start_ms,
+            endMs: theme.end_ms,
+          })),
+        };
+      } catch (caught) {
+        // A session with no overview yet is an ordinary state, not an error.
+        if (caught instanceof ApiError && caught.status === 404) return null;
+        throw caught;
+      }
+    },
+
+    regenerateOverview: async (sessionId) => {
+      await request<unknown>(`/sessions/${encodeURIComponent(sessionId)}/jobs`, {
+        method: "POST",
+        body: JSON.stringify({ type: "SUMMARIZE" }),
+      });
     },
 
     cancelSession: async (sessionId) => {

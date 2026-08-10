@@ -14,6 +14,8 @@ from coaching_contracts import (
     JobType,
     LedgerEntryCreate,
     SessionState,
+    SessionSummaryCreate,
+    SummaryThemeCreate,
     TranscriptSegment,
 )
 from evidence_api.app import create_app
@@ -208,6 +210,23 @@ class FakeExtractionProvider:
         ]
 
 
+class FakeSummaryProvider:
+    def __init__(self):
+        self.calls = []
+
+    def summarize(self, *, session_id, title, transcript_revision_id, theme_count, entries):
+        self.calls.append(entries)
+        return SessionSummaryCreate(
+            themes=[
+                SummaryThemeCreate(
+                    title="Releasing the sound",
+                    summary="The coach worked on releasing tension.",
+                    ledger_entry_ids=[entry["id"] for entry in entries],
+                )
+            ]
+        )
+
+
 def test_worker_runs_upload_to_ledger_chain_without_manual_jobs(settings):
     engine = create_db_engine(settings)
     init_schema(engine)
@@ -234,12 +253,15 @@ def test_worker_runs_upload_to_ledger_chain_without_manual_jobs(settings):
         session_id = session.id
 
     adapter = FakeSpeakrAdapter()
+    summaries = FakeSummaryProvider()
     worker = Worker(
         settings,
         factory,
         adapter=adapter,
         extraction_provider=FakeExtractionProvider(),
+        summary_provider=summaries,
     )
+    assert worker.run_once() is True
     assert worker.run_once() is True
     assert worker.run_once() is True
     assert worker.run_once() is True
@@ -262,6 +284,7 @@ def test_worker_runs_upload_to_ledger_chain_without_manual_jobs(settings):
             JobType.TRANSCRIBE.value,
             JobType.RECONCILE.value,
             JobType.EXTRACT.value,
+            JobType.SUMMARIZE.value,
         ]
         assert all(job.status == JobStatus.SUCCEEDED.value for job in jobs)
         assert session.state == SessionState.AWAITING_REVIEW.value
@@ -1693,3 +1716,101 @@ def test_speakr_transcript_without_segments_is_an_error_not_an_empty_transcript(
 
     with pytest.raises(AdapterResponseError):
         adapter.get_transcript("recording-1")
+
+
+def test_summary_records_where_each_theme_happened(settings):
+    from evidence_api.models import SessionSummaryRecord
+
+    engine = create_db_engine(settings)
+    init_schema(engine)
+    factory = create_session_factory(engine)
+    media = settings.media_root / "summary.wav"
+    media.parent.mkdir(parents=True, exist_ok=True)
+    media.write_bytes(b"audio")
+    with factory() as db:
+        session = SessionRecord(
+            title="Automatic chain",
+            state=SessionState.TRANSCRIBING.value,
+            media_path=str(media),
+        )
+        db.add(session)
+        db.flush()
+        db.add(
+            JobRecord(
+                session_id=session.id,
+                type=JobType.TRANSCRIBE.value,
+                max_attempts=3,
+            )
+        )
+        db.commit()
+        session_id = session.id
+
+    worker = Worker(
+        settings,
+        factory,
+        adapter=FakeSpeakrAdapter(),
+        extraction_provider=FakeExtractionProvider(),
+        summary_provider=FakeSummaryProvider(),
+    )
+    while worker.run_once():
+        pass
+
+    with factory() as db:
+        summary = db.query(SessionSummaryRecord).filter_by(session_id=session_id).one()
+        theme = summary.themes[0]
+        assert theme["rank"] == 1
+        assert theme["title"] == "Releasing the sound"
+        # The span comes from the cited entry's evidence, never from the model.
+        assert theme["start_ms"] == 250
+        assert theme["end_ms"] == 1250
+        assert summary.entry_count == 1
+        # A derived summary must not disturb the reviewable session.
+        assert db.get(SessionRecord, session_id).state == SessionState.AWAITING_REVIEW.value
+
+
+def test_a_failed_summary_does_not_make_a_good_session_look_broken(settings):
+    from evidence_api.summaries import SummaryError
+
+    class BrokenSummaryProvider:
+        def summarize(self, **_):
+            raise SummaryError("gateway exploded")
+
+    engine = create_db_engine(settings)
+    init_schema(engine)
+    factory = create_session_factory(engine)
+    media = settings.media_root / "broken-summary.wav"
+    media.parent.mkdir(parents=True, exist_ok=True)
+    media.write_bytes(b"audio")
+    with factory() as db:
+        session = SessionRecord(
+            title="Automatic chain",
+            state=SessionState.TRANSCRIBING.value,
+            media_path=str(media),
+        )
+        db.add(session)
+        db.flush()
+        db.add(
+            JobRecord(
+                session_id=session.id,
+                type=JobType.TRANSCRIBE.value,
+                max_attempts=1,
+            )
+        )
+        db.commit()
+        session_id = session.id
+
+    worker = Worker(
+        settings,
+        factory,
+        adapter=FakeSpeakrAdapter(),
+        extraction_provider=FakeExtractionProvider(),
+        summary_provider=BrokenSummaryProvider(),
+    )
+    for _ in range(6):
+        worker.run_once()
+
+    with factory() as db:
+        session = db.get(SessionRecord, session_id)
+        assert session.state == SessionState.AWAITING_REVIEW.value
+        assert session.last_error is None
+        assert db.query(LedgerEntryRecord).filter_by(session_id=session_id).count() == 1

@@ -191,5 +191,36 @@ export function createMockEvidenceApiClient(): EvidenceApiClient {
     async deleteSession(sessionId) {
       sessions.delete(sessionId);
     },
+
+    async getOverview(sessionId) {
+      const session = find(sessionId);
+      if (session.interventions.length === 0) return null;
+      const themes = session.interventions.slice(0, 5).map((intervention, index) => {
+        const starts = intervention.evidence.map((link) => link.startMs);
+        const ends = intervention.evidence.map((link) => link.endMs ?? link.startMs);
+        return {
+          rank: index + 1,
+          title: intervention.topic ?? "Coaching focus",
+          summary:
+            intervention.interpretation ??
+            intervention.exactCoachFeedback ??
+            "The coach worked on this passage.",
+          interventionIds: [intervention.id],
+          startMs: starts.length ? Math.min(...starts) : 0,
+          endMs: ends.length ? Math.max(...ends) : 0,
+        };
+      });
+      return {
+        id: `${session.id}-overview`,
+        themes,
+        interventionCount: session.interventions.length,
+        stale: false,
+        generatedAt: new Date().toISOString(),
+      };
+    },
+
+    async regenerateOverview() {
+      // The synthetic client regenerates on read, so this is a no-op.
+    },
   };
 }

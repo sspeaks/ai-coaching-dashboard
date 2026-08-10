@@ -30,11 +30,17 @@ from evidence_api.extraction import (
     ExtractionProvider,
     create_extraction_provider,
 )
+from evidence_api.summaries import (
+    SummaryError,
+    SummaryProvider,
+    create_summary_provider,
+)
 from evidence_api.models import (
     DeletionCompensationRecord,
     JobRecord,
     LedgerEntryRecord,
     SessionRecord,
+    SessionSummaryRecord,
     TranscriptRevisionRecord,
 )
 from evidence_api.services import (
@@ -98,6 +104,7 @@ class Worker:
         *,
         adapter: MediaAdapter | None = None,
         extraction_provider: ExtractionProvider | None = None,
+        summary_provider: SummaryProvider | None = None,
     ) -> None:
         self.settings = settings
         self.factory = factory
@@ -110,6 +117,7 @@ class Worker:
         self.extraction_provider = (
             extraction_provider or create_extraction_provider(settings)
         )
+        self.summary_provider = summary_provider or create_summary_provider(settings)
 
     def run_once(self) -> bool:
         if self.retry_deletion_compensation():
@@ -177,6 +185,7 @@ class Worker:
                     TranscriptionFailed,
                     AdapterError,
                     ExtractionError,
+                    SummaryError,
                     ValueError,
                     OSError,
                 ) as exc:
@@ -444,6 +453,93 @@ class Worker:
             transition(session_record, SessionState.AWAITING_REVIEW)
             for entry in entries:
                 create_ledger_entry(db, session_record, entry)
+            if entries:
+                ensure_job(
+                    db,
+                    session_id=session_id,
+                    job_type=JobType.SUMMARIZE,
+                    max_attempts=self.settings.worker_max_attempts,
+                )
+            self._safe_commit(db)
+            return ProcessOutcome.STEP_COMPLETED
+        elif job_type == JobType.SUMMARIZE:
+            revision = db.get(
+                TranscriptRevisionRecord,
+                session_record.current_transcript_revision_id,
+            )
+            if not revision or revision.session_id != session_record.id:
+                raise ValueError("current transcript revision is missing")
+            records = list(
+                db.scalars(
+                    select(LedgerEntryRecord)
+                    .where(
+                        LedgerEntryRecord.session_id == session_record.id,
+                        LedgerEntryRecord.transcript_revision_id == revision.id,
+                    )
+                    .order_by(LedgerEntryRecord.created_at)
+                )
+            )
+            if not records:
+                # Nothing to summarize is a no-op, not a failure: the session
+                # simply has no ledger yet.
+                return ProcessOutcome.STEP_COMPLETED
+            spans = {record.id: _entry_span(record) for record in records}
+            title = session_record.title
+            revision_id = revision.id
+            source_updated_at = max(record.updated_at for record in records)
+            entry_payload = [
+                {
+                    "id": record.id,
+                    "topic": record.topic,
+                    "exact_coach_feedback": record.exact_coach_feedback,
+                    "interpretation": record.interpretation,
+                    "applies_to": record.applies_to,
+                    "exercise_or_requested_change": record.exercise_or_requested_change,
+                    "next_action_and_owner": record.next_action_and_owner,
+                    "start_ms": spans[record.id][0],
+                    "end_ms": spans[record.id][1],
+                }
+                for record in records
+            ]
+            summary, job, session_record, cancelled = self._leased_provider_call(
+                db,
+                job_id,
+                session_id,
+                lambda: self.summary_provider.summarize(
+                    session_id=session_id,
+                    title=title,
+                    transcript_revision_id=revision_id,
+                    theme_count=self.settings.summary_theme_count,
+                    entries=entry_payload,
+                ),
+            )
+            if cancelled:
+                self._cancel_job(db, job_id)
+                return ProcessOutcome.ALREADY_FINALIZED
+            assert session_record is not None
+            themes = []
+            for rank, theme in enumerate(summary.themes, start=1):
+                covered = [spans[entry_id] for entry_id in theme.ledger_entry_ids]
+                themes.append(
+                    {
+                        **theme.model_dump(mode="json"),
+                        "rank": rank,
+                        # Where the theme happened is taken from its entries, so
+                        # it always points at real transcript positions.
+                        "start_ms": min(span[0] for span in covered),
+                        "end_ms": max(span[1] for span in covered),
+                    }
+                )
+            _store_summary(
+                db,
+                session_id=session_record.id,
+                transcript_revision_id=revision_id,
+                themes=themes,
+                entry_count=len(records),
+                source_updated_at=source_updated_at,
+            )
+            # The summary is derived from the ledger, not a step towards review,
+            # so it deliberately leaves session state alone.
             self._safe_commit(db)
             return ProcessOutcome.STEP_COMPLETED
         # Unrecognized job types cannot happen (JobType(job.type) above
@@ -927,7 +1023,11 @@ class Worker:
                 SessionState.RETRY_PENDING,
             }:
                 transition(session_record, SessionState.FAILED)
-            session_record.last_error = f"{code}: {message}"[:4000]
+            if JobType(job.type) != JobType.SUMMARIZE:
+                # The summary is a derived convenience over an already-good
+                # ledger. Recording its failure on the session would show the
+                # reviewer an error banner for a session that is perfectly fine.
+                session_record.last_error = f"{code}: {message}"[:4000]
         self._safe_commit(db)
 
     def _fail_ambiguous_operation(
@@ -1130,6 +1230,49 @@ class Worker:
                     db.rollback()
                     continue
         return False
+
+
+def _entry_span(record: LedgerEntryRecord) -> tuple[int, int]:
+    """Where in the recording an entry's evidence sits."""
+
+    starts = [reference["start_ms"] for reference in record.evidence]
+    ends = [reference["end_ms"] for reference in record.evidence]
+    return min(starts), max(ends)
+
+
+def _store_summary(
+    db: Session,
+    *,
+    session_id: str,
+    transcript_revision_id: str,
+    themes: list[dict],
+    entry_count: int,
+    source_updated_at: datetime,
+) -> None:
+    existing = db.scalar(
+        select(SessionSummaryRecord).where(
+            SessionSummaryRecord.session_id == session_id
+        )
+    )
+    if existing is None:
+        db.add(
+            SessionSummaryRecord(
+                session_id=session_id,
+                transcript_revision_id=transcript_revision_id,
+                themes=themes,
+                entry_count=entry_count,
+                source_updated_at=source_updated_at,
+                generated_at=datetime.now(UTC),
+            )
+        )
+        return
+    # A session keeps one current summary; regenerating replaces it rather than
+    # accumulating versions the reviewer would have to choose between.
+    existing.transcript_revision_id = transcript_revision_id
+    existing.themes = themes
+    existing.entry_count = entry_count
+    existing.source_updated_at = source_updated_at
+    existing.generated_at = datetime.now(UTC)
 
 
 def run() -> None:

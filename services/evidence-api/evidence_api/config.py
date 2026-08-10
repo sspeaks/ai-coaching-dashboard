@@ -56,6 +56,7 @@ class Settings(BaseSettings):
     extraction_provider: Literal["disabled", "http_json"] = "disabled"
     extraction_endpoint: str | None = None
     extraction_api_key: str | None = None
+    summary_theme_count: int = 5
     # The gateway extracts a long session one window at a time, so a single
     # call to it covers several sequential model requests.
     extraction_timeout_seconds: float = 900
@@ -67,6 +68,14 @@ class Settings(BaseSettings):
     worker_job_lease_seconds: int = 1200
     reconciliation_interval_seconds: int = 3600
     worker_max_attempts: int = 3
+
+    @property
+    def summary_endpoint(self) -> str | None:
+        """Derived so summaries need no separate endpoint configuration."""
+
+        if not self.extraction_endpoint:
+            return None
+        return self.extraction_endpoint.rstrip("/") + "/summarize"
 
     @model_validator(mode="after")
     def secure_development_auth(self) -> "Settings":

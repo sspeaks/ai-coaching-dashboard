@@ -161,6 +161,7 @@ def test_migrations_upgrade_pre_change_database_idempotently():
         "deletion_compensation",
         "provider_operation_resolution",
         "schema_migration",
+        "session_summary",
     } <= set(inspector.get_table_names())
 
     factory = create_session_factory(engine)
@@ -176,7 +177,7 @@ def test_migrations_upgrade_pre_change_database_idempotently():
         versions = list(
             db.scalars(text("SELECT version FROM schema_migration ORDER BY version"))
         )
-        assert versions == [1, 2, 3]
+        assert versions == [1, 2, 3, 4]
 
 
 def test_api_startup_migrates_legacy_database_before_orm_queries():

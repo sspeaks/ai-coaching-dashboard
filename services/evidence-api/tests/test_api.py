@@ -938,3 +938,101 @@ def test_confirm_deletion_defers_while_worker_holds_active_lease(client, app):
     )
     assert confirmed.status_code == 204
     assert client.get(f"/api/sessions/{created['id']}").status_code == 404
+
+
+def _summarized_session(client, settings):
+    from datetime import UTC, datetime
+
+    from evidence_api.db import create_db_engine, create_session_factory
+    from evidence_api.models import (
+        LedgerEntryRecord,
+        SessionRecord,
+        SessionSummaryRecord,
+        TranscriptRevisionRecord,
+    )
+
+    factory = create_session_factory(create_db_engine(settings))
+    with factory() as db:
+        session = SessionRecord(title="Rehearsal", state="AWAITING_REVIEW")
+        db.add(session)
+        db.flush()
+        revision = TranscriptRevisionRecord(
+            session_id=session.id, sha256="a" * 64, segments=[]
+        )
+        db.add(revision)
+        db.flush()
+        session.current_transcript_revision_id = revision.id
+        entry = LedgerEntryRecord(
+            session_id=session.id,
+            transcript_revision_id=revision.id,
+            topic="Release",
+            confidence_millis=900,
+            evidence=[
+                {
+                    "transcript_revision_id": revision.id,
+                    "start_ms": 1000,
+                    "end_ms": 2500,
+                    "segment_ids": ["seg-1"],
+                }
+            ],
+            extraction_metadata={},
+        )
+        db.add(entry)
+        db.flush()
+        db.add(
+            SessionSummaryRecord(
+                session_id=session.id,
+                transcript_revision_id=revision.id,
+                themes=[
+                    {
+                        "rank": 1,
+                        "title": "Releasing the sound",
+                        "summary": "The coach worked on release.",
+                        "ledger_entry_ids": [entry.id],
+                        "start_ms": 1000,
+                        "end_ms": 2500,
+                    }
+                ],
+                entry_count=1,
+                source_updated_at=entry.updated_at,
+                generated_at=datetime.now(UTC),
+            )
+        )
+        db.commit()
+        return session.id, entry.id
+
+
+def test_summary_reports_where_each_theme_happened(client, settings):
+    session_id, entry_id = _summarized_session(client, settings)
+
+    body = client.get(f"/api/sessions/{session_id}/summary").json()
+
+    assert body["stale"] is False
+    theme = body["themes"][0]
+    assert theme["rank"] == 1
+    assert theme["start_ms"] == 1000
+    assert theme["end_ms"] == 2500
+    assert theme["ledger_entry_ids"] == [entry_id]
+
+
+def test_summary_is_marked_stale_once_the_ledger_changes(client, settings):
+    session_id, entry_id = _summarized_session(client, settings)
+
+    # Reviewing an entry must not silently leave a summary that no longer
+    # describes the ledger looking authoritative.
+    response = client.put(
+        f"/api/ledger/{entry_id}/verification", json={"status": "VERIFIED"}
+    )
+    assert response.status_code in (200, 201)
+
+    body = client.get(f"/api/sessions/{session_id}/summary").json()
+    assert body["stale"] is True
+
+
+def test_a_session_without_a_summary_says_so(client):
+    created = client.post("/api/sessions", json={"title": "No summary"}).json()
+
+    response = client.get(f"/api/sessions/{created['id']}/summary")
+
+    assert response.status_code == 404
+    assert response.json()["detail"]["code"] == "summary_not_found"

@@ -7,6 +7,7 @@ import {
 } from "@quartet-coach/web-client";
 import { formatDate } from "../lib/format";
 import { LedgerReview } from "./LedgerReview";
+import { SessionOverviewPanel } from "./SessionOverviewPanel";
 import { StatusBadge } from "./StatusBadge";
 
 interface SessionDetailProps {
@@ -25,6 +26,9 @@ export function SessionDetail({
   const audioRef = useRef<HTMLAudioElement>(null);
   const [action, setAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The summary is the landing view: the full ledger is far too dense to be
+  // the first thing a singer sees after a rehearsal.
+  const [view, setView] = useState<"summary" | "ledger">("summary");
 
   async function runAction(
     name: string,
@@ -173,22 +177,41 @@ export function SessionDetail({
         )}
       </div>
 
-      <div className="ledger-heading">
-        <div>
-          <p className="eyebrow">Human-verified record</p>
-          <h3>Coaching interventions</h3>
-        </div>
-        <strong>
-          {session.reviewedInterventionCount}/{session.interventionCount} reviewed
-        </strong>
-      </div>
-      <LedgerReview
-        session={session}
-        client={client}
-        onSeek={seek}
-        audioAvailable={Boolean(session.audioUrl)}
-        onUpdated={onChanged}
-      />
+      {view === "summary" ? (
+        <SessionOverviewPanel
+          session={session}
+          client={client}
+          onSeek={seek}
+          audioAvailable={Boolean(session.audioUrl)}
+          onShowAll={() => setView("ledger")}
+        />
+      ) : (
+        <>
+          <div className="ledger-heading">
+            <div>
+              <p className="eyebrow">Human-verified record</p>
+              <h3>Coaching interventions</h3>
+            </div>
+            <strong>
+              {session.reviewedInterventionCount}/{session.interventionCount}{" "}
+              reviewed
+            </strong>
+          </div>
+          <button
+            className="button button--quiet"
+            onClick={() => setView("summary")}
+          >
+            Back to summary
+          </button>
+          <LedgerReview
+            session={session}
+            client={client}
+            onSeek={seek}
+            audioAvailable={Boolean(session.audioUrl)}
+            onUpdated={onChanged}
+          />
+        </>
+      )}
     </section>
   );
 }

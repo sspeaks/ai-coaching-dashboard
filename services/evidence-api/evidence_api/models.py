@@ -188,9 +188,39 @@ class LedgerEntryRecord(Base):
     )
 
 
+class SessionSummaryRecord(Base):
+    """The headline view of a session, derived from its ledger entries."""
+
+    __tablename__ = "session_summary"
+    __table_args__ = (
+        UniqueConstraint("session_id", name="uq_session_summary_session"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    session_id: Mapped[str] = mapped_column(
+        ForeignKey("coaching_session.id", ondelete="CASCADE"), index=True
+    )
+    transcript_revision_id: Mapped[str] = mapped_column(
+        ForeignKey("transcript_revision.id", ondelete="CASCADE"), index=True
+    )
+    themes: Mapped[list[dict[str, Any]]] = mapped_column(JSON)
+    # The ledger the summary was built from. Compared against the ledger on read
+    # to tell the reviewer their edits are not reflected here yet.
+    entry_count: Mapped[int] = mapped_column(Integer)
+    source_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    generated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+    )
+
+
 class VerificationRecord(Base):
     __tablename__ = "ledger_verification"
-
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     ledger_entry_id: Mapped[str] = mapped_column(
         ForeignKey("ledger_entry.id", ondelete="CASCADE"), index=True

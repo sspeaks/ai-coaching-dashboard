@@ -20,7 +20,7 @@ from fastapi import (
 )
 from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import StaleDataError
@@ -35,6 +35,8 @@ from coaching_contracts import (
     LedgerEntryResponse,
     SessionResponse,
     SessionState,
+    SessionSummaryResponse,
+    SummaryTheme,
     TranscriptRevisionResponse,
     VerificationRequest,
     VerificationStatus,
@@ -54,6 +56,7 @@ from .models import (
     LedgerEntryRecord,
     ProviderOperationResolutionRecord,
     SessionRecord,
+    SessionSummaryRecord,
     TranscriptRevisionRecord,
     VerificationRecord,
     WebhookDeliveryRecord,
@@ -828,6 +831,53 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         return [ledger_response(item) for item in records]
 
+    @router.get(
+        "/sessions/{session_id}/summary", response_model=SessionSummaryResponse
+    )
+    def get_summary(
+        session_id: str,
+        _: Principal = Depends(require_principal),
+        db: Session = Depends(session_dependency),
+    ):
+        _session_or_404(db, session_id)
+        record = db.scalar(
+            select(SessionSummaryRecord).where(
+                SessionSummaryRecord.session_id == session_id
+            )
+        )
+        if record is None:
+            raise _http_error(
+                "summary_not_found",
+                "this session has no summary yet",
+                404,
+            )
+        current = db.execute(
+            select(
+                func.count(LedgerEntryRecord.id),
+                func.max(LedgerEntryRecord.updated_at),
+            ).where(
+                LedgerEntryRecord.session_id == session_id,
+                LedgerEntryRecord.transcript_revision_id
+                == record.transcript_revision_id,
+            )
+        ).one()
+        entry_count, latest_update = current
+        # Summaries are regenerated on request, so the reviewer has to be able
+        # to see when their edits are not reflected in what they are reading.
+        stale = entry_count != record.entry_count or (
+            latest_update is not None
+            and _as_utc(latest_update) > _as_utc(record.source_updated_at)
+        )
+        return SessionSummaryResponse(
+            id=record.id,
+            session_id=record.session_id,
+            transcript_revision_id=record.transcript_revision_id,
+            themes=[SummaryTheme.model_validate(theme) for theme in record.themes],
+            entry_count=record.entry_count,
+            stale=stale,
+            generated_at=_as_utc(record.generated_at),
+        )
+
     @router.put("/ledger/{entry_id}/verification", response_model=LedgerEntryResponse)
     def verify_ledger_entry(
         entry_id: str,
@@ -1128,6 +1178,19 @@ def _prepare_state_for_job(record: SessionRecord, job_type: JobType) -> None:
                 409,
             )
         transition(record, SessionState.EXTRACTING)
+    elif job_type == JobType.SUMMARIZE:
+        if not record.current_transcript_revision_id:
+            raise _http_error(
+                "summary_not_allowed", "session has no transcript revision", 409
+            )
+        # Summarizing only reads the ledger, so it needs no state change and
+        # must not disturb a session that is mid-review.
+
+
+def _as_utc(value: datetime) -> datetime:
+    """Some drivers hand back naive datetimes for timestamptz columns."""
+
+    return value if value.tzinfo else value.replace(tzinfo=UTC)
 
 
 def _verify_webhook(request: Request, raw_body: bytes, settings: Settings) -> None:

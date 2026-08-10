@@ -100,10 +100,17 @@ def _operation_resolution_schema(connection: Connection) -> None:
     )
 
 
+def _session_summary_schema(connection: Connection) -> None:
+    from .models import SessionSummaryRecord
+
+    SessionSummaryRecord.__table__.create(connection, checkfirst=True)
+
+
 MIGRATIONS: tuple[Migration, ...] = (
     (1, "initial_schema", _initial_schema),
     (2, "worker_safety_schema", _worker_safety_schema),
     (3, "operation_resolution_audit", _operation_resolution_schema),
+    (4, "session_summary", _session_summary_schema),
 )
 
 

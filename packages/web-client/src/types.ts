@@ -53,6 +53,25 @@ export interface EvidenceApiSession {
   updated_at: string;
 }
 
+export interface EvidenceApiSummaryTheme {
+  rank: number;
+  title: string;
+  summary: string;
+  ledger_entry_ids: string[];
+  start_ms: number;
+  end_ms: number;
+}
+
+export interface EvidenceApiSessionSummary {
+  id: string;
+  session_id: string;
+  transcript_revision_id: string;
+  themes: EvidenceApiSummaryTheme[];
+  entry_count: number;
+  stale: boolean;
+  generated_at: string;
+}
+
 export interface EvidenceApiReference {
   transcript_revision_id: string;
   start_ms: number;
@@ -124,6 +143,24 @@ export interface CoachingIntervention {
   evidence: EvidenceLink[];
 }
 
+export interface SessionTheme {
+  rank: number;
+  title: string;
+  summary: string;
+  interventionIds: string[];
+  startMs: number;
+  endMs: number;
+}
+
+export interface SessionOverview {
+  id: string;
+  themes: SessionTheme[];
+  interventionCount: number;
+  /** The ledger changed after this overview was generated. */
+  stale: boolean;
+  generatedAt: string;
+}
+
 export interface SessionDetail extends SessionSummary {
   audioUrl?: string | null;
   audioMimeType?: string | null;
@@ -176,6 +213,12 @@ export interface EvidenceApiClient {
   ): Promise<SessionDetail>;
   cancelSession(sessionId: string): Promise<SessionDetail>;
   deleteSession(sessionId: string): Promise<void>;
+  /** Resolves to null when the session has not been summarized yet. */
+  getOverview(
+    sessionId: string,
+    signal?: AbortSignal,
+  ): Promise<SessionOverview | null>;
+  regenerateOverview(sessionId: string): Promise<void>;
 }
 
 export const activeSessionStates = new Set<SessionState>([

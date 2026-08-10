@@ -80,7 +80,28 @@ function createClient(session = createSession()): EvidenceApiClient {
     ),
     cancelSession: vi.fn(async () => ({ ...session, state: "CANCELLED" })),
     deleteSession: vi.fn(async () => undefined),
+    getOverview: vi.fn(async () => ({
+      id: "overview-1",
+      themes: [
+        {
+          rank: 1,
+          title: "Releasing the sound",
+          summary: "The coach worked on releasing jaw tension on the F.",
+          interventionIds: ["intervention-1"],
+          startMs: 42_000,
+          endMs: 48_000,
+        },
+      ],
+      interventionCount: 1,
+      stale: false,
+      generatedAt: new Date().toISOString(),
+    })),
+    regenerateOverview: vi.fn(async () => undefined),
   };
+}
+
+function findShowAllInterventions() {
+  return screen.findByRole("button", { name: /show all .* interventions/i });
 }
 
 describe("evidence ledger app", () => {
@@ -127,11 +148,42 @@ describe("evidence ledger app", () => {
     expect(await screen.findByText("Practice upload")).toBeVisible();
   });
 
+  it("opens a session on its summary rather than the full ledger", async () => {
+    const client = createClient();
+    render(<App client={client} />);
+
+    // The dense ledger is a drill-down; the headline items are what a singer
+    // should land on after a rehearsal.
+    expect(await screen.findByText("Releasing the sound")).toBeVisible();
+    expect(
+      screen.getByText(/releasing jaw tension on the F/i),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: /0:42/ })).toBeVisible();
+    expect(
+      screen.queryByText("Speaker identity needs human confirmation."),
+    ).toBeNull();
+  });
+
+  it("warns when the summary no longer matches the reviewed ledger", async () => {
+    const client = createClient();
+    client.getOverview = vi.fn(async () => ({
+      id: "overview-1",
+      themes: [],
+      interventionCount: 1,
+      stale: true,
+      generatedAt: new Date().toISOString(),
+    }));
+    render(<App client={client} />);
+
+    expect(await screen.findByText(/summary is out of date/i)).toBeVisible();
+  });
+
   it("shows uncertainty and saves a human verification decision", async () => {
     const user = userEvent.setup();
     const client = createClient();
     render(<App client={client} />);
 
+    await user.click(await findShowAllInterventions());
     expect(await screen.findByText("Speaker identity needs human confirmation.")).toBeVisible();
     expect(screen.getByText(/not whether the coaching statement/i)).toBeVisible();
 
@@ -156,6 +208,7 @@ describe("evidence ledger app", () => {
       .mockResolvedValue(undefined);
     const { container } = render(<App client={client} />);
 
+    await user.click(await findShowAllInterventions());
     const evidence = await screen.findByRole("button", {
       name: /coach feedback.*0:42.*feedback/i,
     });

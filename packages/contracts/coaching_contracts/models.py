@@ -30,6 +30,7 @@ class JobType(StrEnum):
     TRANSCRIBE = "TRANSCRIBE"
     RECONCILE = "RECONCILE"
     EXTRACT = "EXTRACT"
+    SUMMARIZE = "SUMMARIZE"
 
 
 class JobStatus(StrEnum):
@@ -162,6 +163,47 @@ class LedgerEntryResponse(LedgerEntryCreate):
     verified_at: datetime | None
     created_at: datetime
     updated_at: datetime
+
+
+class SummaryThemeCreate(StrictModel):
+    """One headline item, as produced by the summarizer."""
+
+    title: str = Field(min_length=1, max_length=200)
+    summary: str = Field(min_length=1, max_length=4_000)
+    ledger_entry_ids: list[str] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_entry_ids(self) -> "SummaryThemeCreate":
+        if len(set(self.ledger_entry_ids)) != len(self.ledger_entry_ids):
+            raise ValueError("ledger_entry_ids must be unique")
+        return self
+
+
+class SessionSummaryCreate(StrictModel):
+    themes: list[SummaryThemeCreate]
+
+
+class SummaryTheme(SummaryThemeCreate):
+    rank: int = Field(ge=1)
+    # Derived from the cited entries rather than asked of the model, so "where
+    # this happened" is always a real transcript position.
+    start_ms: int = Field(ge=0)
+    end_ms: int = Field(gt=0)
+
+
+class SessionSummaryResponse(StrictModel):
+    id: str
+    session_id: str
+    transcript_revision_id: str
+    themes: list[SummaryTheme]
+    entry_count: int
+    stale: bool = Field(
+        description=(
+            "True when ledger entries changed after this summary was generated, "
+            "so it no longer reflects the reviewed ledger."
+        )
+    )
+    generated_at: datetime
 
 
 class VerificationRequest(StrictModel):

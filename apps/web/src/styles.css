@@ -799,3 +799,53 @@ meter {
     animation-iteration-count: 1 !important;
   }
 }
+
+.overview-panel {
+  display: grid;
+  gap: 1.1rem;
+  margin-top: 1.25rem;
+}
+
+.theme-list {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.theme-item {
+  padding: 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+}
+
+.theme-item__header {
+  display: flex;
+  gap: 1rem;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.theme-item__header h4 {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  margin: 0 0 0.35rem;
+}
+
+.theme-item__rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  color: var(--brand);
+  font-size: 0.8rem;
+  background: var(--brand-soft);
+  border-radius: 50%;
+}
+
+.theme-item p {
+  margin: 0 0 0.35rem;
+}

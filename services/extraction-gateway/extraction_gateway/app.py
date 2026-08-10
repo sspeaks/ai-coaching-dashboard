@@ -12,7 +12,12 @@ from fastapi import Depends, FastAPI, Header, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from coaching_contracts import LedgerEntryCreate, TranscriptSegment
+from coaching_contracts import (
+    LedgerEntryCreate,
+    SessionSummaryCreate,
+    SummaryThemeCreate,
+    TranscriptSegment,
+)
 
 from .config import Settings, get_settings
 from .openai_client import OpenAIClient, OpenAIClientError, OpenAITimeoutError
@@ -36,6 +41,30 @@ class ExtractionRequest(StrictModel):
     timestamp_unit: Literal["milliseconds"]
     instructions: list[str]
     segments: list[TranscriptSegment]
+
+
+class SummaryLedgerEntry(StrictModel):
+    id: str
+    topic: str
+    exact_coach_feedback: str | None = None
+    interpretation: str | None = None
+    applies_to: str | None = None
+    exercise_or_requested_change: str | None = None
+    next_action_and_owner: str | None = None
+    start_ms: int
+    end_ms: int
+
+
+class SummaryRequest(StrictModel):
+    schema_version: Literal["coaching-ledger-v1"]
+    session: ExtractionSession
+    transcript_revision_id: str
+    theme_count: int = 5
+    entries: list[SummaryLedgerEntry]
+
+
+class ModelSummaryResponse(StrictModel):
+    themes: list[SummaryThemeCreate]
 
 
 class ModelExtractionResponse(StrictModel):
@@ -337,6 +366,87 @@ def _coerce_entries(
     )
 
 
+def _build_summary_messages(body: SummaryRequest) -> list[dict[str, str]]:
+    payload = {
+        "session": body.session.model_dump(mode="json"),
+        "theme_count": body.theme_count,
+        "entries": [entry.model_dump(mode="json") for entry in body.entries],
+    }
+    return [
+        {
+            "role": "system",
+            "content": (
+                "You are summarizing one coaching session for the singers who "
+                f"were in it. Group the supplied ledger entries into at most "
+                f"{body.theme_count} themes, ordered with the most substantial "
+                "first, so a reader can see at a glance what the coach actually "
+                "worked on. Each theme needs a short specific title (name the "
+                "actual vocal or musical issue, never a generic label like "
+                "'Vocal Technique') and a few sentences describing what the "
+                "coach asked for and why. Use only the supplied entries: every "
+                "theme must list the ids of the entries it covers, every id "
+                "must be one you were given, and each entry belongs to at most "
+                "one theme. Prefer covering the whole session over describing "
+                "any one theme exhaustively; it is fine to leave minor entries "
+                "out of every theme."
+            ),
+        },
+        {
+            "role": "user",
+            "content": json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
+        },
+    ]
+
+
+def _coerce_summary(payload: Any, body: SummaryRequest) -> SessionSummaryCreate:
+    try:
+        response = ModelSummaryResponse.model_validate(payload)
+    except ValidationError as exc:
+        logger.warning(
+            "model summary failed validation errors=%s", exc.errors()[:3]
+        )
+        raise _http_error(
+            "invalid_model_response",
+            f"model response did not match the summary schema: {exc.errors()[0]['msg']}",
+            status.HTTP_502_BAD_GATEWAY,
+        ) from exc
+
+    known_ids = {entry.id for entry in body.entries}
+    themes: list[SummaryThemeCreate] = []
+    claimed: set[str] = set()
+    for theme in response.themes:
+        # An id we did not supply is an invented citation, and the whole point
+        # of summarizing the ledger rather than the transcript is that every
+        # headline stays traceable to a verified entry.
+        entry_ids = [
+            entry_id
+            for entry_id in theme.ledger_entry_ids
+            if entry_id in known_ids and entry_id not in claimed
+        ]
+        dropped = len(theme.ledger_entry_ids) - len(entry_ids)
+        if dropped:
+            logger.warning(
+                "dropped %s unusable entry ids from summary theme title=%r",
+                dropped,
+                theme.title,
+            )
+        if not entry_ids:
+            logger.warning("discarded summary theme with no usable entries title=%r", theme.title)
+            continue
+        claimed.update(entry_ids)
+        themes.append(theme.model_copy(update={"ledger_entry_ids": entry_ids}))
+
+    themes = themes[: body.theme_count]
+    logger.info(
+        "summary complete session=%s entries=%s themes=%s covered_entries=%s",
+        body.session.id,
+        len(body.entries),
+        len(themes),
+        len(claimed),
+    )
+    return SessionSummaryCreate(themes=themes)
+
+
 def create_app(
     settings: Settings | None = None, openai_client: OpenAIClient | None = None
 ) -> FastAPI:
@@ -402,6 +512,16 @@ def create_app(
             payloads = list(pool.map(run_window, windows))
         return _coerce_entries(payloads, body)
 
+    @app.post("/summarize", response_model=SessionSummaryCreate)
+    def summarize(body: SummaryRequest, _: None = Depends(require_bearer)):
+        if not body.entries:
+            return SessionSummaryCreate(themes=[])
+        payload = openai_client.extract_json(
+            messages=_build_summary_messages(body),
+            schema=ModelSummaryResponse.model_json_schema(),
+        )
+        return _coerce_summary(payload, body)
+
     return app
 
 
@@ -413,6 +533,11 @@ def run() -> None:
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8080)
     args = parser.parse_args()
+    # Without this the module logger has no handler above WARNING, so the
+    # per-session coverage counts never reach the container log.
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s"
+    )
     uvicorn.run("extraction_gateway.app:app", host=args.host, port=args.port)
 
 
