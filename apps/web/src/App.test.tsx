@@ -141,6 +141,18 @@ describe("evidence ledger app", () => {
     render(<App client={client} />);
 
     await screen.findByText("No recordings yet");
+    expect(
+      screen.getByText(/make sure everyone on the recording is okay/i),
+    ).toBeVisible();
+    const disclosure = screen.getByRole("button", {
+      name: /what happens to my recording/i,
+    });
+    expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    await user.click(disclosure);
+    expect(disclosure).toHaveAttribute("aria-expanded", "true");
+    expect(
+      screen.getByText(/original file is kept until an admin deletes/i),
+    ).toBeVisible();
     await user.type(
       screen.getByLabelText(/recording name/i),
       "Practice upload",

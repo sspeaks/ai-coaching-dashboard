@@ -13,6 +13,7 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [uploadedMessage, setUploadedMessage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [disclosureOpen, setDisclosureOpen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   async function submit(event: FormEvent) {
@@ -100,6 +101,40 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
           Audio files such as MP3, WAV, M4A, FLAC, AAC, OGG, and OPUS are
           accepted. Keep this page open until the upload finishes.
         </p>
+        <div className="privacy-disclosure">
+          <p>
+            Before you upload: make sure everyone on the recording is okay with
+            it being uploaded and analyzed.
+          </p>
+          <button
+            className="disclosure-button"
+            type="button"
+            aria-expanded={disclosureOpen}
+            aria-controls="upload-privacy-details"
+            onClick={() => setDisclosureOpen((isOpen) => !isOpen)}
+          >
+            What happens to my recording?
+          </button>
+          <div id="upload-privacy-details" hidden={!disclosureOpen}>
+            <p>
+              Your audio is saved on this dashboard&apos;s server so you can
+              play it back. The original file is kept until an admin deletes
+              the recording; this app does not automatically expire it.
+            </p>
+            <p>
+              To transcribe it, the worker sends the audio to the configured
+              Speakr transcription service. If AI note extraction is turned on,
+              transcript text (not the audio file) is sent to the configured AI
+              extraction service, which may use OpenAI or another
+              OpenAI-compatible provider.
+            </p>
+            <p>
+              Deleting a recording removes the saved audio file and the
+              dashboard record, and the app asks Speakr to delete its copy
+              before deletion finishes.
+            </p>
+          </div>
+        </div>
         {progress !== null && (
           <div className="upload-progress" aria-live="polite">
             <div className="progress-row">
