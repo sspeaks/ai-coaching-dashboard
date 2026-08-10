@@ -112,6 +112,12 @@ class ResolveUploadOperationRequest(BaseModel):
     override_reason: str | None = Field(default=None, max_length=2000)
 
 
+class CurrentUserResponse(BaseModel):
+    subject: str
+    username: str
+    role: str
+
+
 def _http_error(code: str, message: str, status_code: int = 400) -> HTTPException:
     return HTTPException(
         status_code=status_code, detail={"code": code, "message": message}
@@ -189,6 +195,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             ),
             "extraction_provider": settings.extraction_provider,
         }
+
+    @router.get("/me", response_model=CurrentUserResponse)
+    def current_user(principal: Principal = Depends(require_principal)):
+        return CurrentUserResponse(
+            subject=principal.subject,
+            username=principal.username,
+            role=principal.role.name.lower(),
+        )
 
     @router.post(
         "/sessions",

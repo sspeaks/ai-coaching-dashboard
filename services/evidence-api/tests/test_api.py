@@ -674,9 +674,17 @@ def test_trusted_proxy_rbac_enforces_viewer_editor_and_admin():
         admin = {
             **secret_header,
             "X-Auth-Request-Email": "admin@example.com",
+            "X-Auth-Request-Preferred-Username": "admin-user",
             "X-Auth-Request-Groups": "evidence-admins",
         }
         assert proxy_client.get("/api/sessions", headers=viewer).status_code == 200
+        me = proxy_client.get("/api/me", headers=admin)
+        assert me.status_code == 200
+        assert me.json() == {
+            "subject": "admin@example.com",
+            "username": "admin-user",
+            "role": "admin",
+        }
         assert (
             proxy_client.post(
                 "/api/sessions", json={"title": "Denied"}, headers=viewer
@@ -781,6 +789,33 @@ def test_trusted_proxy_rbac_enforces_viewer_editor_and_admin():
             ).status_code
             == 200
         )
+
+
+def test_current_user_falls_back_to_email_local_part():
+    root = Path("services/evidence-api/tests/.runtime-rbac-whoami")
+    if root.exists():
+        shutil.rmtree(root)
+    root.mkdir(parents=True)
+    proxy_secret = "s" * 40
+    settings = Settings(
+        environment="test",
+        auth_mode="trusted_proxy",
+        trusted_proxy_networks="127.0.0.0/8",
+        trusted_proxy_shared_secret=proxy_secret,
+        database_url=f"sqlite:///{root / 'evidence.db'}",
+        media_root=root / "media",
+    )
+    app = create_app(settings)
+    with TestClient(app, client=("127.0.0.1", 50000)) as proxy_client:
+        response = proxy_client.get(
+            "/api/me",
+            headers={
+                settings.trusted_proxy_secret_header: proxy_secret,
+                "X-Auth-Request-Email": "reverie@example.com",
+            },
+        )
+        assert response.status_code == 200
+        assert response.json()["username"] == "reverie"
 
 
 def test_trusted_proxy_rejects_peer_container_spoofing_without_shared_secret():

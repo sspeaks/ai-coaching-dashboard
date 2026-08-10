@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ApiError,
   isActiveSessionState,
+  type CurrentUser,
   type EvidenceApiClient,
   type SessionDetail,
   type SessionSummary,
@@ -25,6 +26,7 @@ export function App({ client, mockMode = false }: AppProps) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [route, setRoute] = useState<Route>(() => routeFromPath());
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [loadingList, setLoadingList] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,9 +68,13 @@ export function App({ client, mockMode = false }: AppProps) {
 
   useEffect(() => {
     const controller = new AbortController();
+    void client
+      .getCurrentUser(controller.signal)
+      .then(setCurrentUser)
+      .catch(handleError);
     void loadSessions(controller.signal);
     return () => controller.abort();
-  }, [loadSessions]);
+  }, [client, handleError, loadSessions]);
 
   useEffect(() => {
     function handlePopState() {
@@ -194,9 +200,14 @@ export function App({ client, mockMode = false }: AppProps) {
           <p className="brand-kicker">Private quartet archive</p>
           <h1>Quartet coaching</h1>
         </div>
-        <a className="button button--quiet" href="/oauth2/sign_out">
-          Sign out
-        </a>
+        <div className="account-menu" aria-label="Account">
+          {currentUser && (
+            <span className="account-menu__user">Signed in as {currentUser.username}</span>
+          )}
+          <a className="button button--quiet" href="/oauth2/sign_out?rd=/signed-out">
+            Sign out
+          </a>
+        </div>
       </header>
       {mockMode && (
         <div className="demo-banner" role="status">

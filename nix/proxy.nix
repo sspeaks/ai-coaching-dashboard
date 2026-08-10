@@ -54,6 +54,22 @@ let
   # {scheme} would resolve to "http" and oauth2-proxy would build an
   # http:// redirect URI that no longer matches the registered OIDC callback.
   redirectScheme = if caddy.externalTls.enable then "https" else "{scheme}";
+  stripTrailingSlash =
+    value:
+    let
+      match = builtins.match "(.+)/" value;
+    in
+    if match == null then value else builtins.head match;
+  oidcEndSessionURL =
+    if oidc.singleLogout.endSessionURL != null then
+      oidc.singleLogout.endSessionURL
+    else
+      "${stripTrailingSlash oidc.issuerUrl}/end-session/";
+  oidcPostLogoutRedirectURL =
+    if oidc.singleLogout.postLogoutRedirectURL != null then
+      oidc.singleLogout.postLogoutRedirectURL
+    else
+      "https://${cfg.domain}/signed-out";
 
   forwardAuth = lib.optionalString oidc.enable ''
     forward_auth 127.0.0.1:${toString oidc.port} {
@@ -222,6 +238,33 @@ in
         default = null;
         description = "OIDC callback URL; defaults to https://<domain>/oauth2/callback.";
       };
+
+      singleLogout = {
+        enable = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = ''
+            End the upstream OIDC SSO session when the dashboard sign-out link
+            is used. This prevents oauth2-proxy from immediately recreating
+            the app session from a still-live Authentik browser session.
+          '';
+        };
+
+        endSessionURL = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = ''
+            OIDC RP-initiated logout endpoint. Null derives Authentik's
+            default endpoint from issuerUrl by appending /end-session/.
+          '';
+        };
+
+        postLogoutRedirectURL = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = "Final browser destination after OIDC logout; defaults to https://<domain>/signed-out.";
+        };
+      };
     };
 
     devAuth.enable = lib.mkOption {
@@ -358,6 +401,10 @@ in
         oidc-email-claim = oidc.emailClaim;
         oidc-groups-claim = oidc.groupsClaim;
         insecure-oidc-allow-unverified-email = oidc.allowUnverifiedEmail;
+      }
+      // lib.optionalAttrs oidc.singleLogout.enable {
+        backend-logout-url = "${oidcEndSessionURL}?id_token_hint={id_token}&post_logout_redirect_uri=${oidcPostLogoutRedirectURL}";
+        whitelist-domain = cfg.domain;
       };
     };
 
@@ -386,6 +433,10 @@ in
           ${stripUntrustedHeaders}
 
           ${lib.optionalString oidc.enable ''
+            handle /signed-out {
+              respond "Signed out. Your Quartet coaching session and Authentik sign-in session have been ended." 200
+            }
+
             handle /oauth2/* {
               reverse_proxy 127.0.0.1:${toString oidc.port} {
                 ${externalTlsOauth2ProxyHeaders}

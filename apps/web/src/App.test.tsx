@@ -54,6 +54,11 @@ function createSession(): SessionDetail {
 
 function createClient(session = createSession()): EvidenceApiClient {
   return {
+    getCurrentUser: vi.fn(async () => ({
+      subject: "reverie@example.com",
+      username: "reverie",
+      role: "admin",
+    })),
     listSessions: vi.fn(async () => [
       {
         ...session,
@@ -131,6 +136,34 @@ describe("evidence ledger app", () => {
     await user.keyboard("{Enter}");
 
     expect(screen.getByRole("main")).toHaveFocus();
+  });
+
+  it("shows the signed-in username and sends logout through the sticky sign-out route", async () => {
+    const client = createClient();
+    render(<App client={client} />);
+
+    expect(await screen.findByText("Signed in as reverie")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Sign out" })).toHaveAttribute(
+      "href",
+      "/oauth2/sign_out?rd=/signed-out",
+    );
+  });
+
+  it.each([
+    ["/", "Hear what the coach worked on."],
+    ["/upload", "Upload one coaching recording."],
+    ["/manage", "Recording controls"],
+    ["/not-a-real-page", "This page does not exist."],
+  ])("shows account controls on %s", async (path, pageText) => {
+    window.history.pushState({}, "", path);
+    render(<App client={createClient()} />);
+
+    expect(await screen.findByText(pageText)).toBeVisible();
+    expect(screen.getByText("Signed in as reverie")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Sign out" })).toHaveAttribute(
+      "href",
+      "/oauth2/sign_out?rd=/signed-out",
+    );
   });
 
   it("uploads a recording through the client abstraction", async () => {

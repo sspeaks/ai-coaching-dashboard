@@ -224,6 +224,10 @@ in
     assert !deployConfig.services.oauth2-proxy.extraConfig.insecure-oidc-allow-unverified-email;
     assert containers.evidence-api.environment.EVIDENCE_TRUSTED_EMAIL_HEADER == "x-auth-request-email";
     assert
+      containers.evidence-api.environment.EVIDENCE_TRUSTED_USERNAME_HEADER
+      == "x-auth-request-preferred-username";
+    assert containers.evidence-api.environment.EVIDENCE_TRUSTED_USER_HEADER == "x-auth-request-user";
+    assert
       containers.evidence-api.environment.EVIDENCE_TRUSTED_GROUPS_HEADER == "x-auth-request-groups";
     assert
       containers.evidence-api.environment.EVIDENCE_TRUSTED_PROXY_NETWORKS == "127.0.0.1/32,::1/128";
@@ -247,6 +251,10 @@ in
     assert deployConfig.services.oauth2-proxy.extraConfig.skip-auth-strip-headers;
     assert deployConfig.services.oauth2-proxy.extraConfig.oidc-groups-claim == "groups";
     assert
+      deployConfig.services.oauth2-proxy.extraConfig."backend-logout-url"
+      == "https://login.example.org/realms/coaching/end-session/?id_token_hint={id_token}&post_logout_redirect_uri=https://coaching.example.org/signed-out";
+    assert deployConfig.services.oauth2-proxy.extraConfig."whitelist-domain" == "coaching.example.org";
+    assert
       deployConfig.services.oauth2-proxy.trustedProxyIP == [
         "127.0.0.1/32"
         "::1/128"
@@ -257,6 +265,9 @@ in
     assert lib.hasInfix "request_header -X-AI-Coaching-Proxy-Auth" caddyConfig;
     assert lib.hasInfix "request_header -X-Forwarded-For" caddyConfig;
     assert lib.hasInfix "copy_headers X-Auth-Request-User X-Auth-Request-Email X-Auth-Request-Groups"
+      caddyConfig;
+    assert lib.hasInfix "handle /signed-out" caddyConfig;
+    assert lib.hasInfix "Your Quartet coaching session and Authentik sign-in session have been ended."
       caddyConfig;
     assert lib.hasInfix "header_up X-AI-Coaching-Proxy-Auth {env.AI_COACHING_PROXY_AUTH_SECRET}"
       caddyConfig;

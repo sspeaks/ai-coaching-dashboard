@@ -15,6 +15,7 @@ class Role(IntEnum):
 @dataclass(frozen=True)
 class Principal:
     subject: str
+    username: str
     role: Role
 
 
@@ -39,6 +40,7 @@ def require_principal(request: Request) -> Principal:
                 },
             )
         return Principal(
+            settings.development_user,
             settings.development_user,
             Role[settings.development_role.upper()],
         )
@@ -94,6 +96,11 @@ def require_principal(request: Request) -> Principal:
                 "message": "authenticated proxy identity header is missing",
             },
         )
+    username = _display_username(
+        subject,
+        request.headers.get(settings.trusted_username_header),
+        request.headers.get(settings.trusted_user_header),
+    )
     groups = {
         item.strip().casefold()
         for item in request.headers.get(settings.trusted_groups_header, "").split(",")
@@ -108,7 +115,7 @@ def require_principal(request: Request) -> Principal:
         if groups & editor_groups
         else Role.VIEWER
     )
-    return Principal(subject.strip(), role)
+    return Principal(subject.strip(), username, role)
 
 
 def require_editor(
@@ -125,6 +132,16 @@ def require_admin(
 
 def _configured_groups(value: str) -> set[str]:
     return {item.strip().casefold() for item in value.split(",") if item.strip()}
+
+
+def _display_username(subject: str, *candidates: str | None) -> str:
+    for candidate in candidates:
+        if candidate and candidate.strip():
+            return candidate.strip()
+    clean_subject = subject.strip()
+    if "@" in clean_subject:
+        return clean_subject.split("@", 1)[0]
+    return clean_subject
 
 
 def _client_ip(request: Request):
