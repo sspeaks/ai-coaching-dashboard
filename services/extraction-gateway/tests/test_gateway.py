@@ -309,3 +309,134 @@ def test_the_model_is_told_to_quote_verbatim(settings, extraction_body, auth_hea
 
     system_prompt = fake.calls[0]["messages"][0]["content"]
     assert "character for character" in system_prompt
+
+
+def _many_segments(count: int) -> list[dict]:
+    return [
+        {
+            "segment_id": f"seg-{index}",
+            "start_ms": index * 1000,
+            "end_ms": index * 1000 + 900,
+            "text": f"Coach: Lead, release the sound on bar {index}.",
+            "provider_speaker_label": "SPEAKER_00",
+        }
+        for index in range(count)
+    ]
+
+
+def test_long_transcripts_are_extracted_in_overlapping_windows(
+    settings, extraction_body, auth_headers
+):
+    extraction_body["segments"] = _many_segments(500)
+    settings = settings.model_copy(
+        update={"window_segment_count": 200, "window_overlap_segments": 15}
+    )
+
+    with make_client(settings, payload={"entries": []}) as (client, fake):
+        response = client.post("/", json=extraction_body, headers=auth_headers)
+
+    assert response.status_code == 200
+    # 500 segments in windows of 200 with 15 overlapping: 0-199, 185-384, 370-499.
+    assert len(fake.calls) == 3
+    sent_ids = [
+        [s["segment_id"] for s in json.loads(call["messages"][1]["content"])["segments"]]
+        for call in fake.calls
+    ]
+    assert [len(ids) for ids in sent_ids] == [200, 200, 130]
+    # Every segment must reach the model, or that stretch of the session is
+    # silently unexamined -- the bug this windowing exists to fix.
+    assert {sid for ids in sent_ids for sid in ids} == {
+        s["segment_id"] for s in extraction_body["segments"]
+    }
+    assert sent_ids[1][0] == "seg-185"
+
+
+def test_short_transcripts_still_use_a_single_request(
+    settings, extraction_body, auth_headers
+):
+    with make_client(settings, payload={"entries": []}) as (client, fake):
+        client.post("/", json=extraction_body, headers=auth_headers)
+
+    assert len(fake.calls) == 1
+
+
+def test_entries_repeated_across_overlapping_windows_are_deduplicated(
+    settings, extraction_body, auth_headers
+):
+    extraction_body["segments"] = _many_segments(500)
+    settings = settings.model_copy(
+        update={"window_segment_count": 200, "window_overlap_segments": 15}
+    )
+    duplicate = ledger_entry(topic="Vocal Technique")
+    duplicate["evidence"] = [
+        {
+            "transcript_revision_id": "revision-1",
+            "start_ms": 0,
+            "end_ms": 900,
+            "segment_ids": ["seg-0"],
+        }
+    ]
+
+    with make_client(settings, payload={"entries": [duplicate]}) as (client, _):
+        response = client.post("/", json=extraction_body, headers=auth_headers)
+
+    body = response.json()
+    assert len(body["entries"]) == 1
+    assert body["model_entry_count"] == 3
+
+
+def test_a_failing_window_fails_the_whole_extraction(
+    settings, extraction_body, auth_headers
+):
+    from extraction_gateway.openai_client import OpenAIClientError
+
+    extraction_body["segments"] = _many_segments(500)
+    settings = settings.model_copy(update={"window_segment_count": 200})
+
+    # Returning the windows that did succeed would silently drop whole minutes
+    # of the session, which is exactly what this feature prevents.
+    with make_client(settings, exc=OpenAIClientError("upstream exploded")) as (
+        client,
+        _,
+    ):
+        response = client.post("/", json=extraction_body, headers=auth_headers)
+
+    assert response.status_code == 502
+
+
+def test_a_truncated_model_response_is_an_error_not_a_short_extraction():
+    import httpx
+
+    from extraction_gateway.config import Settings
+    from extraction_gateway.openai_client import OpenAIClient, OpenAIClientError
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "finish_reason": "length",
+                        "message": {"content": '{"entries": []}'},
+                    }
+                ]
+            },
+        )
+
+    client = OpenAIClient(
+        Settings(openai_api_key="k", inbound_api_key="test-shared-gateway-token")
+    )
+    transport = httpx.MockTransport(handler)
+    original = httpx.Client
+
+    class PatchedClient(httpx.Client):
+        def __init__(self, **kwargs):
+            kwargs["transport"] = transport
+            super().__init__(**kwargs)
+
+    httpx.Client = PatchedClient
+    try:
+        with pytest.raises(OpenAIClientError, match="finish_reason"):
+            client.extract_json(messages=[], schema={"type": "object"})
+    finally:
+        httpx.Client = original

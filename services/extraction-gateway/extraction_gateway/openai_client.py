@@ -137,6 +137,15 @@ class OpenAIClient:
         except (KeyError, IndexError, TypeError) as exc:
             raise OpenAIClientError("OpenAI response did not contain message content") from exc
 
+        finish_reason = data["choices"][0].get("finish_reason")
+        if finish_reason not in (None, "stop"):
+            # Anything else means the model stopped early, so the entries we did
+            # get silently cover only part of the transcript. Fail instead.
+            raise OpenAIClientError(
+                f"OpenAI stopped early with finish_reason={finish_reason!r}; "
+                "the extraction would have been incomplete"
+            )
+
         if isinstance(content, str):
             try:
                 return json.loads(content)

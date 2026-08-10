@@ -56,11 +56,15 @@ class Settings(BaseSettings):
     extraction_provider: Literal["disabled", "http_json"] = "disabled"
     extraction_endpoint: str | None = None
     extraction_api_key: str | None = None
-    extraction_timeout_seconds: float = 120
+    # The gateway extracts a long session one window at a time, so a single
+    # call to it covers several sequential model requests.
+    extraction_timeout_seconds: float = 900
 
     worker_poll_seconds: float = 5
     worker_transcription_poll_seconds: float = 15
-    worker_job_lease_seconds: int = 600
+    # Must exceed extraction_timeout_seconds, or a still-running extraction
+    # looks abandoned and a second worker picks the job up alongside the first.
+    worker_job_lease_seconds: int = 1200
     reconciliation_interval_seconds: int = 3600
     worker_max_attempts: int = 3
 
@@ -92,6 +96,11 @@ class Settings(BaseSettings):
             raise ValueError("worker_transcription_poll_seconds cannot be negative")
         if self.worker_job_lease_seconds < 1:
             raise ValueError("worker_job_lease_seconds must be positive")
+        if self.worker_job_lease_seconds <= self.extraction_timeout_seconds:
+            raise ValueError(
+                "worker_job_lease_seconds must exceed extraction_timeout_seconds "
+                "so a running extraction is never treated as abandoned"
+            )
         for value in self.trusted_proxy_networks.split(","):
             if value.strip():
                 ip_network(value.strip(), strict=False)

@@ -3,6 +3,7 @@ import hmac
 import json
 import logging
 import re
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Any, Literal
 
@@ -85,14 +86,16 @@ def _authorize(
         )
 
 
-def _build_messages(body: ExtractionRequest) -> list[dict[str, str]]:
+def _build_messages(
+    body: ExtractionRequest, segments: list[TranscriptSegment]
+) -> list[dict[str, str]]:
     payload = {
         "schema_version": body.schema_version,
         "session": body.session.model_dump(mode="json"),
         "transcript_revision_id": body.transcript_revision_id,
         "timestamp_unit": body.timestamp_unit,
         "instructions": body.instructions,
-        "segments": [segment.model_dump(mode="json") for segment in body.segments],
+        "segments": [segment.model_dump(mode="json") for segment in segments],
     }
     return [
         {
@@ -101,6 +104,8 @@ def _build_messages(body: ExtractionRequest) -> list[dict[str, str]]:
                 "Extract source-grounded coaching ledger entries from transcript "
                 "segments. Return only JSON matching the supplied schema. Treat "
                 "segment IDs and timestamps as evidence constraints. "
+                "The segments are one window of a longer session; cover this "
+                "window thoroughly and do not summarize it into a few entries. "
                 "`exact_coach_feedback` must be copied character for character "
                 "from the text of a cited segment -- never paraphrased, "
                 "summarized, tidied up, or stitched together across segments. "
@@ -220,40 +225,98 @@ def _normalize_entry(
     return LedgerEntryCreate.model_validate(data), None
 
 
-def _coerce_entries(payload: Any, body: ExtractionRequest) -> GatewayExtractionResponse:
-    try:
-        response = ModelExtractionResponse.model_validate(payload)
-    except ValidationError as exc:
-        logger.warning("model response failed ledger validation errors=%s", exc.errors()[:3])
-        raise _http_error(
-            "invalid_model_response",
-            f"model response did not match the ledger schema: {exc.errors()[0]['msg']}",
-            status.HTTP_502_BAD_GATEWAY,
-        ) from exc
+def _split_windows(
+    segments: list[TranscriptSegment], *, size: int, overlap: int
+) -> list[list[TranscriptSegment]]:
+    """Split a transcript into overlapping windows.
 
+    A whole session in a single request makes the model return a handful of
+    entries covering a few minutes and silently ignore the rest, so the
+    transcript is extracted a window at a time. Windows overlap so a coaching
+    moment that straddles a boundary is still seen whole by one of them.
+    """
+    if len(segments) <= size:
+        return [segments]
+    step = size - overlap
+    windows = []
+    for start in range(0, len(segments), step):
+        windows.append(segments[start : start + size])
+        if start + size >= len(segments):
+            break
+    return windows
+
+
+def _entry_identity(entry: LedgerEntryCreate) -> tuple[str, frozenset[str]]:
+    # Overlapping windows see the same moment twice. Two entries are treated as
+    # the same observation when they are about the same topic and rest on the
+    # same segments; the quote is deliberately excluded because one window may
+    # have quoted it and the other paraphrased.
+    segment_ids = frozenset(
+        segment_id
+        for evidence in entry.evidence
+        for segment_id in evidence.segment_ids
+    )
+    return _normalize_quote_text(entry.topic), segment_ids
+
+
+def _coerce_entries(
+    payloads: list[Any], body: ExtractionRequest
+) -> GatewayExtractionResponse:
     entries: list[LedgerEntryCreate] = []
+    seen: set[tuple[str, frozenset[str]]] = set()
+    model_entry_count = 0
     rejected_count = 0
-    for entry in response.entries:
-        normalized, rejection = _normalize_entry(entry, body)
-        if normalized is not None:
-            entries.append(normalized)
-            continue
-        rejected_count += 1
-        if rejection:
+    duplicate_count = 0
+
+    for payload in payloads:
+        try:
+            response = ModelExtractionResponse.model_validate(payload)
+        except ValidationError as exc:
             logger.warning(
-                "rejected model ledger entry reason=%s topic=%r segment_ids=%s",
-                rejection.reason,
-                rejection.topic,
-                rejection.segment_ids,
+                "model response failed ledger validation errors=%s", exc.errors()[:3]
             )
-    if response.entries and not entries:
+            raise _http_error(
+                "invalid_model_response",
+                f"model response did not match the ledger schema: {exc.errors()[0]['msg']}",
+                status.HTTP_502_BAD_GATEWAY,
+            ) from exc
+
+        model_entry_count += len(response.entries)
+        for entry in response.entries:
+            normalized, rejection = _normalize_entry(entry, body)
+            if normalized is None:
+                rejected_count += 1
+                if rejection:
+                    logger.warning(
+                        "rejected model ledger entry reason=%s topic=%r segment_ids=%s",
+                        rejection.reason,
+                        rejection.topic,
+                        rejection.segment_ids,
+                    )
+                continue
+            identity = _entry_identity(normalized)
+            if identity in seen:
+                duplicate_count += 1
+                continue
+            seen.add(identity)
+            entries.append(normalized)
+
+    if model_entry_count and not entries:
         logger.warning(
             "all model ledger entries were rejected model_entry_count=%s",
-            len(response.entries),
+            model_entry_count,
         )
+    logger.info(
+        "extraction complete windows=%s model_entries=%s kept=%s rejected=%s duplicates=%s",
+        len(payloads),
+        model_entry_count,
+        len(entries),
+        rejected_count,
+        duplicate_count,
+    )
 
     metadata = {
-        "gateway_model_entry_count": len(response.entries),
+        "gateway_model_entry_count": model_entry_count,
         "gateway_rejected_entry_count": rejected_count,
     }
     entries = [
@@ -269,7 +332,7 @@ def _coerce_entries(payload: Any, body: ExtractionRequest) -> GatewayExtractionR
     ]
     return GatewayExtractionResponse(
         entries=entries,
-        model_entry_count=len(response.entries),
+        model_entry_count=model_entry_count,
         rejected_entry_count=rejected_count,
     )
 
@@ -311,11 +374,33 @@ def create_app(
     @app.post("/extract", response_model=GatewayExtractionResponse)
     def extract(body: ExtractionRequest, _: None = Depends(require_bearer)):
         schema = ModelExtractionResponse.model_json_schema()
-        payload = openai_client.extract_json(
-            messages=_build_messages(body),
-            schema=schema,
+        windows = _split_windows(
+            body.segments,
+            size=settings.window_segment_count,
+            overlap=settings.window_overlap_segments,
         )
-        return _coerce_entries(payload, body)
+        logger.info(
+            "extracting session=%s segments=%s windows=%s",
+            body.session.id,
+            len(body.segments),
+            len(windows),
+        )
+
+        def run_window(window: list[TranscriptSegment]) -> Any:
+            return openai_client.extract_json(
+                messages=_build_messages(body, window),
+                schema=schema,
+            )
+
+        if len(windows) == 1:
+            return _coerce_entries([run_window(windows[0])], body)
+
+        # A window that fails is a silently missing stretch of the session,
+        # which is the failure this windowing exists to prevent. Let the error
+        # out of the pool so the job fails and can be retried whole.
+        with ThreadPoolExecutor(max_workers=settings.window_concurrency) as pool:
+            payloads = list(pool.map(run_window, windows))
+        return _coerce_entries(payloads, body)
 
     return app
 
