@@ -269,12 +269,18 @@ in
     assert deployConfig.services.oauth2-proxy.setXauthrequest;
     assert deployConfig.services.oauth2-proxy.extraConfig.skip-auth-strip-headers;
     assert deployConfig.services.oauth2-proxy.extraConfig.oidc-groups-claim == "groups";
-    assert !(deployConfig.services.oauth2-proxy.extraConfig ? "backend-logout-url");
-    assert !(deployConfig.services.oauth2-proxy.extraConfig ? "whitelist-domain");
+    assert
+      deployConfig.services.oauth2-proxy.extraConfig."backend-logout-url"
+      == "https://login.example.org/realms/coaching/end-session/?id_token_hint={id_token}";
+    assert
+      !lib.hasInfix "post_logout_redirect_uri"
+        deployConfig.services.oauth2-proxy.extraConfig."backend-logout-url";
+    assert deployConfig.services.oauth2-proxy.extraConfig."whitelist-domain" == "coaching.example.org";
     assert
       singleLogoutConfig.services.oauth2-proxy.extraConfig."backend-logout-url"
       == "https://login.example.org/realms/coaching/end-session/?id_token_hint={id_token}&post_logout_redirect_uri=https://coaching.example.org/signed-out";
-    assert singleLogoutConfig.services.oauth2-proxy.extraConfig."whitelist-domain" == "coaching.example.org";
+    assert
+      singleLogoutConfig.services.oauth2-proxy.extraConfig."whitelist-domain" == "coaching.example.org";
     assert
       deployConfig.services.oauth2-proxy.trustedProxyIP == [
         "127.0.0.1/32"
@@ -285,11 +291,11 @@ in
     assert lib.hasInfix "request_header -X-Auth-Request-Email" caddyConfig;
     assert lib.hasInfix "request_header -X-AI-Coaching-Proxy-Auth" caddyConfig;
     assert lib.hasInfix "request_header -X-Forwarded-For" caddyConfig;
-    assert lib.hasInfix "copy_headers X-Auth-Request-User X-Auth-Request-Email X-Auth-Request-Groups X-Auth-Request-Preferred-Username"
+    assert lib.hasInfix
+      "copy_headers X-Auth-Request-User X-Auth-Request-Email X-Auth-Request-Groups X-Auth-Request-Preferred-Username"
       caddyConfig;
     assert lib.hasInfix "handle /signed-out" caddyConfig;
-    assert lib.hasInfix "Your Quartet coaching session has been ended on this browser."
-      caddyConfig;
+    assert lib.hasInfix "Your Quartet coaching session has ended." caddyConfig;
     assert lib.hasInfix "header_up X-AI-Coaching-Proxy-Auth {env.AI_COACHING_PROXY_AUTH_SECRET}"
       caddyConfig;
     pkgs.runCommand "ai-coaching-fresh-deploy" { } ''
