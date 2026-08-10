@@ -89,17 +89,13 @@ describe("HTTP evidence API client", () => {
   it("reads the current authenticated user from the backend", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       jsonResponse({
-        subject: "reverie@example.com",
         username: "reverie",
-        role: "admin",
       }),
     );
     const client = createHttpEvidenceApiClient({ fetch: fetcher });
 
     await expect(client.getCurrentUser()).resolves.toEqual({
-      subject: "reverie@example.com",
       username: "reverie",
-      role: "admin",
     });
     expect(fetcher).toHaveBeenCalledWith(
       "/api/me",

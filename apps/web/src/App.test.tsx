@@ -55,9 +55,7 @@ function createSession(): SessionDetail {
 function createClient(session = createSession()): EvidenceApiClient {
   return {
     getCurrentUser: vi.fn(async () => ({
-      subject: "reverie@example.com",
       username: "reverie",
-      role: "admin",
     })),
     listSessions: vi.fn(async () => [
       {

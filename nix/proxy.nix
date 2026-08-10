@@ -65,11 +65,6 @@ let
       oidc.singleLogout.endSessionURL
     else
       "${stripTrailingSlash oidc.issuerUrl}/end-session/";
-  oidcPostLogoutRedirectURL =
-    if oidc.singleLogout.postLogoutRedirectURL != null then
-      oidc.singleLogout.postLogoutRedirectURL
-    else
-      "https://${cfg.domain}/signed-out";
 
   forwardAuth = lib.optionalString oidc.enable ''
     forward_auth 127.0.0.1:${toString oidc.port} {
@@ -242,11 +237,12 @@ in
       singleLogout = {
         enable = lib.mkOption {
           type = lib.types.bool;
-          default = true;
+          default = false;
           description = ''
             End the upstream OIDC SSO session when the dashboard sign-out link
-            is used. This prevents oauth2-proxy from immediately recreating
-            the app session from a still-live Authentik browser session.
+            is used. Enable this only after the provider has registered
+            postLogoutRedirectURL; otherwise OIDC providers such as Authentik
+            can reject the logout request before returning to the dashboard.
           '';
         };
 
@@ -262,7 +258,11 @@ in
         postLogoutRedirectURL = lib.mkOption {
           type = lib.types.nullOr lib.types.str;
           default = null;
-          description = "Final browser destination after OIDC logout; defaults to https://<domain>/signed-out.";
+          example = "https://streams.example.org/signed-out";
+          description = ''
+            Registered final browser destination after OIDC logout. Required
+            when singleLogout.enable is true.
+          '';
         };
       };
     };
@@ -356,6 +356,10 @@ in
         message = "oidc.groupsClaim must name the verified claim FastAPI will use for roles.";
       }
       {
+        assertion = !oidc.singleLogout.enable || oidc.singleLogout.postLogoutRedirectURL != null;
+        message = "services.aiCoaching.oidc.singleLogout.postLogoutRedirectURL must be set to a provider-registered URI when singleLogout.enable is true.";
+      }
+      {
         assertion = lib.all (group: group != "" && builtins.match ".*,.*" group == null) (
           oidc.adminGroups ++ oidc.editorGroups
         );
@@ -403,7 +407,7 @@ in
         insecure-oidc-allow-unverified-email = oidc.allowUnverifiedEmail;
       }
       // lib.optionalAttrs oidc.singleLogout.enable {
-        backend-logout-url = "${oidcEndSessionURL}?id_token_hint={id_token}&post_logout_redirect_uri=${oidcPostLogoutRedirectURL}";
+        backend-logout-url = "${oidcEndSessionURL}?id_token_hint={id_token}&post_logout_redirect_uri=${oidc.singleLogout.postLogoutRedirectURL}";
         whitelist-domain = cfg.domain;
       };
     };
@@ -434,7 +438,7 @@ in
 
           ${lib.optionalString oidc.enable ''
             handle /signed-out {
-              respond "Signed out. Your Quartet coaching session and Authentik sign-in session have been ended." 200
+              respond "Signed out. Your Quartet coaching session has been ended on this browser. If your identity provider session is still active, returning to the dashboard may sign you in again." 200
             }
 
             handle /oauth2/* {

@@ -1,4 +1,5 @@
 import hmac
+import re
 from dataclasses import dataclass
 from enum import IntEnum
 from ipaddress import IPv6Address, ip_address, ip_network
@@ -41,7 +42,7 @@ def require_principal(request: Request) -> Principal:
             )
         return Principal(
             settings.development_user,
-            settings.development_user,
+            _display_username(settings.development_user, settings.development_user),
             Role[settings.development_role.upper()],
         )
 
@@ -135,13 +136,36 @@ def _configured_groups(value: str) -> set[str]:
 
 
 def _display_username(subject: str, *candidates: str | None) -> str:
-    for candidate in candidates:
-        if candidate and candidate.strip():
-            return candidate.strip()
     clean_subject = subject.strip()
-    if "@" in clean_subject:
-        return clean_subject.split("@", 1)[0]
-    return clean_subject
+    for candidate in candidates:
+        display_name = _safe_display_name(candidate, clean_subject)
+        if display_name is not None:
+            return display_name
+    return "Authenticated user"
+
+
+def _safe_display_name(candidate: str | None, subject: str) -> str | None:
+    if not candidate:
+        return None
+    value = candidate.strip()
+    if not value:
+        return None
+    if value.casefold() == subject.casefold():
+        return None
+    if "@" in value or "://" in value:
+        return None
+    if not re.fullmatch(r"[A-Za-z0-9._ -]+", value):
+        return None
+    if not re.search(r"[A-Za-z]", value):
+        return None
+    if re.fullmatch(
+        r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+        value,
+    ):
+        return None
+    if len(value) > 64:
+        return None
+    return value
 
 
 def _client_ip(request: Request):

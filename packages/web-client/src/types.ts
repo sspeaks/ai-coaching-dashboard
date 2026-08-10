@@ -80,9 +80,7 @@ export interface EvidenceApiSessionSummary {
 }
 
 export interface CurrentUser {
-  subject: string;
   username: string;
-  role: string;
 }
 
 export interface EvidenceApiReference {
