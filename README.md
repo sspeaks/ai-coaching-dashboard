@@ -66,7 +66,7 @@ the Vite configuration does not provide an API proxy.
 These commands match `.github/workflows/test.yml`:
 
 ```sh
-python3 -m pip install -e '.[test]'
+python3 -m pip install '.[test]'
 python3 -m pytest
 python3 -m unittest -v tests.api.test_live_api_contract
 
