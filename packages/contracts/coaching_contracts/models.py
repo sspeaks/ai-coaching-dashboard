@@ -183,10 +183,19 @@ class SessionSummaryCreate(StrictModel):
     themes: list[SummaryThemeCreate]
 
 
+class SummaryMoment(StrictModel):
+    ledger_entry_id: str
+    start_ms: int = Field(ge=0)
+    end_ms: int = Field(gt=0)
+
+
 class SummaryTheme(SummaryThemeCreate):
     rank: int = Field(ge=1)
     # Derived from the cited entries rather than asked of the model, so "where
-    # this happened" is always a real transcript position.
+    # this happened" is always a real transcript position. A theme the coach
+    # returned to across the session has several moments, and a single
+    # start-to-end span would misleadingly imply one continuous stretch.
+    moments: list[SummaryMoment] = Field(min_length=1)
     start_ms: int = Field(ge=0)
     end_ms: int = Field(gt=0)
 

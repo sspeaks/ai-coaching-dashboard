@@ -519,15 +519,26 @@ class Worker:
             assert session_record is not None
             themes = []
             for rank, theme in enumerate(summary.themes, start=1):
-                covered = [spans[entry_id] for entry_id in theme.ledger_entry_ids]
+                moments = sorted(
+                    (
+                        {
+                            "ledger_entry_id": entry_id,
+                            "start_ms": spans[entry_id][0],
+                            "end_ms": spans[entry_id][1],
+                        }
+                        for entry_id in theme.ledger_entry_ids
+                    ),
+                    key=lambda moment: moment["start_ms"],
+                )
                 themes.append(
                     {
                         **theme.model_dump(mode="json"),
                         "rank": rank,
                         # Where the theme happened is taken from its entries, so
                         # it always points at real transcript positions.
-                        "start_ms": min(span[0] for span in covered),
-                        "end_ms": max(span[1] for span in covered),
+                        "moments": moments,
+                        "start_ms": moments[0]["start_ms"],
+                        "end_ms": max(moment["end_ms"] for moment in moments),
                     }
                 )
             _store_summary(

@@ -121,27 +121,30 @@ export function SessionOverviewPanel({
                     <span className="theme-item__rank">{theme.rank}</span>
                     {theme.title}
                   </h4>
-                  <button
-                    className="evidence-link"
-                    onClick={() => onSeek(theme.startMs / 1000)}
-                    disabled={!audioAvailable}
-                    title={
-                      audioAvailable
-                        ? "Play the recording from here"
-                        : "Audio playback is not available for this session"
-                    }
-                  >
-                    <strong>{formatTimestampMs(theme.startMs)}</strong>
-                    <span>–{formatTimestampMs(theme.endMs)}</span>
-                  </button>
                 </div>
                 <p>{theme.summary}</p>
-                <p className="supporting-text">
-                  Based on {theme.interventionIds.length}{" "}
-                  {theme.interventionIds.length === 1
-                    ? "intervention"
-                    : "interventions"}
-                </p>
+                <div className="theme-item__moments">
+                  <span className="supporting-text">
+                    {theme.moments.length === 1
+                      ? "Worked on at"
+                      : `Worked on ${theme.moments.length} times, at`}
+                  </span>
+                  {theme.moments.map((moment) => (
+                    <button
+                      key={moment.interventionId}
+                      className="evidence-link"
+                      onClick={() => onSeek(moment.startMs / 1000)}
+                      disabled={!audioAvailable}
+                      title={
+                        audioAvailable
+                          ? "Play the recording from here"
+                          : "Audio playback is not available for this session"
+                      }
+                    >
+                      {formatTimestampMs(moment.startMs)}
+                    </button>
+                  ))}
+                </div>
               </li>
             ))}
           </ol>

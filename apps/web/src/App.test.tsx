@@ -88,6 +88,13 @@ function createClient(session = createSession()): EvidenceApiClient {
           title: "Releasing the sound",
           summary: "The coach worked on releasing jaw tension on the F.",
           interventionIds: ["intervention-1"],
+          moments: [
+            {
+              interventionId: "intervention-1",
+              startMs: 42_000,
+              endMs: 48_000,
+            },
+          ],
           startMs: 42_000,
           endMs: 48_000,
         },

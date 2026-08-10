@@ -53,11 +53,18 @@ export interface EvidenceApiSession {
   updated_at: string;
 }
 
+export interface EvidenceApiSummaryMoment {
+  ledger_entry_id: string;
+  start_ms: number;
+  end_ms: number;
+}
+
 export interface EvidenceApiSummaryTheme {
   rank: number;
   title: string;
   summary: string;
   ledger_entry_ids: string[];
+  moments: EvidenceApiSummaryMoment[];
   start_ms: number;
   end_ms: number;
 }
@@ -143,11 +150,19 @@ export interface CoachingIntervention {
   evidence: EvidenceLink[];
 }
 
+export interface SessionMoment {
+  interventionId: string;
+  startMs: number;
+  endMs: number;
+}
+
 export interface SessionTheme {
   rank: number;
   title: string;
   summary: string;
   interventionIds: string[];
+  /** Each place in the recording this theme was worked on. */
+  moments: SessionMoment[];
   startMs: number;
   endMs: number;
 }

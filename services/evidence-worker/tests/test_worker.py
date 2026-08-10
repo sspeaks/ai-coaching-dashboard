@@ -1763,6 +1763,12 @@ def test_summary_records_where_each_theme_happened(settings):
         # The span comes from the cited entry's evidence, never from the model.
         assert theme["start_ms"] == 250
         assert theme["end_ms"] == 1250
+        # Each cited entry becomes a jump point, so a theme the coach returned
+        # to is not flattened into one misleading stretch of the recording.
+        stored_entry = db.query(LedgerEntryRecord).one()
+        assert theme["moments"] == [
+            {"ledger_entry_id": stored_entry.id, "start_ms": 250, "end_ms": 1250}
+        ]
         assert summary.entry_count == 1
         # A derived summary must not disturb the reviewable session.
         assert db.get(SessionRecord, session_id).state == SessionState.AWAITING_REVIEW.value

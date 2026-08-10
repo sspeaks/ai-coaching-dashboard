@@ -170,6 +170,11 @@ export function createHttpEvidenceApiClient(
             title: theme.title,
             summary: theme.summary,
             interventionIds: theme.ledger_entry_ids,
+            moments: theme.moments.map((moment) => ({
+              interventionId: moment.ledger_entry_id,
+              startMs: moment.start_ms,
+              endMs: moment.end_ms,
+            })),
             startMs: theme.start_ms,
             endMs: theme.end_ms,
           })),

@@ -378,17 +378,24 @@ def _build_summary_messages(body: SummaryRequest) -> list[dict[str, str]]:
             "content": (
                 "You are summarizing one coaching session for the singers who "
                 f"were in it. Group the supplied ledger entries into at most "
-                f"{body.theme_count} themes, ordered with the most substantial "
-                "first, so a reader can see at a glance what the coach actually "
-                "worked on. Each theme needs a short specific title (name the "
-                "actual vocal or musical issue, never a generic label like "
-                "'Vocal Technique') and a few sentences describing what the "
-                "coach asked for and why. Use only the supplied entries: every "
-                "theme must list the ids of the entries it covers, every id "
-                "must be one you were given, and each entry belongs to at most "
-                "one theme. Prefer covering the whole session over describing "
-                "any one theme exhaustively; it is fine to leave minor entries "
-                "out of every theme."
+                f"{body.theme_count} themes, ordered so the theme the coach "
+                "spent the most of the session on comes first.\n"
+                "Titles must name the specific thing the coach worked on, in "
+                "the coach's own terms: 'Disengaging the glottis on da-da' or "
+                "'Aligning the E vowel in fill', never a filing-cabinet label "
+                "like 'Vocal Technique', 'Performance Feedback' or 'Tempo and "
+                "Dynamics'. If a title would fit any coaching session ever, it "
+                "is the wrong title.\n"
+                "The summary of each theme should say what the coach asked for, "
+                "what it was meant to fix, and how it developed over the "
+                "session.\n"
+                "Assign every entry that records real coaching to exactly one "
+                "theme. Leave an entry out only when it is pure logistics or "
+                "chatter; a related entry belongs in the closest theme rather "
+                "than nowhere. Themes may be large, and covering the whole "
+                "session matters more than keeping them tidy.\n"
+                "Use only the supplied entries: every id you cite must be one "
+                "you were given."
             ),
         },
         {
@@ -438,11 +445,12 @@ def _coerce_summary(payload: Any, body: SummaryRequest) -> SessionSummaryCreate:
 
     themes = themes[: body.theme_count]
     logger.info(
-        "summary complete session=%s entries=%s themes=%s covered_entries=%s",
+        "summary complete session=%s entries=%s themes=%s covered_entries=%s uncovered=%s",
         body.session.id,
         len(body.entries),
         len(themes),
         len(claimed),
+        len(known_ids - claimed),
     )
     return SessionSummaryCreate(themes=themes)
 

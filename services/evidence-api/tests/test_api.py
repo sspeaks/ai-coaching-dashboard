@@ -989,6 +989,13 @@ def _summarized_session(client, settings):
                         "title": "Releasing the sound",
                         "summary": "The coach worked on release.",
                         "ledger_entry_ids": [entry.id],
+                        "moments": [
+                            {
+                                "ledger_entry_id": entry.id,
+                                "start_ms": 1000,
+                                "end_ms": 2500,
+                            }
+                        ],
                         "start_ms": 1000,
                         "end_ms": 2500,
                     }
@@ -1012,6 +1019,9 @@ def test_summary_reports_where_each_theme_happened(client, settings):
     assert theme["rank"] == 1
     assert theme["start_ms"] == 1000
     assert theme["end_ms"] == 2500
+    assert theme["moments"] == [
+        {"ledger_entry_id": entry_id, "start_ms": 1000, "end_ms": 2500}
+    ]
     assert theme["ledger_entry_ids"] == [entry_id]
 
 

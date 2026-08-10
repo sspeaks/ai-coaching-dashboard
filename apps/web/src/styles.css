@@ -849,3 +849,18 @@ meter {
 .theme-item p {
   margin: 0 0 0.35rem;
 }
+
+.theme-item__moments {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.theme-item__moments .evidence-link {
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--surface-muted, rgba(127, 127, 127, 0.12));
+  font-variant-numeric: tabular-nums;
+}

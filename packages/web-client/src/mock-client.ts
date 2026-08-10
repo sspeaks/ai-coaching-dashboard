@@ -206,6 +206,13 @@ export function createMockEvidenceApiClient(): EvidenceApiClient {
             intervention.exactCoachFeedback ??
             "The coach worked on this passage.",
           interventionIds: [intervention.id],
+          moments: [
+            {
+              interventionId: intervention.id,
+              startMs: starts.length ? Math.min(...starts) : 0,
+              endMs: ends.length ? Math.max(...ends) : 0,
+            },
+          ],
           startMs: starts.length ? Math.min(...starts) : 0,
           endMs: ends.length ? Math.max(...ends) : 0,
         };
