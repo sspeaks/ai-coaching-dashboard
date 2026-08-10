@@ -9,3 +9,4 @@
 ## Learnings
 
 - Product acceptance depends on coaching-intervention recall, unsupported-claim rate, attribution, timestamp accuracy, correction effort, privacy, and cost.
+📌 Team update (2026-08-10T14:08:35-07:00): PR #5 member-first UI was independently typechecked, tested, built, and approved with no blocking findings — decided by Switch

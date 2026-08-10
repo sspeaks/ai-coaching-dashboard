@@ -9,3 +9,4 @@
 ## Learnings
 
 - The first decision is whether an existing product can satisfy upload, processing, grounded coach notes, critical timestamps, and NixOS-friendly operation.
+📌 Team update (2026-08-10T14:08:35-07:00): Authentik-branded sign-in 500s before oauth2-proxy callback should be investigated first in Authentik server/worker logs, not the dashboard backend — decided by Morpheus
