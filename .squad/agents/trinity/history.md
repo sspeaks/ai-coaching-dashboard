@@ -23,3 +23,10 @@
 - Revised upload copy so external transcription processing is always visible, and expanded details now mention transcript/note text sent to AI extraction plus deletion limits for downstream providers.
 - Re-verified `cd apps/web && npm run typecheck && npm test && npm run build` passes.
 📌 Team update (2026-08-10T14:08:35-07:00): Upload pipeline is NOT local-only: audio goes to Speakr and may go onward to Speakr's configured ASR provider; transcript, ledger, and note text may go to an OpenAI-compatible extraction/summary gateway when configured — decided by Trinity and Fact Checker
+
+## 2026-08-10T15:06-07:00 — Issue #10 feedback-first navigation
+
+- Split the web UI into feedback-first home (`/`), upload (`/upload`), and management (`/manage`) SPA routes so summaries and timestamp links are the landing experience.
+- Moved upload off the front page while preserving the Rai/Fact-Checker-approved consent disclosure copy unchanged inside the upload flow.
+- Kept destructive recording deletion reachable on the management page and hid recording controls from the feedback reading surface.
+- Verified `cd apps/web && npm run typecheck`, `npm test`, and `npm run build` pass.

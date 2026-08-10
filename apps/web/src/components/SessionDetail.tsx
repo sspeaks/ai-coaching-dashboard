@@ -15,6 +15,7 @@ interface SessionDetailProps {
   client: EvidenceApiClient;
   onChanged: (session: SessionDetailType) => void;
   onDeleted: (sessionId: string) => void;
+  showRecordingOptions?: boolean;
 }
 
 export function SessionDetail({
@@ -22,6 +23,7 @@ export function SessionDetail({
   client,
   onChanged,
   onDeleted,
+  showRecordingOptions = false,
 }: SessionDetailProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [action, setAction] = useState<string | null>(null);
@@ -112,48 +114,50 @@ export function SessionDetail({
           )}
       </div>
 
-      <details className="advanced-panel">
-        <summary>Recording options</summary>
-        <div className="session-actions">
-          <button
-            className="button button--secondary"
-            onClick={() =>
-              runAction("refresh", () => client.refreshFromSpeakr(session.id))
-            }
-            disabled={action !== null}
-          >
-            {action === "refresh" ? "Checking…" : "Check for transcript updates"}
-          </button>
-          {session.speakrSessionUrl && (
-            <a
-              className="button button--quiet"
-              href={session.speakrSessionUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open transcript editor
-            </a>
-          )}
-          {canCancel && (
+      {showRecordingOptions && (
+        <details className="advanced-panel">
+          <summary>Recording options</summary>
+          <div className="session-actions">
             <button
-              className="button button--quiet"
+              className="button button--secondary"
               onClick={() =>
-                runAction("cancel", () => client.cancelSession(session.id))
+                runAction("refresh", () => client.refreshFromSpeakr(session.id))
               }
               disabled={action !== null}
             >
-              {action === "cancel" ? "Cancelling…" : "Cancel"}
+              {action === "refresh" ? "Checking…" : "Check for transcript updates"}
             </button>
-          )}
-          <button
-            className="button button--danger"
-            onClick={deleteSession}
-            disabled={action !== null}
-          >
-            {action === "delete" ? "Deleting…" : "Delete recording"}
-          </button>
-        </div>
-      </details>
+            {session.speakrSessionUrl && (
+              <a
+                className="button button--quiet"
+                href={session.speakrSessionUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open transcript editor
+              </a>
+            )}
+            {canCancel && (
+              <button
+                className="button button--quiet"
+                onClick={() =>
+                  runAction("cancel", () => client.cancelSession(session.id))
+                }
+                disabled={action !== null}
+              >
+                {action === "cancel" ? "Cancelling…" : "Cancel"}
+              </button>
+            )}
+            <button
+              className="button button--danger"
+              onClick={deleteSession}
+              disabled={action !== null}
+            >
+              {action === "delete" ? "Deleting…" : "Delete recording"}
+            </button>
+          </div>
+        </details>
+      )}
 
       {(session.error || isFailedSessionState(session.state)) && (
         <div className="inline-alert inline-alert--danger" role="alert">
