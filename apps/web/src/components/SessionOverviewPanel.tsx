@@ -82,7 +82,6 @@ export function SessionOverviewPanel({
     <div className="overview-panel">
       <div className="ledger-heading">
         <div>
-          <p className="eyebrow">Step 2</p>
           <h3>What the coach worked on</h3>
         </div>
         {showManagementTools && (

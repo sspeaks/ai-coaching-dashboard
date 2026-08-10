@@ -93,26 +93,25 @@ export function SessionDetail({
         <StatusBadge state={session.state} />
       </div>
 
-      <div className={`status-callout status-callout--${status.tone}`} role="status">
-        <strong>{status.label}</strong>
-        <p>
-          {status.detail ??
-            (readyForFeedback
-              ? "Your coaching notes are ready. Use the time buttons to hear the source in the recording."
-              : "We will show the coaching notes here when the recording is ready.")}
-        </p>
-        {session.progress != null &&
-          session.progress < 100 &&
-          isActiveSessionState(session.state) && (
-            <div className="processing-progress" aria-live="polite">
-              <div className="progress-row">
-                <span>Progress</span>
-                <strong>{session.progress}%</strong>
+      {!readyForFeedback && (
+        <div className={`status-callout status-callout--${status.tone}`} role="status">
+          <strong>{status.label}</strong>
+          <p>
+            {status.detail ?? "We will show the coaching notes here when the recording is ready."}
+          </p>
+          {session.progress != null &&
+            session.progress < 100 &&
+            isActiveSessionState(session.state) && (
+              <div className="processing-progress" aria-live="polite">
+                <div className="progress-row">
+                  <span>Progress</span>
+                  <strong>{session.progress}%</strong>
+                </div>
+                <progress value={session.progress} max="100" />
               </div>
-              <progress value={session.progress} max="100" />
-            </div>
-          )}
-      </div>
+            )}
+        </div>
+      )}
 
       {showRecordingOptions && (
         <details className="advanced-panel">
@@ -175,22 +174,6 @@ export function SessionDetail({
         </div>
       )}
 
-      <div className="audio-section">
-        <div>
-          <p className="eyebrow">Source</p>
-          <h3>Listen to the recording</h3>
-        </div>
-        {session.audioUrl ? (
-          <audio ref={audioRef} controls preload="metadata" src={session.audioUrl}>
-            Your browser does not support audio playback.
-          </audio>
-        ) : (
-          <p className="missing-value">
-            The recording will be playable here after upload processing finishes.
-          </p>
-        )}
-      </div>
-
       {!readyForFeedback && !isFailedSessionState(session.state) ? (
         <div className="empty-state feedback-waiting">
           <h3>Coaching notes are not ready yet</h3>
@@ -233,6 +216,21 @@ export function SessionDetail({
           />
         </>
       )}
+
+      <div className="audio-section">
+        <div>
+          <p className="eyebrow">Source recording</p>
+        </div>
+        {session.audioUrl ? (
+          <audio ref={audioRef} controls preload="metadata" src={session.audioUrl}>
+            Your browser does not support audio playback.
+          </audio>
+        ) : (
+          <p className="missing-value">
+            The recording will be playable here after upload processing finishes.
+          </p>
+        )}
+      </div>
     </section>
   );
 }

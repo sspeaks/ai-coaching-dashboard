@@ -326,15 +326,7 @@ function FeedbackPage({
 }) {
   return (
     <>
-      <section className="welcome-panel" aria-labelledby="welcome-heading">
-        <p className="eyebrow">Feedback first</p>
-        <h2 id="welcome-heading">Hear what the coach worked on.</h2>
-        <p>
-          The newest coaching session opens first. Pick a different recording
-          when you need one. Each summary point keeps its time
-          button, so you can jump straight to the source in the recording.
-        </p>
-      </section>
+      <h2 className="page-section-heading">Coaching feedback</h2>
       <div className="feedback-layout">
         <SessionList
           sessions={sessions}
