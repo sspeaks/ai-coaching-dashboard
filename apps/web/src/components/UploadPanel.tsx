@@ -11,6 +11,7 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
   const [title, setTitle] = useState("");
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [uploadedMessage, setUploadedMessage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -28,6 +29,7 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
     abortRef.current = controller;
     let sessionId: string | null = null;
     try {
+      setUploadedMessage(null);
       const ticket = await client.initiateUpload({
         fileName: file.name,
         contentType: file.type || "application/octet-stream",
@@ -48,6 +50,9 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
       setFile(null);
       setTitle("");
       setProgress(null);
+      setUploadedMessage(
+        `${session.title} was uploaded. We are listening to it now; check this page for updates.`,
+      );
       onUploaded(session);
     } catch (caught) {
       if (caught instanceof DOMException && caught.name === "AbortError") {
@@ -68,22 +73,22 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
     <section className="panel upload-panel" aria-labelledby="upload-heading">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">New recording</p>
-          <h2 id="upload-heading">Start an evidence record</h2>
+          <p className="eyebrow">Step 1</p>
+          <h2 id="upload-heading">Upload a coaching recording</h2>
         </div>
       </div>
       <form onSubmit={submit}>
         <label>
-          Session title <span className="optional">(optional)</span>
+          Recording name <span className="optional">(optional)</span>
           <input
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             disabled={uploading}
-            placeholder="For example: August coaching session"
+            placeholder="For example: August coaching with Alex"
           />
         </label>
         <label>
-          Recording
+          Audio file
           <input
             type="file"
             accept="audio/*,.m4a,.mp3,.wav,.flac,.aac,.ogg,.opus,.mp4"
@@ -92,8 +97,8 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
           />
         </label>
         <p className="supporting-text">
-          The original recording is retained until someone explicitly deletes
-          the session.
+          Audio files such as MP3, WAV, M4A, FLAC, AAC, OGG, and OPUS are
+          accepted. Keep this page open until the upload finishes.
         </p>
         {progress !== null && (
           <div className="upload-progress" aria-live="polite">
@@ -109,6 +114,11 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
         {error && (
           <div className="inline-alert inline-alert--danger" role="alert">
             {error}
+          </div>
+        )}
+        {uploadedMessage && (
+          <div className="inline-alert inline-alert--success" role="status">
+            {uploadedMessage}
           </div>
         )}
         <div className="button-row">

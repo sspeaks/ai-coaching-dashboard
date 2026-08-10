@@ -133,6 +133,31 @@ h3 {
   margin: 1.5rem auto 4rem;
 }
 
+.welcome-panel {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  margin-bottom: 1.25rem;
+  color: #20322b;
+  background:
+    linear-gradient(135deg, rgb(229 241 235 / 92%), rgb(255 255 255 / 95%)),
+    var(--surface);
+  border: 1px solid #c8dbd0;
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.welcome-panel h2 {
+  max-width: 48rem;
+  margin-bottom: 0.5rem;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+}
+
+.welcome-panel p:last-child {
+  max-width: 56rem;
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
 .panel {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -279,11 +304,7 @@ textarea {
 }
 
 .session-list-panel {
-  position: sticky;
-  top: 1rem;
-  max-height: calc(100vh - 2rem);
   padding: 1rem;
-  overflow: auto;
 }
 
 .session-list {
@@ -298,36 +319,37 @@ textarea {
   display: grid;
   width: 100%;
   gap: 0.45rem;
-  padding: 0.9rem;
+  padding: 1rem;
   color: inherit;
   text-align: left;
   background: #fbfcfb;
   border: 1px solid var(--line);
   border-radius: 0.75rem;
-  cursor: pointer;
 }
 
-.session-card:hover,
-.session-card--selected {
-  border-color: #74a28d;
-  background: var(--brand-soft);
+.session-card h3 {
+  margin: 0;
 }
 
-.session-card--selected {
-  box-shadow: inset 3px 0 var(--brand);
+.session-card:hover {
+  border-color: #9fbdaf;
 }
 
-.session-card__topline,
-.session-card__meta {
+.session-card__topline {
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
 }
 
 .session-card__file,
-.session-card__meta {
+.session-card__meta,
+.session-card__status {
   color: var(--muted);
   font-size: 0.75rem;
+}
+
+.session-card p {
+  margin-bottom: 0;
 }
 
 .session-card__error {
@@ -362,30 +384,30 @@ meter {
   background: currentColor;
 }
 
-.status-badge--active {
+.status-badge--working {
   color: #165b8d;
   background: #e7f4fc;
 }
 
-.status-badge--success,
+.status-badge--ready,
 .verification--verified {
   color: #27613f;
   background: #e4f3e9;
 }
 
-.status-badge--attention,
 .verification--unverified {
   color: var(--attention);
   background: var(--attention-soft);
 }
 
-.status-badge--danger,
+.status-badge--problem,
 .verification--rejected {
   color: var(--danger);
   background: var(--danger-soft);
 }
 
 .status-badge--neutral,
+.verification--needs_review,
 .verification--corrected {
   color: #555f59;
   background: #edf0ee;
@@ -403,6 +425,68 @@ meter {
 
 .session-actions {
   margin-top: 1.25rem;
+}
+
+.advanced-panel,
+.note-details {
+  margin-top: 1rem;
+  color: var(--muted);
+}
+
+.advanced-panel summary,
+.inline-details summary,
+.note-details summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.inline-details {
+  position: relative;
+  justify-self: end;
+}
+
+.inline-details[open] {
+  padding-bottom: 3rem;
+}
+
+.inline-details .button {
+  position: absolute;
+  right: 0;
+  top: 1.8rem;
+  white-space: nowrap;
+}
+
+.status-callout {
+  padding: 1rem;
+  margin-top: 1.25rem;
+  border-radius: 0.8rem;
+  border: 1px solid var(--line);
+}
+
+.status-callout p {
+  margin: 0.25rem 0 0;
+}
+
+.status-callout--ready {
+  color: #204b34;
+  background: #eaf6ef;
+  border-color: #b8dcc7;
+}
+
+.status-callout--working {
+  color: #124a74;
+  background: #eaf6fe;
+  border-color: #b6d8ef;
+}
+
+.status-callout--problem {
+  color: #742424;
+  background: var(--danger-soft);
+  border-color: #e4b3aa;
+}
+
+.status-callout--neutral {
+  background: #f4f6f4;
 }
 
 .processing-progress,
@@ -433,6 +517,12 @@ meter {
   color: #742424;
   background: var(--danger-soft);
   border: 1px solid #e4b3aa;
+}
+
+.inline-alert--success {
+  color: #204b34;
+  background: #eaf6ef;
+  border: 1px solid #b8dcc7;
 }
 
 .app-error {
@@ -483,11 +573,11 @@ meter {
 
 .confidence-panel {
   display: grid;
-  grid-template-columns: 10rem minmax(8rem, 1fr) minmax(14rem, 1.5fr);
+  grid-template-columns: 4rem minmax(8rem, 1fr) minmax(14rem, 1.5fr);
   align-items: center;
   gap: 1rem;
   padding: 0.8rem;
-  margin: 1rem 0;
+  margin: 0.5rem 0 1rem;
   background: #f5f8f6;
   border-radius: 0.65rem;
 }
@@ -597,6 +687,15 @@ meter {
 .evidence-link:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+}
+
+.compact-progress {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--muted);
+  font-size: 0.78rem;
 }
 
 .review-controls {

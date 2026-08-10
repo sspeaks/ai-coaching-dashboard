@@ -9,3 +9,4 @@
 ## Learnings
 
 - The core UX is upload, processing status, structured coach notes, verification state, and one-click return to critical audio timestamps.
+- 2026-08-10: Reworked issue #3 UI around a singer's three jobs: sign in, upload one audio recording with clear progress, and read summarized timestamp-linked coaching feedback. Moved transcript refresh, cancellation, deletion, review confidence, and full-note detail behind calmer options so the landing path avoids pipeline jargon while preserving source links and exact-quote cautions.

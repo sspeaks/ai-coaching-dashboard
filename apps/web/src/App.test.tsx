@@ -108,7 +108,12 @@ function createClient(session = createSession()): EvidenceApiClient {
 }
 
 function findShowAllInterventions() {
-  return screen.findByRole("button", { name: /show all .* interventions/i });
+  return screen.findByRole("button", { name: /see every coaching note/i });
+}
+
+async function openFirstRecording(user = userEvent.setup()) {
+  await user.click(await screen.findByRole("button", { name: /read feedback/i }));
+  return user;
 }
 
 describe("evidence ledger app", () => {
@@ -137,11 +142,11 @@ describe("evidence ledger app", () => {
 
     await screen.findByText("No recordings yet");
     await user.type(
-      screen.getByLabelText(/session title/i),
+      screen.getByLabelText(/recording name/i),
       "Practice upload",
     );
     await user.upload(
-      screen.getByLabelText("Recording"),
+      screen.getByLabelText("Audio file"),
       new File(["recording"], "practice.wav", { type: "audio/wav" }),
     );
     await user.click(screen.getByRole("button", { name: "Upload recording" }));
@@ -156,9 +161,11 @@ describe("evidence ledger app", () => {
   });
 
   it("opens a session on its summary rather than the full ledger", async () => {
+    const user = userEvent.setup();
     const client = createClient();
     render(<App client={client} />);
 
+    await openFirstRecording(user);
     // The dense ledger is a drill-down; the headline items are what a singer
     // should land on after a rehearsal.
     expect(await screen.findByText("Releasing the sound")).toBeVisible();
@@ -172,6 +179,7 @@ describe("evidence ledger app", () => {
   });
 
   it("warns when the summary no longer matches the reviewed ledger", async () => {
+    const user = userEvent.setup();
     const client = createClient();
     client.getOverview = vi.fn(async () => ({
       id: "overview-1",
@@ -182,7 +190,8 @@ describe("evidence ledger app", () => {
     }));
     render(<App client={client} />);
 
-    expect(await screen.findByText(/summary is out of date/i)).toBeVisible();
+    await openFirstRecording(user);
+    expect(await screen.findByText(/summary may be out of date/i)).toBeVisible();
   });
 
   it("shows uncertainty and saves a human verification decision", async () => {
@@ -190,12 +199,14 @@ describe("evidence ledger app", () => {
     const client = createClient();
     render(<App client={client} />);
 
+    await openFirstRecording(user);
     await user.click(await findShowAllInterventions());
     expect(await screen.findByText("Speaker identity needs human confirmation.")).toBeVisible();
-    expect(screen.getByText(/not whether the coaching statement/i)).toBeVisible();
+    await user.click(screen.getByText(/how sure is the assistant about this note/i));
+    expect(screen.getByText(/does not prove the coach's point/i)).toBeVisible();
 
-    await user.click(screen.getByLabelText("Verify"));
-    await user.click(screen.getByRole("button", { name: "Save review" }));
+    await user.click(screen.getByLabelText("Looks right"));
+    await user.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() =>
       expect(client.reviewIntervention).toHaveBeenCalledWith(
@@ -204,7 +215,7 @@ describe("evidence ledger app", () => {
         { verificationStatus: "VERIFIED", note: null },
       ),
     );
-    expect(await screen.findByText("Verified")).toBeVisible();
+    expect(await screen.findByText("Checked")).toBeVisible();
   });
 
   it("seeks the audio player when an evidence timestamp is activated", async () => {
@@ -215,6 +226,7 @@ describe("evidence ledger app", () => {
       .mockResolvedValue(undefined);
     const { container } = render(<App client={client} />);
 
+    await openFirstRecording(user);
     await user.click(await findShowAllInterventions());
     const evidence = await screen.findByRole("button", {
       name: /coach feedback.*0:42.*feedback/i,
