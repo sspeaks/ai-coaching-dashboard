@@ -141,6 +141,21 @@ describe("evidence ledger app", () => {
     render(<App client={client} />);
 
     await screen.findByText("No recordings yet");
+    expect(
+      screen.getByText(/sent to Speakr for transcription/i),
+    ).toBeVisible();
+    const disclosure = screen.getByRole("button", {
+      name: /what happens to my recording/i,
+    });
+    expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    await user.click(disclosure);
+    expect(disclosure).toHaveAttribute("aria-expanded", "true");
+    expect(
+      screen.getByText(/original file is kept until an admin deletes/i),
+    ).toBeVisible();
+    expect(screen.getByText(/uses OpenAI for transcription/i)).toBeVisible();
+    expect(screen.getByText(/transcript text and note text/i)).toBeVisible();
+    expect(screen.getByText(/deletion does not finish/i)).toBeVisible();
     await user.type(
       screen.getByLabelText(/recording name/i),
       "Practice upload",

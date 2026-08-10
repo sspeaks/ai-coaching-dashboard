@@ -179,6 +179,7 @@ h3 {
 
 .upload-panel .section-heading,
 .upload-panel .supporting-text,
+.upload-panel .privacy-disclosure,
 .upload-panel .upload-progress,
 .upload-panel .inline-alert {
   grid-column: 1 / -1;
@@ -214,6 +215,38 @@ textarea {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 400;
+}
+
+.privacy-disclosure {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  color: #20322b;
+  background: var(--brand-soft);
+  border: 1px solid #c8dbd0;
+  border-radius: 0.75rem;
+}
+
+.privacy-disclosure p {
+  margin-bottom: 0;
+}
+
+.privacy-disclosure div {
+  display: grid;
+  gap: 0.6rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.disclosure-button {
+  justify-self: start;
+  padding: 0;
+  color: var(--brand-strong);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-weight: 800;
+  text-decoration: underline;
 }
 
 .section-heading,
