@@ -104,7 +104,9 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
         <div className="privacy-disclosure">
           <p>
             Before you upload: make sure everyone on the recording is okay with
-            it being uploaded and analyzed.
+            it being uploaded and analyzed. Your audio is saved here and sent
+            to Speakr for transcription; depending on this setup, Speakr may
+            send it to an outside transcription provider.
           </p>
           <button
             className="disclosure-button"
@@ -122,16 +124,22 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
               the recording; this app does not automatically expire it.
             </p>
             <p>
-              To transcribe it, the worker sends the audio to the configured
-              Speakr transcription service. If AI note extraction is turned on,
-              transcript text (not the audio file) is sent to the configured AI
-              extraction service, which may use OpenAI or another
-              OpenAI-compatible provider.
+              To transcribe it, this dashboard sends the audio to Speakr. In
+              the documented deployment, Speakr uses OpenAI for transcription;
+              other deployments may use a self-hosted transcription service
+              instead.
             </p>
             <p>
-              Deleting a recording removes the saved audio file and the
-              dashboard record, and the app asks Speakr to delete its copy
-              before deletion finishes.
+              If AI note extraction is turned on, transcript text and note text
+              are sent to the configured AI extraction service, which may use
+              OpenAI or another OpenAI-compatible provider.
+            </p>
+            <p>
+              When an admin confirms deletion, this dashboard removes the saved
+              audio file and dashboard record, and deletion does not finish
+              unless the Speakr copy is deleted too. Audio or text already sent
+              to other transcription or AI providers may not be removable by
+              this dashboard.
             </p>
           </div>
         </div>
