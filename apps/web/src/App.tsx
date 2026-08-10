@@ -16,7 +16,7 @@ interface AppProps {
   mockMode?: boolean;
 }
 
-type Route = "feedback" | "upload" | "manage";
+type Route = "feedback" | "upload" | "manage" | "not-found";
 
 export function App({ client, mockMode = false }: AppProps) {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
@@ -29,7 +29,9 @@ export function App({ client, mockMode = false }: AppProps) {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unauthorized, setUnauthorized] = useState(false);
+  const [autoOpenSuppressed, setAutoOpenSuppressed] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  const initialRouteRef = useRef(true);
   const openIdRef = useRef(openId);
   openIdRef.current = openId;
 
@@ -80,9 +82,25 @@ export function App({ client, mockMode = false }: AppProps) {
     setError(null);
     if (route !== "feedback") {
       setOpenId(null);
+      setAutoOpenSuppressed(false);
+    }
+    if (initialRouteRef.current) {
+      initialRouteRef.current = false;
+      return;
     }
     mainRef.current?.focus();
   }, [route]);
+
+  useEffect(() => {
+    if (
+      route === "feedback" &&
+      !openId &&
+      !autoOpenSuppressed &&
+      sessions.length > 0
+    ) {
+      setOpenId(sessions[0].id);
+    }
+  }, [autoOpenSuppressed, openId, route, sessions]);
 
   useEffect(() => {
     if (!openId) {
@@ -147,6 +165,7 @@ export function App({ client, mockMode = false }: AppProps) {
     setSessions((current) => current.filter((session) => session.id !== sessionId));
     setDetail(null);
     setOpenId(null);
+    setAutoOpenSuppressed(false);
     void loadSessions();
   }
 
@@ -160,7 +179,14 @@ export function App({ client, mockMode = false }: AppProps) {
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
+      <a
+        className="skip-link"
+        href="#main-content"
+        onClick={(event) => {
+          event.preventDefault();
+          mainRef.current?.focus();
+        }}
+      >
         Skip to main content
       </a>
       <header className="app-header">
@@ -226,12 +252,17 @@ export function App({ client, mockMode = false }: AppProps) {
             loadingDetail={loadingDetail}
             detail={detail}
             openId={openId}
-            onOpen={setOpenId}
-            onClose={() => setOpenId(null)}
+            onOpen={(id) => {
+              setAutoOpenSuppressed(false);
+              setOpenId(id);
+            }}
+            onClose={() => {
+              setAutoOpenSuppressed(true);
+              setOpenId(null);
+            }}
             onRefresh={() => void loadSessions()}
             onChanged={handleChanged}
             client={client}
-            onNavigate={navigate}
           />
         )}
         {route === "upload" && (
@@ -253,6 +284,7 @@ export function App({ client, mockMode = false }: AppProps) {
             onError={handleError}
           />
         )}
+        {route === "not-found" && <NotFoundPage onNavigate={navigate} />}
       </main>
     </>
   );
@@ -269,7 +301,6 @@ function FeedbackPage({
   onRefresh,
   onChanged,
   client,
-  onNavigate,
 }: {
   sessions: SessionSummary[];
   loadingList: boolean;
@@ -281,25 +312,17 @@ function FeedbackPage({
   onRefresh: () => void;
   onChanged: (session: SessionDetail) => void;
   client: EvidenceApiClient;
-  onNavigate: (route: Route) => void;
 }) {
   return (
     <>
       <section className="welcome-panel" aria-labelledby="welcome-heading">
         <p className="eyebrow">Feedback first</p>
-        <h2 id="welcome-heading">Choose a recording and hear what the coach worked on.</h2>
+        <h2 id="welcome-heading">Hear what the coach worked on.</h2>
         <p>
-          Pick a coaching session below. Each summary point keeps its time
+          The newest coaching session opens first. Pick a different recording
+          when you need one. Each summary point keeps its time
           button, so you can jump straight to the source in the recording.
         </p>
-        <div className="page-actions">
-          <button className="button button--primary" onClick={() => onNavigate("upload")}>
-            Upload a recording
-          </button>
-          <button className="button button--secondary" onClick={() => onNavigate("manage")}>
-            Manage recordings
-          </button>
-        </div>
       </section>
       <div className="feedback-layout">
         <SessionList
@@ -316,14 +339,9 @@ function FeedbackPage({
             </h2>
             <p>
               {sessions.length === 0
-                ? "Upload a coaching recording first. When it is ready, the summary and time links will appear here."
+                ? "There are no coaching summaries yet. Use Upload in the main navigation when you have a recording to add."
                 : "Choose one recording from the list to read its coaching summary."}
             </p>
-            {sessions.length === 0 && (
-              <button className="button button--primary" onClick={() => onNavigate("upload")}>
-                Upload a recording
-              </button>
-            )}
           </section>
         ) : loadingDetail || !detail ? (
           <section className="panel detail-loading" role="status">
@@ -345,6 +363,22 @@ function FeedbackPage({
         )}
       </div>
     </>
+  );
+}
+
+function NotFoundPage({ onNavigate }: { onNavigate: (route: Route) => void }) {
+  return (
+    <section className="panel not-found-panel" aria-labelledby="not-found-heading">
+      <p className="eyebrow">Page not found</p>
+      <h2 id="not-found-heading">This page does not exist.</h2>
+      <p>
+        The link may be old, or the address may have been typed wrong. Go back
+        to the feedback list to choose a coaching session.
+      </p>
+      <button className="button button--primary" onClick={() => onNavigate("feedback")}>
+        Back to feedback
+      </button>
+    </section>
   );
 }
 
@@ -572,7 +606,8 @@ function routeFromPath(): Route {
   if (typeof window === "undefined") return "feedback";
   if (window.location.pathname === "/upload") return "upload";
   if (window.location.pathname === "/manage") return "manage";
-  return "feedback";
+  if (window.location.pathname === "/") return "feedback";
+  return "not-found";
 }
 
 function pathForRoute(route: Route): string {

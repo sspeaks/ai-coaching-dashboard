@@ -10,3 +10,7 @@
 
 - The first decision is whether an existing product can satisfy upload, processing, grounded coach notes, critical timestamps, and NixOS-friendly operation.
 📌 Team update (2026-08-10T14:08:35-07:00): Authentik-branded sign-in 500s before oauth2-proxy callback should be investigated first in Authentik server/worker logs, not the dashboard backend — decided by Morpheus
+
+## 2026-08-10 — PR #19 contrast revision
+- Took over Trinity's rejected feedback-first polish revision under reviewer protocol and fixed the dark-theme skip-link contrast by adding/using the `--on-brand` token on `--brand`.
+- Verified the skip link is the first tab stop and moves focus to `<main>`; added regression coverage for that behavior.
