@@ -12,6 +12,7 @@ interface SessionOverviewPanelProps {
   onSeek: (seconds: number) => void;
   audioAvailable: boolean;
   onShowAll: () => void;
+  showManagementTools?: boolean;
 }
 
 export function SessionOverviewPanel({
@@ -20,6 +21,7 @@ export function SessionOverviewPanel({
   onSeek,
   audioAvailable,
   onShowAll,
+  showManagementTools = false,
 }: SessionOverviewPanelProps) {
   const [overview, setOverview] = useState<SessionOverview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,16 +85,18 @@ export function SessionOverviewPanel({
           <p className="eyebrow">Step 2</p>
           <h3>What the coach worked on</h3>
         </div>
-        <details className="inline-details">
-          <summary>Options</summary>
-          <button
-            className="button button--quiet button--compact"
-            onClick={regenerate}
-            disabled={regenerating}
-          >
-            {regenerating ? "Updating…" : "Update summary"}
-          </button>
-        </details>
+        {showManagementTools && (
+          <details className="inline-details">
+            <summary>Options</summary>
+            <button
+              className="button button--quiet button--compact"
+              onClick={regenerate}
+              disabled={regenerating}
+            >
+              {regenerating ? "Updating…" : "Update summary"}
+            </button>
+          </details>
+        )}
       </div>
 
       {error && (
@@ -104,7 +108,7 @@ export function SessionOverviewPanel({
       {overview?.stale && (
         <div className="inline-alert" role="status">
           <strong>This summary may be out of date.</strong> Someone changed the
-          detailed notes after it was written. Use Options to update it.
+          detailed notes after it was written. Use the management page to update it.
         </div>
       )}
 
@@ -113,7 +117,7 @@ export function SessionOverviewPanel({
           <h3>No summary yet</h3>
           <p>
             {session.interventionCount > 0
-              ? "The detailed notes are available. Use Options to create a short summary."
+              ? "The detailed notes are available. Use the management page to create a short summary."
               : "The coaching notes will appear after the recording is ready."}
           </p>
         </div>

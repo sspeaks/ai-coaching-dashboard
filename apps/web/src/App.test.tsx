@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   EvidenceApiClient,
   SessionDetail,
@@ -117,6 +117,10 @@ async function openFirstRecording(user = userEvent.setup()) {
 }
 
 describe("evidence ledger app", () => {
+  beforeEach(() => {
+    window.history.pushState({}, "", "/");
+  });
+
   it("uploads a recording through the client abstraction", async () => {
     const user = userEvent.setup();
     const uploaded = {
@@ -141,6 +145,8 @@ describe("evidence ledger app", () => {
     render(<App client={client} />);
 
     await screen.findByText("No recordings yet");
+    expect(screen.queryByLabelText(/recording name/i)).toBeNull();
+    await user.click(screen.getAllByRole("button", { name: "Upload a recording" })[0]);
     expect(
       screen.getByText(/sent to Speakr for transcription/i),
     ).toBeVisible();
@@ -172,7 +178,24 @@ describe("evidence ledger app", () => {
         "upload-1",
       ),
     );
-    expect(await screen.findByText("Practice upload")).toBeVisible();
+    expect(await screen.findByText(/Practice upload was uploaded/i)).toBeVisible();
+  });
+
+  it("keeps recording management off the feedback page", async () => {
+    const user = userEvent.setup();
+    const client = createClient();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<App client={client} />);
+
+    await screen.findByText("Choose a coaching session");
+    expect(screen.queryByRole("button", { name: /delete recording/i })).toBeNull();
+    await user.click(screen.getByRole("link", { name: "Manage recordings" }));
+    expect(await screen.findByText("Recording controls")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: /delete recording/i }));
+
+    await waitFor(() =>
+      expect(client.deleteSession).toHaveBeenCalledWith("session-1"),
+    );
   });
 
   it("opens a session on its summary rather than the full ledger", async () => {

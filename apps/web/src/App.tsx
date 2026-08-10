@@ -6,6 +6,7 @@ import {
   type SessionDetail,
   type SessionSummary,
 } from "@quartet-coach/web-client";
+import { formatDate, sessionStatus } from "./lib/format";
 import { SessionDetail as SessionDetailView } from "./components/SessionDetail";
 import { SessionList } from "./components/SessionList";
 import { UploadPanel } from "./components/UploadPanel";
@@ -15,16 +16,20 @@ interface AppProps {
   mockMode?: boolean;
 }
 
+type Route = "feedback" | "upload" | "manage";
+
 export function App({ client, mockMode = false }: AppProps) {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   // One recording is open at a time. Nothing opens on its own, so the app
   // always starts on the short list a singer recognises.
   const [openId, setOpenId] = useState<string | null>(null);
   const [detail, setDetail] = useState<SessionDetail | null>(null);
+  const [route, setRoute] = useState<Route>(() => routeFromPath());
   const [loadingList, setLoadingList] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unauthorized, setUnauthorized] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
   const openIdRef = useRef(openId);
   openIdRef.current = openId;
 
@@ -62,6 +67,22 @@ export function App({ client, mockMode = false }: AppProps) {
     void loadSessions(controller.signal);
     return () => controller.abort();
   }, [loadSessions]);
+
+  useEffect(() => {
+    function handlePopState() {
+      setRoute(routeFromPath());
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
+    setError(null);
+    if (route !== "feedback") {
+      setOpenId(null);
+    }
+    mainRef.current?.focus();
+  }, [route]);
 
   useEffect(() => {
     if (!openId) {
@@ -129,6 +150,12 @@ export function App({ client, mockMode = false }: AppProps) {
     void loadSessions();
   }
 
+  function navigate(nextRoute: Route) {
+    const path = pathForRoute(nextRoute);
+    window.history.pushState({}, "", path);
+    setRoute(nextRoute);
+  }
+
   if (unauthorized) return <AuthenticationRequired />;
 
   return (
@@ -151,7 +178,39 @@ export function App({ client, mockMode = false }: AppProps) {
           content.
         </div>
       )}
-      <main id="main-content" className="app-shell">
+      <nav className="app-nav" aria-label="Main pages">
+        <a
+          href="/"
+          aria-current={route === "feedback" ? "page" : undefined}
+          onClick={(event) => {
+            event.preventDefault();
+            navigate("feedback");
+          }}
+        >
+          Feedback
+        </a>
+        <a
+          href="/upload"
+          aria-current={route === "upload" ? "page" : undefined}
+          onClick={(event) => {
+            event.preventDefault();
+            navigate("upload");
+          }}
+        >
+          Upload
+        </a>
+        <a
+          href="/manage"
+          aria-current={route === "manage" ? "page" : undefined}
+          onClick={(event) => {
+            event.preventDefault();
+            navigate("manage");
+          }}
+        >
+          Manage recordings
+        </a>
+      </nav>
+      <main id="main-content" className="app-shell" tabIndex={-1} ref={mainRef}>
         {error && (
           <div className="inline-alert inline-alert--danger" role="alert">
             <span>{error}</span>
@@ -160,46 +219,319 @@ export function App({ client, mockMode = false }: AppProps) {
             </button>
           </div>
         )}
-        {openId === null ? (
-          <>
-            <section className="welcome-panel" aria-labelledby="welcome-heading">
-              <p className="eyebrow">For quartet members</p>
-              <h2 id="welcome-heading">Upload a recording. Read the coaching notes.</h2>
-              <p>
-                Choose an audio file from rehearsal or coaching. We listen for the
-                coach's feedback, summarize the main points, and keep every point
-                linked to the place in the recording it came from.
-              </p>
-            </section>
-            <UploadPanel client={client} onUploaded={handleUploaded} />
-            <SessionList
-              sessions={sessions}
-              loading={loadingList}
-              onOpen={setOpenId}
-              onRefresh={() => void loadSessions()}
-            />
-          </>
-        ) : (
-          <>
-            <button className="back-link" onClick={() => setOpenId(null)}>
-              ← All recordings
-            </button>
-            {loadingDetail || !detail ? (
-              <section className="panel detail-loading" role="status">
-                <span className="spinner" aria-hidden="true" />
-                Opening this recording…
-              </section>
-            ) : (
-              <SessionDetailView
-                session={detail}
-                client={client}
-                onChanged={handleChanged}
-                onDeleted={handleDeleted}
-              />
-            )}
-          </>
+        {route === "feedback" && (
+          <FeedbackPage
+            sessions={sessions}
+            loadingList={loadingList}
+            loadingDetail={loadingDetail}
+            detail={detail}
+            openId={openId}
+            onOpen={setOpenId}
+            onClose={() => setOpenId(null)}
+            onRefresh={() => void loadSessions()}
+            onChanged={handleChanged}
+            client={client}
+            onNavigate={navigate}
+          />
+        )}
+        {route === "upload" && (
+          <UploadPage
+            client={client}
+            onUploaded={handleUploaded}
+            onNavigate={navigate}
+          />
+        )}
+        {route === "manage" && (
+          <ManagementPage
+            sessions={sessions}
+            loading={loadingList}
+            client={client}
+            onRefresh={() => void loadSessions()}
+            onChanged={rememberSession}
+            onDeleted={handleDeleted}
+            onNavigate={navigate}
+            onError={handleError}
+          />
         )}
       </main>
+    </>
+  );
+}
+
+function FeedbackPage({
+  sessions,
+  loadingList,
+  loadingDetail,
+  detail,
+  openId,
+  onOpen,
+  onClose,
+  onRefresh,
+  onChanged,
+  client,
+  onNavigate,
+}: {
+  sessions: SessionSummary[];
+  loadingList: boolean;
+  loadingDetail: boolean;
+  detail: SessionDetail | null;
+  openId: string | null;
+  onOpen: (id: string) => void;
+  onClose: () => void;
+  onRefresh: () => void;
+  onChanged: (session: SessionDetail) => void;
+  client: EvidenceApiClient;
+  onNavigate: (route: Route) => void;
+}) {
+  return (
+    <>
+      <section className="welcome-panel" aria-labelledby="welcome-heading">
+        <p className="eyebrow">Feedback first</p>
+        <h2 id="welcome-heading">Choose a recording and hear what the coach worked on.</h2>
+        <p>
+          Pick a coaching session below. Each summary point keeps its time
+          button, so you can jump straight to the source in the recording.
+        </p>
+        <div className="page-actions">
+          <button className="button button--primary" onClick={() => onNavigate("upload")}>
+            Upload a recording
+          </button>
+          <button className="button button--secondary" onClick={() => onNavigate("manage")}>
+            Manage recordings
+          </button>
+        </div>
+      </section>
+      <div className="feedback-layout">
+        <SessionList
+          sessions={sessions}
+          loading={loadingList}
+          selectedId={openId}
+          onOpen={onOpen}
+          onRefresh={onRefresh}
+        />
+        {openId === null ? (
+          <section className="panel detail-empty" aria-labelledby="feedback-empty-heading">
+            <h2 id="feedback-empty-heading">
+              {sessions.length === 0 ? "No feedback yet" : "Select a recording"}
+            </h2>
+            <p>
+              {sessions.length === 0
+                ? "Upload a coaching recording first. When it is ready, the summary and time links will appear here."
+                : "Choose one recording from the list to read its coaching summary."}
+            </p>
+            {sessions.length === 0 && (
+              <button className="button button--primary" onClick={() => onNavigate("upload")}>
+                Upload a recording
+              </button>
+            )}
+          </section>
+        ) : loadingDetail || !detail ? (
+          <section className="panel detail-loading" role="status">
+            <span className="spinner" aria-hidden="true" />
+            Opening this recording…
+          </section>
+        ) : (
+          <div className="feedback-detail">
+            <button className="back-link" onClick={onClose}>
+              ← Choose another recording
+            </button>
+            <SessionDetailView
+              session={detail}
+              client={client}
+              onChanged={onChanged}
+              onDeleted={() => undefined}
+            />
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function UploadPage({
+  client,
+  onUploaded,
+  onNavigate,
+}: {
+  client: EvidenceApiClient;
+  onUploaded: (session: SessionDetail) => void;
+  onNavigate: (route: Route) => void;
+}) {
+  return (
+    <>
+      <section className="welcome-panel" aria-labelledby="upload-page-heading">
+        <p className="eyebrow">Add a recording</p>
+        <h2 id="upload-page-heading">Upload one coaching recording.</h2>
+        <p>
+          Upload lives on its own page so the feedback library stays focused on
+          reading and listening.
+        </p>
+        <div className="page-actions">
+          <button className="button button--quiet" onClick={() => onNavigate("feedback")}>
+            ← Back to feedback
+          </button>
+          <button className="button button--secondary" onClick={() => onNavigate("manage")}>
+            Manage recordings
+          </button>
+        </div>
+      </section>
+      <UploadPanel client={client} onUploaded={onUploaded} />
+    </>
+  );
+}
+
+function ManagementPage({
+  sessions,
+  loading,
+  client,
+  onRefresh,
+  onChanged,
+  onDeleted,
+  onNavigate,
+  onError,
+}: {
+  sessions: SessionSummary[];
+  loading: boolean;
+  client: EvidenceApiClient;
+  onRefresh: () => void;
+  onChanged: (session: SessionDetail) => void;
+  onDeleted: (sessionId: string) => void;
+  onNavigate: (route: Route) => void;
+  onError: (caught: unknown) => void;
+}) {
+  const [working, setWorking] = useState<string | null>(null);
+
+  async function run(sessionId: string, action: string, operation: () => Promise<void>) {
+    setWorking(`${action}:${sessionId}`);
+    try {
+      await operation();
+    } catch (caught) {
+      onError(caught);
+    } finally {
+      setWorking(null);
+    }
+  }
+
+  async function deleteRecording(session: SessionSummary) {
+    if (
+      !window.confirm(
+        `Delete "${session.title}" and its coaching notes? This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+    await run(session.id, "delete", async () => {
+      await client.deleteSession(session.id);
+      onDeleted(session.id);
+    });
+  }
+
+  return (
+    <>
+      <section className="welcome-panel" aria-labelledby="management-heading">
+        <p className="eyebrow">Recording management</p>
+        <h2 id="management-heading">Upload, update, or delete recordings.</h2>
+        <p>
+          Use this page for recording chores. The feedback page stays focused on
+          summaries and source time links.
+        </p>
+        <div className="page-actions">
+          <button className="button button--primary" onClick={() => onNavigate("upload")}>
+            Upload a recording
+          </button>
+          <button className="button button--quiet" onClick={() => onNavigate("feedback")}>
+            ← Back to feedback
+          </button>
+        </div>
+      </section>
+      <section className="panel management-panel" aria-labelledby="management-list-heading">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">All recordings</p>
+            <h2 id="management-list-heading">Recording controls</h2>
+          </div>
+          <button
+            className="button button--quiet button--compact"
+            onClick={onRefresh}
+            disabled={loading}
+          >
+            {loading ? "Checking…" : "Check for updates"}
+          </button>
+        </div>
+        {loading && sessions.length === 0 ? (
+          <SessionListSkeleton />
+        ) : sessions.length === 0 ? (
+          <div className="empty-state">
+            <h3>No recordings to manage</h3>
+            <p>Upload a recording first, then deletion and update controls appear here.</p>
+            <button className="button button--primary" onClick={() => onNavigate("upload")}>
+              Upload a recording
+            </button>
+          </div>
+        ) : (
+          <ul className="management-list">
+            {sessions.map((session) => (
+              <li key={session.id}>
+                <article className="management-card">
+                  <div>
+                    <h3>{session.title}</h3>
+                    <p>
+                      {session.originalFileName} · Added {formatDate(session.createdAt)}
+                    </p>
+                    <p>{sessionStatus(session.state).label}</p>
+                  </div>
+                  <div className="session-actions">
+                    <button
+                      className="button button--secondary"
+                      disabled={working !== null}
+                      onClick={() =>
+                        run(session.id, "refresh", async () => {
+                          onChanged(await client.refreshFromSpeakr(session.id));
+                        })
+                      }
+                    >
+                      {working === `refresh:${session.id}` ? "Checking…" : "Check transcript"}
+                    </button>
+                    <button
+                      className="button button--quiet"
+                      disabled={working !== null}
+                      onClick={() =>
+                        run(session.id, "summary", async () => {
+                          await client.regenerateOverview(session.id);
+                          onRefresh();
+                        })
+                      }
+                    >
+                      {working === `summary:${session.id}` ? "Updating…" : "Update summary"}
+                    </button>
+                    {isActiveSessionState(session.state) &&
+                      session.state !== "DELETE_PENDING" && (
+                        <button
+                          className="button button--quiet"
+                          disabled={working !== null}
+                          onClick={() =>
+                            run(session.id, "cancel", async () => {
+                              onChanged(await client.cancelSession(session.id));
+                            })
+                          }
+                        >
+                          {working === `cancel:${session.id}` ? "Cancelling…" : "Cancel"}
+                        </button>
+                      )}
+                    <button
+                      className="button button--danger"
+                      disabled={working !== null}
+                      onClick={() => void deleteRecording(session)}
+                    >
+                      {working === `delete:${session.id}` ? "Deleting…" : "Delete recording"}
+                    </button>
+                  </div>
+                </article>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </>
   );
 }
@@ -234,4 +566,28 @@ function toSummary(session: SessionDetail): SessionSummary {
     ...summary
   } = session;
   return summary;
+}
+
+function routeFromPath(): Route {
+  if (typeof window === "undefined") return "feedback";
+  if (window.location.pathname === "/upload") return "upload";
+  if (window.location.pathname === "/manage") return "manage";
+  return "feedback";
+}
+
+function pathForRoute(route: Route): string {
+  if (route === "upload") return "/upload";
+  if (route === "manage") return "/manage";
+  return "/";
+}
+
+function SessionListSkeleton() {
+  return (
+    <div className="skeleton-list" aria-label="Loading sessions" role="status">
+      <span className="sr-only">Loading sessions</span>
+      {[1, 2, 3].map((item) => (
+        <div className="skeleton-card" key={item} aria-hidden="true" />
+      ))}
+    </div>
+  );
 }

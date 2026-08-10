@@ -5,6 +5,7 @@ import { StatusBadge } from "./StatusBadge";
 interface SessionListProps {
   sessions: SessionSummary[];
   loading: boolean;
+  selectedId?: string | null;
   onOpen: (id: string) => void;
   onRefresh: () => void;
 }
@@ -12,6 +13,7 @@ interface SessionListProps {
 export function SessionList({
   sessions,
   loading,
+  selectedId = null,
   onOpen,
   onRefresh,
 }: SessionListProps) {
@@ -20,7 +22,7 @@ export function SessionList({
       <div className="section-heading">
         <div>
           <p className="eyebrow">Your recordings</p>
-          <h2 id="sessions-heading">Feedback library</h2>
+          <h2 id="sessions-heading">Choose a coaching session</h2>
         </div>
         <button
           className="button button--quiet button--compact"
@@ -76,6 +78,7 @@ export function SessionList({
                   )}
                   <button
                     className="button button--secondary"
+                    aria-pressed={selectedId === session.id}
                     onClick={() => onOpen(session.id)}
                   >
                     {action}

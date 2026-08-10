@@ -128,6 +128,28 @@ h3 {
   border-bottom: 1px solid #e1bd5e;
 }
 
+.app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem max(1.25rem, calc((100vw - 1480px) / 2));
+  background: #e9f0eb;
+  border-bottom: 1px solid #cad6ce;
+}
+
+.app-nav a {
+  padding: 0.5rem 0.75rem;
+  color: var(--brand-strong);
+  border-radius: 999px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.app-nav a[aria-current="page"] {
+  color: white;
+  background: var(--brand);
+}
+
 .app-shell {
   width: min(1480px, calc(100% - 2.5rem));
   margin: 1.5rem auto 4rem;
@@ -156,6 +178,37 @@ h3 {
   margin-bottom: 0;
   color: var(--muted);
   font-size: 1.05rem;
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.1rem;
+}
+
+.feedback-layout {
+  display: grid;
+  grid-template-columns: minmax(18rem, 26rem) minmax(0, 1fr);
+  align-items: start;
+  gap: 1.25rem;
+}
+
+.feedback-detail {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.back-link {
+  justify-self: start;
+  padding: 0;
+  color: var(--brand);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-weight: 800;
+  text-decoration: underline;
 }
 
 .panel {
@@ -368,6 +421,11 @@ textarea {
   border-color: #9fbdaf;
 }
 
+.session-card .button[aria-pressed="true"] {
+  color: white;
+  background: var(--brand);
+}
+
 .session-card__topline {
   display: flex;
   justify-content: space-between;
@@ -458,6 +516,39 @@ meter {
 
 .session-actions {
   margin-top: 1.25rem;
+}
+
+.management-panel {
+  padding: 1.25rem;
+}
+
+.management-list {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 1rem 0 0;
+  list-style: none;
+}
+
+.management-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  background: #fbfcfb;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+}
+
+.management-card h3,
+.management-card p {
+  margin-bottom: 0.3rem;
+}
+
+.management-card p {
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 .advanced-panel,
@@ -858,7 +949,8 @@ meter {
 }
 
 @media (max-width: 900px) {
-  .workspace {
+  .workspace,
+  .feedback-layout {
     grid-template-columns: 1fr;
   }
 
@@ -873,9 +965,14 @@ meter {
 
   .upload-panel .section-heading,
   .upload-panel .supporting-text,
+  .upload-panel .privacy-disclosure,
   .upload-panel .upload-progress,
   .upload-panel .inline-alert {
     grid-column: auto;
+  }
+
+  .management-card {
+    grid-template-columns: 1fr;
   }
 }
 
