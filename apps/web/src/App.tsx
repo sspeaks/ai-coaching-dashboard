@@ -21,8 +21,8 @@ type Route = "feedback" | "upload" | "manage" | "not-found";
 
 export function App({ client, mockMode = false }: AppProps) {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
-  // One recording is open at a time. Nothing opens on its own, so the app
-  // always starts on the short list a singer recognises.
+  // One recording is open at a time. The newest opens automatically on the
+  // feedback page so singers land on the current summary.
   const [openId, setOpenId] = useState<string | null>(null);
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [route, setRoute] = useState<Route>(() => routeFromPath());

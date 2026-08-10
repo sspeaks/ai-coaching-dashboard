@@ -136,7 +136,7 @@ h3 {
 }
 
 .account-menu__user {
-  color: #d7e5de;
+  color: var(--muted);
   font-size: 0.92rem;
   font-weight: 700;
 }

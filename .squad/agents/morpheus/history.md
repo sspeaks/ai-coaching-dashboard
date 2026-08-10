@@ -14,6 +14,3 @@
 ## 2026-08-10 — PR #19 contrast revision
 - Took over Trinity's rejected feedback-first polish revision under reviewer protocol and fixed the dark-theme skip-link contrast by adding/using the `--on-brand` token on `--brand`.
 - Verified the skip link is the first tab stop and moves focus to `<main>`; added regression coverage for that behavior.
-## 2026-08-10 — Issue #8 sign-out and username
-- Fixed dashboard sign-out to land on `/signed-out`, configure oauth2-proxy backend logout against the OIDC end-session endpoint, and document the required Authentik post-logout redirect.
-- Added `/api/me` so the frontend can display the preferred username from oauth2-proxy headers, falling back to the email local part when no preferred username is present.

@@ -260,6 +260,84 @@ describe("evidence ledger app", () => {
     ).toBeNull();
   });
 
+  it("does not auto-open anything when there are no sessions", async () => {
+    const client = createClient();
+    vi.mocked(client.listSessions).mockResolvedValue([]);
+    render(<App client={client} />);
+
+    expect(await screen.findByText("No feedback yet")).toBeVisible();
+    expect(screen.getByText(/There are no coaching summaries yet/i)).toBeVisible();
+    expect(client.getSession).not.toHaveBeenCalled();
+  });
+
+  it("auto-opens the newest processing session", async () => {
+    const processing = {
+      ...createSession(),
+      id: "processing-session",
+      title: "Newest processing take",
+      state: "TRANSCRIBING" as const,
+      progress: 42,
+      audioUrl: null,
+      interventions: [],
+      interventionCount: 0,
+    };
+    const older = { ...createSession(), id: "older-session", title: "Older take" };
+    const client = createClient(processing);
+    vi.mocked(client.listSessions).mockResolvedValue([
+      { ...processing, interventions: undefined } as never,
+      { ...older, interventions: undefined } as never,
+    ]);
+    vi.mocked(client.getSession).mockImplementation(async (id) => {
+      if (id === "processing-session") return processing;
+      return older;
+    });
+
+    render(<App client={client} />);
+
+    expect(await screen.findByText("Newest processing take")).toBeVisible();
+    expect(await screen.findByText("42%")).toBeVisible();
+    expect(await screen.findByText("Coaching notes are not ready yet")).toBeVisible();
+    expect(client.getSession).toHaveBeenCalledWith(
+      "processing-session",
+      expect.any(AbortSignal),
+    );
+  });
+
+  it("auto-opens the newest failed session", async () => {
+    const failed = {
+      ...createSession(),
+      id: "failed-session",
+      title: "Newest failed take",
+      state: "FAILED" as const,
+      error: { message: "Speakr could not read the file.", retryable: true },
+      interventions: [],
+      interventionCount: 0,
+    };
+    const older = { ...createSession(), id: "older-session", title: "Older take" };
+    const client = createClient(failed);
+    vi.mocked(client.listSessions).mockResolvedValue([
+      { ...failed, interventions: undefined } as never,
+      { ...older, interventions: undefined } as never,
+    ]);
+    vi.mocked(client.getSession).mockImplementation(async (id) => {
+      if (id === "failed-session") return failed;
+      return older;
+    });
+
+    render(<App client={client} />);
+
+    expect(await screen.findByText("Newest failed take")).toBeVisible();
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "We could not finish this recording. Speakr could not read the file.",
+      ),
+    );
+    expect(client.getSession).toHaveBeenCalledWith(
+      "failed-session",
+      expect.any(AbortSignal),
+    );
+  });
+
   it("shows a plain-language page for unknown URLs", async () => {
     const user = userEvent.setup();
     const client = createClient();
