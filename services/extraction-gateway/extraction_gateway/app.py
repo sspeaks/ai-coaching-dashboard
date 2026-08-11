@@ -454,13 +454,15 @@ def _coerce_consolidation(
     ungrouped = [eid for eid in known_ids if eid not in claimed]
     for eid in ungrouped:
         entry = next(e for e in body.entries if e.id == eid)
-        topic = entry.topic[:200]
-        if len(entry.topic) > 200:
+        if len(entry.topic) > 197:
+            topic = entry.topic[:197] + "…"
             logger.warning(
                 "truncated ungrouped entry topic from %s to 200 chars entry=%s",
                 len(entry.topic),
                 eid,
             )
+        else:
+            topic = entry.topic
         groups.append(
             ConsolidationGroup(canonical_topic=topic, entry_ids=[eid])
         )
@@ -597,18 +599,20 @@ def _coerce_summary(payload: Any, body: SummaryRequest) -> SessionSummaryCreate:
             )
             for eid in sorted(unclaimed_pre_group):
                 entry = next(e for e in body.entries if e.id == eid)
-                topic = entry.topic[:200]
-                if len(entry.topic) > 200:
+                if len(entry.topic) > 197:
+                    topic = entry.topic[:197] + "…"
                     logger.warning(
                         "truncated fallback theme title from %s to 200 chars entry=%s session=%s",
                         len(entry.topic),
                         eid,
                         body.session.id,
                     )
+                else:
+                    topic = entry.topic
                 themes.append(
                     SummaryThemeCreate(
                         title=topic,
-                        summary=topic,
+                        summary=entry.topic,
                         ledger_entry_ids=[eid],
                     )
                 )
