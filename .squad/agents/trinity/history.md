@@ -38,3 +38,22 @@
 - Added a dark-only tokenized theme with checked contrast pairs for normal, muted, status, alert, button, consent disclosure, and timestamp-link colors.
 - Added a plain-language catch-all page for unknown URLs with focus on main content and a direct button back to feedback.
 - Verified `cd apps/web && npm run typecheck`, `npm test`, and `npm run build` pass.
+
+## 2026-08-10T23:30-07:00 — Issues #20/#21 theme retheme + feedback declutter
+
+- Moved dark theme from saturated green (--brand: #7bd8a8) to GitHub-inspired slate/blue palette (--brand: #388bfd, backgrounds #0d1117–#21262d). Changed --on-brand to #000000 (6.28:1 on #388bfd).
+- Replaced every hardcoded green hex literal in styles.css with tokens or new neutral values. No color literals added to TSX files.
+- Removed the welcome-panel hero banner from FeedbackPage — it was a ~1158×170 wide strip that added no information for a returning singer.
+- Removed the "Step 2" eyebrow from SessionOverviewPanel — pipeline labels belong in the machine, not the UI.
+- Suppressed the "Ready" status callout: if content is ready, show it. Processing and failed callouts retained.
+- Demoted audio player from a two-column mid-page hero to a compact flex strip below the coaching notes. The seek function is unaffected (ref is attached to the DOM element regardless of position).
+- Updated two test assertions to match the removed banner text; all 22 tests pass. Typecheck and build both clean.
+- Mobile: audio-section goes flex-direction:column at ≤640px; tap targets verified ≥44px.
+
+## 2026-08-11T00:30:00Z — Issue #24 evidence-link timestamp caption contrast
+
+- Fixed `.evidence-link span:last-child` regression: `--muted` (#8b949e) on `--brand-soft` (#1f3349) = 4.19:1 (FAIL). Changed to `color: var(--ink)` = 10.92:1 (PASS).
+- Full `--muted` survey across all elevated surfaces: only `--brand-soft` fails. `--surface` (5.62:1), `--surface-strong` (5.26:1), `--surface-muted` (4.95:1), `--attention-soft` (5.03:1), `--danger-soft` (5.64:1), `--success-soft` (5.41:1), `--info-soft` (5.25:1) all pass.
+- The fix is surgical: token unchanged, only the pairing on `--brand-soft` repaired.
+- Noted: 0.72rem caption is load-bearing per Rai (source-grounding). Proposed increasing to 0.8rem in PR — not unilaterally applied.
+- All 22 tests pass. Typecheck and build clean.
