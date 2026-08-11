@@ -548,6 +548,52 @@ def test_summarize_requires_authentication(settings):
     assert response.status_code == 401
 
 
+def test_fallback_theme_truncates_long_topic(settings, auth_headers):
+    """A 250-char topic that the model omits must produce a fallback with a
+    truncated 200-char title, not crash with a ValidationError (issue #31)."""
+    long_topic = "A" * 250
+    long_entry = {
+        "id": "entry-long",
+        "topic": long_topic,
+        "exact_coach_feedback": "Some feedback.",
+        "interpretation": None,
+        "applies_to": None,
+        "exercise_or_requested_change": None,
+        "next_action_and_owner": None,
+        "start_ms": 5000,
+        "end_ms": 6000,
+    }
+    # Model returns only a theme citing entry-1; entry-long is omitted.
+    payload = {
+        "themes": [
+            {
+                "title": "Release",
+                "summary": "Worked on releasing tension.",
+                "ledger_entry_ids": ["entry-1"],
+            }
+        ]
+    }
+    request = summary_request(
+        entries=[summary_request()["entries"][0], long_entry],
+        pre_groups=[
+            {"canonical_topic": "Release", "entry_ids": ["entry-1"]},
+            {"canonical_topic": long_topic[:200], "entry_ids": ["entry-long"]},
+        ],
+    )
+
+    with make_client(settings, payload=payload) as (client, _):
+        response = client.post("/summarize", json=request, headers=auth_headers)
+
+    assert response.status_code == 200
+    themes = response.json()["themes"]
+    assert len(themes) == 2
+    fallback = themes[1]
+    assert fallback["ledger_entry_ids"] == ["entry-long"]
+    # Title must be truncated to 200 chars, not the full 250
+    assert len(fallback["title"]) == 200
+    assert fallback["title"] == "A" * 200
+
+
 # --- Consolidation endpoint tests ---
 
 
