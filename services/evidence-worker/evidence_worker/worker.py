@@ -546,7 +546,7 @@ class Worker:
                     session_id=session_id,
                     title=title,
                     transcript_revision_id=revision_id,
-                    theme_count=self.settings.summary_max_themes,
+                    theme_count=None,
                     entries=entry_payload,
                     pre_groups=pre_groups,
                 ),

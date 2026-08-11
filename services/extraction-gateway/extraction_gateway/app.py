@@ -570,15 +570,47 @@ def _coerce_summary(payload: Any, body: SummaryRequest) -> SessionSummaryCreate:
         claimed.update(entry_ids)
         themes.append(theme.model_copy(update={"ledger_entry_ids": entry_ids}))
 
-    if body.theme_count:
-        themes = themes[: body.theme_count]
-    if len(themes) > 25:
+    # Fallback: any entry IDs from pre_groups that the model failed to cover
+    # get their own singleton theme. This mirrors _coerce_consolidation's
+    # ungrouped-entry safety and prevents coaching content from silently
+    # disappearing when the summary model omits pre_group members.
+    if body.pre_groups:
+        pre_group_ids = {
+            eid
+            for group in body.pre_groups
+            for eid in (group.get("entry_ids") or [])
+            if eid in known_ids
+        }
+        unclaimed_pre_group = pre_group_ids - claimed
+        if unclaimed_pre_group:
+            logger.warning(
+                "summary omitted %s pre_group entry IDs; adding fallback themes session=%s",
+                len(unclaimed_pre_group),
+                body.session.id,
+            )
+            for eid in sorted(unclaimed_pre_group):
+                entry = next(e for e in body.entries if e.id == eid)
+                themes.append(
+                    SummaryThemeCreate(
+                        title=entry.topic,
+                        summary=entry.topic,
+                        ledger_entry_ids=[eid],
+                    )
+                )
+                claimed.add(eid)
+
+    # Apply theme_count limit if requested; otherwise fall back to the hard
+    # sanity cap. Either way, log whenever truncation actually happens so
+    # silent content loss does not recur (see issue #23 discussion).
+    max_themes = body.theme_count if body.theme_count else 25
+    if len(themes) > max_themes:
         logger.warning(
-            "summary returned %s themes (sanity max 25); truncating session=%s",
+            "summary returned %s themes (limit %s); truncating session=%s",
             len(themes),
+            max_themes,
             body.session.id,
         )
-        themes = themes[:25]
+        themes = themes[:max_themes]
     logger.info(
         "summary complete session=%s entries=%s themes=%s covered_entries=%s uncovered=%s",
         body.session.id,
