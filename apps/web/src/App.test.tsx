@@ -151,7 +151,7 @@ describe("evidence ledger app", () => {
     ["/", "Coaching feedback"],
     ["/upload", "Upload one coaching recording."],
     ["/manage", "Recording controls"],
-    ["/not-a-real-page", "Coaching feedback"],
+    ["/not-a-real-page", "This page does not exist."],
   ])("shows account controls on %s", async (path, pageText) => {
     window.history.pushState({}, "", path);
     render(<App client={createClient()} />);
@@ -338,28 +338,31 @@ describe("evidence ledger app", () => {
     );
   });
 
-  it("redirects unknown paths to the feedback page instead of a dead-end error (issue #28)", async () => {
+  it("treats /index.html as a feedback alias for post-login defense-in-depth (issue #28)", async () => {
     const client = createClient();
-    window.history.pushState({}, "", "/not-a-real-page");
-    render(<App client={client} />);
-
-    // A first-time user who lands on an unrecognised path (e.g. after an
-    // auth redirect or stale bookmark) must see the feedback page, not a
-    // confusing "page not found" error.
-    expect(await screen.findByText("Coaching feedback")).toBeVisible();
-    expect(screen.queryByText("This page does not exist.")).toBeNull();
-  });
-
-  it("lands on the feedback page with auto-opened session after first login (issue #28)", async () => {
-    const client = createClient();
-    // Simulate arriving at a path that might result from oauth2-proxy callback
-    // redirect artefacts — the app must still open the newest session.
-    window.history.pushState({}, "", "/oauth2/callback");
+    // oauth2-proxy may redirect to /index.html if Caddy try_files fires before
+    // forward_auth captures the original path. The SPA must handle this
+    // gracefully as a known alias.
+    window.history.pushState({}, "", "/index.html");
     render(<App client={client} />);
 
     expect(await screen.findByText("Coaching feedback")).toBeVisible();
     // Auto-open fires for the newest session
     expect(await screen.findByText("Review session")).toBeVisible();
+    expect(screen.queryByText("This page does not exist.")).toBeNull();
+  });
+
+  it("shows a plain-language page for genuinely unknown URLs (issue #17)", async () => {
+    const user = userEvent.setup();
+    const client = createClient();
+    window.history.pushState({}, "", "/not-a-real-page");
+    render(<App client={client} />);
+
+    expect(await screen.findByText("This page does not exist.")).toBeVisible();
+    expect(screen.getByText(/go back to the feedback list/i)).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Back to feedback" }));
+    expect(await screen.findByText("Coaching feedback")).toBeVisible();
+    await waitFor(() => expect(screen.getByRole("main")).toHaveFocus());
   });
 
   it("warns when the summary no longer matches the reviewed ledger", async () => {

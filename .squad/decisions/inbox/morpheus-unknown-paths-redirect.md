@@ -1,4 +1,4 @@
-# Decision: Unknown paths redirect to feedback instead of showing 404
+# Decision: Caddy route block must enforce forward_auth before try_files
 
 **By:** Morpheus
 **Date:** 2026-08-11
@@ -6,15 +6,20 @@
 
 ## Decision
 
-Unknown/unmatched paths in the SPA router redirect to the feedback page (`/`) rather than displaying a "page not found" error screen.
+The Caddy `staticRoot` frontend handler must wrap its directives in a `route {}` block to enforce written order: `forward_auth` before `try_files`.
 
-## Rationale
+## Root cause (confirmed via host logs)
 
-- The app has exactly 3 user-facing routes (`/`, `/upload`, `/manage`). A dead-end 404 screen provides no value to non-technical quartet members.
-- A real user's first impression was a confusing error — unacceptable for this audience.
-- The "This page does not exist" page had a manual escape hatch (a button), but first-time users shouldn't need to figure out navigation from an error state.
-- Risk of masking bugs is minimal: there are no deep-linkable session URLs, no user-generated paths, and only 3 routes to maintain. If a future route is added and misconfigured, the symptom would be "lands on feedback instead of new page" which is immediately obvious during development.
+Caddy's standard directive ordering executes `try_files` (a rewrite) before `forward_auth`. When an unauthenticated user requests `/`, Caddy rewrites it to `/index.html` before forward_auth captures `{uri}` for the `rd` parameter. oauth2-proxy then redirects users to `/index.html` after login instead of their original path `/`.
 
-## Trade-off acknowledged
+Evidence: host logs show every login produces `GET "/oauth2/start?rd=https://streams.sspeaks.net/index.html"` regardless of client device.
 
-A catch-all redirect hides genuine 404s. For a developer-facing app this would be wrong. For a 3-route app used by singers, the UX benefit outweighs the debugging cost.
+## Fix
+
+- `nix/proxy.nix`: Wrap frontend handler in `route {}` to preserve written order.
+- `apps/web/src/App.tsx`: Add `/index.html` as a known alias for feedback (defense-in-depth).
+- Catch-all for genuinely unknown paths (issue #17) is preserved.
+
+## Standing rule
+
+Any Caddy handler that combines `try_files` with `forward_auth` must use a `route {}` block to prevent path rewriting from corrupting the authentication redirect target.

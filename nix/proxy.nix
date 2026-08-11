@@ -108,10 +108,18 @@ let
     else if cfg.webFrontend.mode == "staticRoot" then
       ''
         handle {
-          ${forwardAuth}
-          root * ${cfg.webFrontend.staticRoot}
-          try_files {path} /index.html
-          file_server
+          # route enforces written directive order so forward_auth runs before
+          # try_files. Without route, Caddy's standard directive ordering
+          # executes try_files (a rewrite) first, rewriting "/" to "/index.html"
+          # before forward_auth captures {uri} for the post-login redirect —
+          # causing oauth2-proxy to redirect users to /index.html after login
+          # instead of their original path. See issue #28.
+          route {
+            ${forwardAuth}
+            root * ${cfg.webFrontend.staticRoot}
+            try_files {path} /index.html
+            file_server
+          }
         }
       ''
     else

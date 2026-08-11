@@ -610,11 +610,8 @@ function routeFromPath(): Route {
   const path = window.location.pathname;
   if (path === "/upload") return "upload";
   if (path === "/manage") return "manage";
-  // Any unrecognised path (stale bookmark, post-login redirect artefact, typo)
-  // lands on the feedback page rather than a dead-end error screen.
-  // This app has only three user-facing routes; showing "page not found" to
-  // non-technical quartet members is never the right outcome.
-  return "feedback";
+  if (path === "/" || path === "/index.html") return "feedback";
+  return "not-found";
 }
 
 function pathForRoute(route: Route): string {
