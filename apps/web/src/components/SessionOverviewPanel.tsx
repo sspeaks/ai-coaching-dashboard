@@ -132,28 +132,30 @@ export function SessionOverviewPanel({
                   </h4>
                 </div>
                 <p>{theme.summary}</p>
-                <div className="theme-item__moments">
-                  <span className="supporting-text">
+                <details className="theme-item__moments">
+                  <summary className="supporting-text">
                     {theme.moments.length === 1
-                      ? "Hear it at"
-                      : `Hear the ${theme.moments.length} source moments`}
-                  </span>
-                  {theme.moments.map((moment) => (
-                    <button
-                      key={moment.interventionId}
-                      className="evidence-link"
-                      onClick={() => onSeek(moment.startMs / 1000)}
-                      disabled={!audioAvailable}
-                      title={
-                        audioAvailable
-                          ? "Play the recording from this moment"
-                          : "Audio playback is not available for this session"
-                      }
-                    >
-                      {formatTimestampMs(moment.startMs)}
-                    </button>
-                  ))}
-                </div>
+                      ? "1 source moment"
+                      : `${theme.moments.length} source moments`}
+                  </summary>
+                  <div className="theme-item__moment-list">
+                    {theme.moments.map((moment) => (
+                      <button
+                        key={moment.interventionId}
+                        className="evidence-link"
+                        onClick={() => onSeek(moment.startMs / 1000)}
+                        disabled={!audioAvailable}
+                        title={
+                          audioAvailable
+                            ? "Play the recording from this moment"
+                            : "Audio playback is not available for this session"
+                        }
+                      >
+                        {formatTimestampMs(moment.startMs)}
+                      </button>
+                    ))}
+                  </div>
+                </details>
               </li>
             ))}
           </ol>

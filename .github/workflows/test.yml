@@ -68,6 +68,12 @@ jobs:
             --gold fixtures/synthetic/quartet-coaching-01/gold-ledger.json \
             --predicted fixtures/synthetic/quartet-coaching-01/gold-ledger.json \
             --transcript fixtures/synthetic/quartet-coaching-01/transcript.json
+      - name: Score summary theme grouping
+        run: |
+          python3 -m eval.score_summary \
+            --gold-summary fixtures/synthetic/quartet-coaching-01/gold-summary.json \
+            --predicted-summary fixtures/synthetic/quartet-coaching-01/gold-predicted-summary.json \
+            --gold-ledger fixtures/synthetic/quartet-coaching-01/gold-ledger.json
       - name: Validate lightweight browser scenario manifest (not browser E2E)
         run: python3 -m unittest discover -s tests/browser -v
       - name: Prove critical hallucinations are rejected

@@ -546,3 +546,126 @@ def test_summarize_requires_authentication(settings):
         response = client.post("/summarize", json=summary_request())
 
     assert response.status_code == 401
+
+
+# --- Consolidation endpoint tests ---
+
+
+def consolidation_request(**extra):
+    return {
+        "schema_version": "coaching-ledger-v1",
+        "session": {"id": "session-1", "title": "Coaching session"},
+        "entries": [
+            {
+                "id": "entry-1",
+                "topic": "Release",
+                "exact_coach_feedback": "Lead, release the sound.",
+                "interpretation": None,
+                "applies_to": None,
+                "exercise_or_requested_change": None,
+                "next_action_and_owner": None,
+                "start_ms": 1000,
+                "end_ms": 2500,
+            },
+            {
+                "id": "entry-2",
+                "topic": "Release exercise",
+                "exact_coach_feedback": "Try that again with less tension.",
+                "interpretation": None,
+                "applies_to": None,
+                "exercise_or_requested_change": None,
+                "next_action_and_owner": None,
+                "start_ms": 3000,
+                "end_ms": 4500,
+            },
+        ],
+        **extra,
+    }
+
+
+def test_consolidation_groups_entries(settings, auth_headers):
+    payload = {
+        "groups": [
+            {
+                "canonical_topic": "Releasing tension",
+                "entry_ids": ["entry-1", "entry-2"],
+            }
+        ]
+    }
+
+    with make_client(settings, payload=payload) as (client, _):
+        response = client.post(
+            "/consolidate", json=consolidation_request(), headers=auth_headers
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["groups"]) == 1
+    assert data["groups"][0]["entry_ids"] == ["entry-1", "entry-2"]
+    assert data["ungrouped_entry_ids"] == []
+
+
+def test_consolidation_assigns_ungrouped_entries_to_singletons(settings, auth_headers):
+    # Model only groups entry-1, forgetting entry-2
+    payload = {
+        "groups": [
+            {
+                "canonical_topic": "Release",
+                "entry_ids": ["entry-1"],
+            }
+        ]
+    }
+
+    with make_client(settings, payload=payload) as (client, _):
+        response = client.post(
+            "/consolidate", json=consolidation_request(), headers=auth_headers
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["groups"]) == 2
+    assert data["ungrouped_entry_ids"] == ["entry-2"]
+
+
+def test_consolidation_drops_unknown_entry_ids(settings, auth_headers):
+    payload = {
+        "groups": [
+            {
+                "canonical_topic": "Release",
+                "entry_ids": ["entry-1", "entry-invented"],
+            }
+        ]
+    }
+
+    with make_client(settings, payload=payload) as (client, _):
+        response = client.post(
+            "/consolidate", json=consolidation_request(), headers=auth_headers
+        )
+
+    assert response.status_code == 200
+    groups = response.json()["groups"]
+    # entry-invented is dropped; entry-2 becomes a singleton
+    entry_ids_flat = [eid for g in groups for eid in g["entry_ids"]]
+    assert "entry-invented" not in entry_ids_flat
+    assert "entry-1" in entry_ids_flat
+    assert "entry-2" in entry_ids_flat
+
+
+def test_consolidation_empty_entries_returns_empty(settings, auth_headers):
+    with make_client(settings, payload={"groups": []}) as (client, fake):
+        response = client.post(
+            "/consolidate",
+            json=consolidation_request(entries=[]),
+            headers=auth_headers,
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"groups": [], "ungrouped_entry_ids": []}
+    assert fake.calls == []
+
+
+def test_consolidation_requires_authentication(settings):
+    with make_client(settings, payload={"groups": []}) as (client, _):
+        response = client.post("/consolidate", json=consolidation_request())
+
+    assert response.status_code == 401

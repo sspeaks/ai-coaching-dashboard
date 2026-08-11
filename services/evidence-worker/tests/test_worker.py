@@ -214,7 +214,7 @@ class FakeSummaryProvider:
     def __init__(self):
         self.calls = []
 
-    def summarize(self, *, session_id, title, transcript_revision_id, theme_count, entries):
+    def summarize(self, *, session_id, title, transcript_revision_id, theme_count, entries, pre_groups=None):
         self.calls.append(entries)
         return SessionSummaryCreate(
             themes=[
@@ -1817,6 +1817,86 @@ def test_a_failed_summary_does_not_make_a_good_session_look_broken(settings):
 
     with factory() as db:
         session = db.get(SessionRecord, session_id)
+        assert session.state == SessionState.AWAITING_REVIEW.value
+        assert session.last_error is None
+        assert db.query(LedgerEntryRecord).filter_by(session_id=session_id).count() == 1
+
+
+def test_consolidation_failure_degrades_to_summary_without_groups(settings):
+    """When consolidation fails, the worker proceeds with pre_groups=None.
+
+    The summary must still run, receive all ledger entries, and produce a
+    valid result. No exception should propagate.
+    """
+    from evidence_api.consolidation import ConsolidationError
+
+    class FailingConsolidationProvider:
+        def consolidate(self, **_):
+            raise ConsolidationError("gateway timeout")
+
+    class CapturingSummaryProvider:
+        def __init__(self):
+            self.calls = []
+
+        def summarize(self, *, session_id, title, transcript_revision_id, theme_count, entries, pre_groups=None):
+            self.calls.append({"entries": entries, "pre_groups": pre_groups})
+            return SessionSummaryCreate(
+                themes=[
+                    SummaryThemeCreate(
+                        title="Releasing the sound",
+                        summary="The coach worked on releasing tension.",
+                        ledger_entry_ids=[entry["id"] for entry in entries],
+                    )
+                ]
+            )
+
+    engine = create_db_engine(settings)
+    init_schema(engine)
+    factory = create_session_factory(engine)
+    media = settings.media_root / "consolidation-fail.wav"
+    media.parent.mkdir(parents=True, exist_ok=True)
+    media.write_bytes(b"audio")
+    with factory() as db:
+        session = SessionRecord(
+            title="Automatic chain",
+            state=SessionState.TRANSCRIBING.value,
+            media_path=str(media),
+        )
+        db.add(session)
+        db.flush()
+        db.add(
+            JobRecord(
+                session_id=session.id,
+                type=JobType.TRANSCRIBE.value,
+                max_attempts=3,
+            )
+        )
+        db.commit()
+        session_id = session.id
+
+    summaries = CapturingSummaryProvider()
+    worker = Worker(
+        settings,
+        factory,
+        adapter=FakeSpeakrAdapter(),
+        extraction_provider=FakeExtractionProvider(),
+        summary_provider=summaries,
+        consolidation_provider=FailingConsolidationProvider(),
+    )
+    # Run the full chain: transcribe → extract → consolidation (fails) → summarize
+    while worker.run_once():
+        pass
+
+    # The summary must have been called with pre_groups=None
+    assert len(summaries.calls) == 1
+    assert summaries.calls[0]["pre_groups"] is None
+    # All ledger entries were passed through (not lost)
+    assert len(summaries.calls[0]["entries"]) == 1
+    assert summaries.calls[0]["entries"][0]["topic"] == "Release"
+
+    with factory() as db:
+        session = db.get(SessionRecord, session_id)
+        # Session completes normally despite consolidation failure
         assert session.state == SessionState.AWAITING_REVIEW.value
         assert session.last_error is None
         assert db.query(LedgerEntryRecord).filter_by(session_id=session_id).count() == 1

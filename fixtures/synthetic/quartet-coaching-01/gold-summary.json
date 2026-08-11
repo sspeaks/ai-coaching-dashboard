@@ -1,0 +1,55 @@
+{
+  "fixture_id": "quartet-coaching-01",
+  "description": "Expected theme groupings for the synthetic gold ledger. Entries i01 and i02 share the same coaching point (bass onset) and should be in one theme. All other entries are distinct.",
+  "expected_theme_count_range": [
+    8,
+    10
+  ],
+  "known_merge_pairs": [
+    {
+      "entry_ids": [
+        "i01",
+        "i02"
+      ],
+      "reason": "Both address the bass onset: i01 is the problem (scoop), i02 is the exercise to fix it. Same singer, same moment, same technique."
+    }
+  ],
+  "known_distinct_pairs": [
+    {
+      "entry_ids": [
+        "i03",
+        "i04"
+      ],
+      "reason": "Lead diphthong vs tenor release \u2014 different singers, different techniques."
+    },
+    {
+      "entry_ids": [
+        "i07",
+        "i08"
+      ],
+      "reason": "Pickup breath (coordination exercise) vs tag tempo (avoid acceleration) \u2014 different techniques even though both are whole-quartet."
+    },
+    {
+      "entry_ids": [
+        "i09",
+        "i10"
+      ],
+      "reason": "Measure repetition (practice drill) vs starting pitch owner (lead responsibility) \u2014 completely different coaching points."
+    },
+    {
+      "entry_ids": [
+        "i02",
+        "i11"
+      ],
+      "reason": "Same general area (vocal technique) but different coaching points at different times: i02 is a bass onset exercise (specific drill for one singer), i11 is a resonance instruction for the whole quartet. Canonical over-merge case: similar subject area, distinct corrections."
+    },
+    {
+      "entry_ids": [
+        "i05",
+        "i06"
+      ],
+      "reason": "i05 is a dynamic correction for baritone on a specific note (soften the third), i06 is a whole-quartet rehearsal technique (hum the phrase). Different targets, different techniques, different moments."
+    }
+  ],
+  "_coverage_notes": "All 11 entries now participate in at least one merge or distinct constraint. Previously unconstrained entries i05, i06, i11 are covered by the new pairs (i02,i11) and (i05,i06)."
+}

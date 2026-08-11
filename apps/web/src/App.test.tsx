@@ -245,6 +245,7 @@ describe("evidence ledger app", () => {
   });
 
   it("opens the newest session summary on the feedback page", async () => {
+    const user = userEvent.setup();
     const client = createClient();
     render(<App client={client} />);
 
@@ -254,6 +255,8 @@ describe("evidence ledger app", () => {
     expect(
       screen.getByText(/releasing jaw tension on the F/i),
     ).toBeVisible();
+    // Moments are collapsed by default for simplicity; expand to verify content
+    await user.click(screen.getByText("1 source moment"));
     expect(screen.getByRole("button", { name: /0:42/ })).toBeVisible();
     expect(
       screen.queryByText("Speaker identity needs human confirmation."),

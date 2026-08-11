@@ -1,0 +1,54 @@
+{
+  "themes": [
+    {
+      "title": "Bass onset scoop",
+      "summary": "Coach asked the bass to land directly on pitch without scooping, then assigned a speak-on-pitch exercise.",
+      "ledger_entry_ids": ["i01", "i02"]
+    },
+    {
+      "title": "Lead diphthong in time",
+      "summary": "Coach instructed the lead to delay the second half of the diphthong.",
+      "ledger_entry_ids": ["i03"]
+    },
+    {
+      "title": "Tenor release alignment",
+      "summary": "Tenor must release exactly with the lead.",
+      "ledger_entry_ids": ["i04"]
+    },
+    {
+      "title": "Baritone soften the third",
+      "summary": "Possibly coach-originated suggestion to reduce baritone's third.",
+      "ledger_entry_ids": ["i05"]
+    },
+    {
+      "title": "Humming exercise",
+      "summary": "Quartet should rehearse the phrase on a hum before adding words.",
+      "ledger_entry_ids": ["i06"]
+    },
+    {
+      "title": "Pickup breath coordination",
+      "summary": "Everyone breathe together before the pickup.",
+      "ledger_entry_ids": ["i07"]
+    },
+    {
+      "title": "Tag tempo control",
+      "summary": "Do not speed through the tag.",
+      "ledger_entry_ids": ["i08"]
+    },
+    {
+      "title": "Measure repetition drill",
+      "summary": "Repeat measures 12-14 twice.",
+      "ledger_entry_ids": ["i09"]
+    },
+    {
+      "title": "Starting pitch ownership",
+      "summary": "Lead takes responsibility for giving the starting pitch.",
+      "ledger_entry_ids": ["i10"]
+    },
+    {
+      "title": "Ring without loudness",
+      "summary": "Increase ring rather than volume.",
+      "ledger_entry_ids": ["i11"]
+    }
+  ]
+}
