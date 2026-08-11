@@ -57,3 +57,11 @@
 - The fix is surgical: token unchanged, only the pairing on `--brand-soft` repaired.
 - Noted: 0.72rem caption is load-bearing per Rai (source-grounding). Proposed increasing to 0.8rem in PR — not unilaterally applied.
 - All 22 tests pass. Typecheck and build clean.
+
+## 2026-08-11T00:30:00Z — Issue #26 evidence-link caption font size
+
+- Shipped `font-size: 0.8rem` on `.evidence-link span:last-child` (was 0.72rem, ≈11.5px → 12.8px).
+- Proposal from #25 decision inbox was independently endorsed by both Rai and Switch before filing as issue #26.
+- 375px layout verified: caption uses `grid-column: 1 / -1` (full button width, no horizontal growth), button width driven by timestamp/role row — font bump adds ~1.3px height only. Flex-wrap container handles multi-button layout cleanly. Touch targets unaffected (still > 44px).
+- Contrast unchanged: `--ink` on `--brand-soft` = 10.92:1. Color not touched.
+- All 22 tests pass. Typecheck and build clean.
