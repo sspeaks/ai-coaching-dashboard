@@ -148,7 +148,7 @@ describe("evidence ledger app", () => {
   });
 
   it.each([
-    ["/", "Hear what the coach worked on."],
+    ["/", "Coaching feedback"],
     ["/upload", "Upload one coaching recording."],
     ["/manage", "Recording controls"],
     ["/not-a-real-page", "This page does not exist."],
@@ -347,7 +347,7 @@ describe("evidence ledger app", () => {
     expect(await screen.findByText("This page does not exist.")).toBeVisible();
     expect(screen.getByText(/go back to the feedback list/i)).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Back to feedback" }));
-    expect(await screen.findByText("Hear what the coach worked on.")).toBeVisible();
+    expect(await screen.findByText("Coaching feedback")).toBeVisible();
     await waitFor(() => expect(screen.getByRole("main")).toHaveFocus());
   });
 
