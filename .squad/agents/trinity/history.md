@@ -65,3 +65,15 @@
 - 375px layout verified: caption uses `grid-column: 1 / -1` (full button width, no horizontal growth), button width driven by timestamp/role row — font bump adds ~1.3px height only. Flex-wrap container handles multi-button layout cleanly. Touch targets unaffected (still > 44px).
 - Contrast unchanged: `--ink` on `--brand-soft` = 10.92:1. Color not touched.
 - All 22 tests pass. Typecheck and build clean.
+
+## 2026-08-11T01:20:00Z — Rounds 11-18 Summary & Team Decision Codification
+
+- Issues #20/#21 batched dark theme + declutter shipped via PR #22, caught contrast regression by Rai (7.30:1 → 4.19:1 on consent detail). Morpheus fix: `--muted` → `--ink` (10.92:1).
+- Issues #24/#26 evidence-link contrast and caption font shipped in rounds 14–15.
+- Contrast pairing rule now codified: `--muted` unsafe on elevated blue surfaces; fix the *pairing*, never retune the token globally. Verified safe values elsewhere (4.95:1, 5.62:1) would be invalidated if `--muted` itself changed.
+- Product constraint reaffirmed: "Simplicity is #1 priority." Feedback page decluttered twice by user request (rounds #15, #21). Do not reintroduce visual density.
+- Theme token discipline: all semantic colors behind tokens in styles.css `:root`, never hardcoded in TSX. Non-token hex only acceptable for decorative gradients and border helpers with no semantic meaning.
+
+📌 Team update (2026-08-10T14:08:35-07:00): Upload pipeline is NOT local-only: audio goes to Speakr and may go onward to Speakr's configured ASR provider; transcript, ledger, and note text may go to an OpenAI-compatible extraction/summary gateway when configured — decided by Trinity and Fact Checker
+📌 Team update (2026-08-11T01:20:00Z): Contrast pairing rule: `--muted` must NOT sit on elevated blue surfaces (e.g., `--brand-soft`) for consent, status, error text. Fix the *pairing*, never retune the token globally — verified values elsewhere (4.95:1, 5.62:1) would be invalidated. Applies to all future theme changes — decided by Morpheus
+📌 Team update (2026-08-11T01:20:00Z): Product constraint binding team-wide: "Simplicity is #1 priority." Feedback page decluttered twice by user request. Do not reintroduce visual density in future UI changes — decided by sspeaks (user), implemented by Trinity
