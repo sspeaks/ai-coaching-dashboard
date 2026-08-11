@@ -1,4 +1,5 @@
 import argparse
+import logging
 import time
 from datetime import UTC, datetime, timedelta
 from enum import Enum, auto
@@ -35,6 +36,11 @@ from evidence_api.summaries import (
     SummaryProvider,
     create_summary_provider,
 )
+from evidence_api.consolidation import (
+    ConsolidationError,
+    ConsolidationProvider,
+    create_consolidation_provider,
+)
 from evidence_api.models import (
     DeletionCompensationRecord,
     JobRecord,
@@ -56,6 +62,8 @@ from evidence_api.services import (
     record_deletion_compensation,
 )
 from evidence_api.state import transition
+
+logger = logging.getLogger(__name__)
 
 
 class TranscriptionPending(RuntimeError):
@@ -105,6 +113,7 @@ class Worker:
         adapter: MediaAdapter | None = None,
         extraction_provider: ExtractionProvider | None = None,
         summary_provider: SummaryProvider | None = None,
+        consolidation_provider: ConsolidationProvider | None = None,
     ) -> None:
         self.settings = settings
         self.factory = factory
@@ -118,6 +127,9 @@ class Worker:
             extraction_provider or create_extraction_provider(settings)
         )
         self.summary_provider = summary_provider or create_summary_provider(settings)
+        self.consolidation_provider = (
+            consolidation_provider or create_consolidation_provider(settings)
+        )
 
     def run_once(self) -> bool:
         if self.retry_deletion_compensation():
@@ -501,6 +513,31 @@ class Worker:
                 }
                 for record in records
             ]
+            # Option B: consolidation pass — group entries before summarizing.
+            # Degrades gracefully: if consolidation fails, summarize without groups.
+            pre_groups = None
+            try:
+                consolidation_result = self.consolidation_provider.consolidate(
+                    session_id=session_id,
+                    title=title,
+                    entries=entry_payload,
+                )
+                pre_groups = [
+                    {"canonical_topic": g.get("canonical_topic", ""), "entry_ids": g.get("entry_ids", [])}
+                    for g in consolidation_result.groups
+                ]
+                logger.info(
+                    "consolidation succeeded session=%s groups=%s",
+                    session_id,
+                    len(pre_groups),
+                )
+            except (ConsolidationError, Exception) as exc:
+                logger.warning(
+                    "consolidation failed, proceeding without pre-groups session=%s error=%s",
+                    session_id,
+                    exc,
+                )
+
             summary, job, session_record, cancelled = self._leased_provider_call(
                 db,
                 job_id,
@@ -509,8 +546,9 @@ class Worker:
                     session_id=session_id,
                     title=title,
                     transcript_revision_id=revision_id,
-                    theme_count=self.settings.summary_theme_count,
+                    theme_count=self.settings.summary_max_themes,
                     entries=entry_payload,
+                    pre_groups=pre_groups,
                 ),
             )
             if cancelled:

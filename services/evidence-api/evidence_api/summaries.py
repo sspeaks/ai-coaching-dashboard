@@ -24,6 +24,7 @@ class SummaryProvider(Protocol):
         transcript_revision_id: str,
         theme_count: int,
         entries: list[dict],
+        pre_groups: list[dict] | None = None,
     ) -> SessionSummaryCreate: ...
 
 
@@ -56,19 +57,22 @@ class HttpJsonSummaryProvider:
         transcript_revision_id: str,
         theme_count: int,
         entries: list[dict],
+        pre_groups: list[dict] | None = None,
     ) -> SessionSummaryCreate:
         if not self.endpoint or not self.api_key:
             raise SummaryConfigurationError(
                 "http_json summaries require EVIDENCE_EXTRACTION_ENDPOINT and "
                 "EVIDENCE_EXTRACTION_API_KEY"
             )
-        request_body = {
+        request_body: dict = {
             "schema_version": "coaching-ledger-v1",
             "session": {"id": session_id, "title": title},
             "transcript_revision_id": transcript_revision_id,
             "theme_count": theme_count,
             "entries": entries,
         }
+        if pre_groups:
+            request_body["pre_groups"] = pre_groups
         try:
             response = httpx.post(
                 self.endpoint,

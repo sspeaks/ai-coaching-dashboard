@@ -10,7 +10,7 @@ from typing import Any, Literal
 import uvicorn
 from fastapi import Depends, FastAPI, Header, HTTPException, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from coaching_contracts import (
     LedgerEntryCreate,
@@ -59,12 +59,35 @@ class SummaryRequest(StrictModel):
     schema_version: Literal["coaching-ledger-v1"]
     session: ExtractionSession
     transcript_revision_id: str
-    theme_count: int = 5
+    theme_count: int | None = None
+    pre_groups: list[dict[str, Any]] | None = None
     entries: list[SummaryLedgerEntry]
 
 
 class ModelSummaryResponse(StrictModel):
     themes: list[SummaryThemeCreate]
+
+
+class ConsolidationGroup(StrictModel):
+    """A group of entry IDs that represent the same coaching point."""
+
+    canonical_topic: str = Field(min_length=1, max_length=200)
+    entry_ids: list[str] = Field(min_length=1)
+
+
+class ModelConsolidationResponse(StrictModel):
+    groups: list[ConsolidationGroup]
+
+
+class ConsolidationRequest(StrictModel):
+    schema_version: Literal["coaching-ledger-v1"]
+    session: ExtractionSession
+    entries: list[SummaryLedgerEntry]
+
+
+class ConsolidationResponse(StrictModel):
+    groups: list[ConsolidationGroup]
+    ungrouped_entry_ids: list[str]
 
 
 class ModelExtractionResponse(StrictModel):
@@ -366,20 +389,124 @@ def _coerce_entries(
     )
 
 
-def _build_summary_messages(body: SummaryRequest) -> list[dict[str, str]]:
+def _build_consolidation_messages(body: ConsolidationRequest) -> list[dict[str, str]]:
     payload = {
         "session": body.session.model_dump(mode="json"),
-        "theme_count": body.theme_count,
         "entries": [entry.model_dump(mode="json") for entry in body.entries],
     }
     return [
         {
             "role": "system",
             "content": (
+                "You are grouping coaching ledger entries from one session. "
+                "Two entries belong in the same group ONLY when they address "
+                "the exact same technique for the same singer for the same "
+                "reason — meaning the coach returned to the same correction "
+                "later in the session.\n"
+                "When in doubt whether two entries are the same point, keep "
+                "them in SEPARATE groups. An extra group is acceptable; "
+                "silently merging two distinct coaching corrections is not.\n"
+                "Every entry must appear in exactly one group. A group may "
+                "contain a single entry if that point was only addressed once.\n"
+                "For each group, provide a short canonical_topic that names "
+                "the specific coaching point in the coach's terms."
+            ),
+        },
+        {
+            "role": "user",
+            "content": json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
+        },
+    ]
+
+
+def _coerce_consolidation(
+    payload: Any, body: ConsolidationRequest
+) -> ConsolidationResponse:
+    try:
+        response = ModelConsolidationResponse.model_validate(payload)
+    except ValidationError as exc:
+        logger.warning(
+            "model consolidation failed validation errors=%s", exc.errors()[:3]
+        )
+        raise _http_error(
+            "invalid_model_response",
+            f"model response did not match the consolidation schema: {exc.errors()[0]['msg']}",
+            status.HTTP_502_BAD_GATEWAY,
+        ) from exc
+
+    known_ids = {entry.id for entry in body.entries}
+    claimed: set[str] = set()
+    groups: list[ConsolidationGroup] = []
+
+    for group in response.groups:
+        valid_ids = [eid for eid in group.entry_ids if eid in known_ids and eid not in claimed]
+        if not valid_ids:
+            continue
+        claimed.update(valid_ids)
+        groups.append(
+            ConsolidationGroup(
+                canonical_topic=group.canonical_topic,
+                entry_ids=valid_ids,
+            )
+        )
+
+    # Any entries the model forgot get their own singleton group
+    ungrouped = [eid for eid in known_ids if eid not in claimed]
+    for eid in ungrouped:
+        entry = next(e for e in body.entries if e.id == eid)
+        groups.append(
+            ConsolidationGroup(canonical_topic=entry.topic, entry_ids=[eid])
+        )
+
+    logger.info(
+        "consolidation complete session=%s entries=%s groups=%s ungrouped=%s",
+        body.session.id,
+        len(body.entries),
+        len(groups),
+        len(ungrouped),
+    )
+    return ConsolidationResponse(groups=groups, ungrouped_entry_ids=ungrouped)
+
+
+def _build_summary_messages(body: SummaryRequest) -> list[dict[str, str]]:
+    payload: dict[str, Any] = {
+        "session": body.session.model_dump(mode="json"),
+        "entries": [entry.model_dump(mode="json") for entry in body.entries],
+    }
+    if body.pre_groups:
+        payload["pre_groups"] = body.pre_groups
+    cap_instruction = (
+        f"Return at most {body.theme_count} themes. "
+        if body.theme_count
+        else ""
+    )
+    grouping_instruction = (
+        "A prior analysis has grouped the entries into clusters of "
+        "related coaching points (provided in pre_groups). Use these "
+        "clusters as your theme structure — one theme per group. You "
+        "may split a group further if it clearly contains distinct "
+        "points, but do not merge groups together.\n"
+        if body.pre_groups
+        else ""
+    )
+    return [
+        {
+            "role": "system",
+            "content": (
                 "You are summarizing one coaching session for the singers who "
-                f"were in it. Group the supplied ledger entries into at most "
-                f"{body.theme_count} themes, ordered so the theme the coach "
+                "were in it. Group the supplied ledger entries into themes — "
+                "one theme per genuinely distinct coaching point. "
+                + cap_instruction
+                + grouping_instruction +
+                "Order themes so the theme the coach "
                 "spent the most of the session on comes first.\n"
+                "Merge entries into the same theme ONLY when they address the "
+                "same technique for the same singer for the same reason. When "
+                "two mentions of the same correction appear at different times "
+                "(coach returned to the same issue), include them in one theme "
+                "with all their entry IDs. When in doubt whether two entries "
+                "are the same point, keep them as separate themes — an extra "
+                "theme is acceptable, a silently dropped coaching point is not.\n"
                 "Titles must name the specific thing the coach worked on, in "
                 "the coach's own terms: 'Disengaging the glottis on da-da' or "
                 "'Aligning the E vowel in fill', never a filing-cabinet label "
@@ -443,7 +570,15 @@ def _coerce_summary(payload: Any, body: SummaryRequest) -> SessionSummaryCreate:
         claimed.update(entry_ids)
         themes.append(theme.model_copy(update={"ledger_entry_ids": entry_ids}))
 
-    themes = themes[: body.theme_count]
+    if body.theme_count:
+        themes = themes[: body.theme_count]
+    if len(themes) > 25:
+        logger.warning(
+            "summary returned %s themes (sanity max 25); truncating session=%s",
+            len(themes),
+            body.session.id,
+        )
+        themes = themes[:25]
     logger.info(
         "summary complete session=%s entries=%s themes=%s covered_entries=%s uncovered=%s",
         body.session.id,
@@ -529,6 +664,16 @@ def create_app(
             schema=ModelSummaryResponse.model_json_schema(),
         )
         return _coerce_summary(payload, body)
+
+    @app.post("/consolidate", response_model=ConsolidationResponse)
+    def consolidate(body: ConsolidationRequest, _: None = Depends(require_bearer)):
+        if not body.entries:
+            return ConsolidationResponse(groups=[], ungrouped_entry_ids=[])
+        payload = openai_client.extract_json(
+            messages=_build_consolidation_messages(body),
+            schema=ModelConsolidationResponse.model_json_schema(),
+        )
+        return _coerce_consolidation(payload, body)
 
     return app
 

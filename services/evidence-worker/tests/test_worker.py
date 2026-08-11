@@ -214,7 +214,7 @@ class FakeSummaryProvider:
     def __init__(self):
         self.calls = []
 
-    def summarize(self, *, session_id, title, transcript_revision_id, theme_count, entries):
+    def summarize(self, *, session_id, title, transcript_revision_id, theme_count, entries, pre_groups=None):
         self.calls.append(entries)
         return SessionSummaryCreate(
             themes=[
