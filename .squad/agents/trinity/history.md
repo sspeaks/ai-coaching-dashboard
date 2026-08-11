@@ -84,6 +84,6 @@
 - Applied `[:197] + "…"` instead of bare `[:200]` in both truncation paths (Rai + Neo prescription): readers can see text is incomplete rather than guessing whether the sentence ended naturally.
 - Fixed `summary=entry.topic` (full, untruncated topic) in `_coerce_summary` fallback; `SummaryThemeCreate.summary` accepts 4,000 chars and `entry.topic` is max 300, so it always fits whole.
 - Updated `test_fallback_theme_truncates_long_topic` to match new scheme (198 chars = 197 + "…") and added summary assertion.
-- Eval count mystery solved: Neo's "21 eval tests" came from a checkout on Switch's `squad/32-overmerge-fixture-matrix` which added 7 tests to `tests/eval/test_score_summary.py`. Clean `origin/main` baseline is 14 (7+7). No phantom commits.
+- Eval count: 14 eval on this branch (correct baseline). Neo saw 21 because he ran in the shared main checkout while Switch's #32 working-tree files were present — same shared-checkout problem, not branch contamination. Switch's #32 adds 7 eval tests (14→21). My branch was never involved; the worktree isolation worked as intended.
 - pytest: 95 passed (was 94). Web tests: 23 passed. nix rebuild clean.
 - Worked in `/home/sspeaks/projects/acd-issue31` worktree per team protocol.
