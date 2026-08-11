@@ -338,7 +338,21 @@ describe("evidence ledger app", () => {
     );
   });
 
-  it("shows a plain-language page for unknown URLs", async () => {
+  it("treats /index.html as a feedback alias for post-login defense-in-depth (issue #28)", async () => {
+    const client = createClient();
+    // oauth2-proxy may redirect to /index.html if Caddy try_files fires before
+    // forward_auth captures the original path. The SPA must handle this
+    // gracefully as a known alias.
+    window.history.pushState({}, "", "/index.html");
+    render(<App client={client} />);
+
+    expect(await screen.findByText("Coaching feedback")).toBeVisible();
+    // Auto-open fires for the newest session
+    expect(await screen.findByText("Review session")).toBeVisible();
+    expect(screen.queryByText("This page does not exist.")).toBeNull();
+  });
+
+  it("shows a plain-language page for genuinely unknown URLs (issue #17)", async () => {
     const user = userEvent.setup();
     const client = createClient();
     window.history.pushState({}, "", "/not-a-real-page");

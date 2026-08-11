@@ -607,9 +607,10 @@ function toSummary(session: SessionDetail): SessionSummary {
 
 function routeFromPath(): Route {
   if (typeof window === "undefined") return "feedback";
-  if (window.location.pathname === "/upload") return "upload";
-  if (window.location.pathname === "/manage") return "manage";
-  if (window.location.pathname === "/") return "feedback";
+  const path = window.location.pathname;
+  if (path === "/upload") return "upload";
+  if (path === "/manage") return "manage";
+  if (path === "/" || path === "/index.html") return "feedback";
   return "not-found";
 }
 
