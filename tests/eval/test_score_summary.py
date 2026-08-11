@@ -15,10 +15,13 @@ class TestScoreSummary(unittest.TestCase):
     }
 
     GOLD_SUMMARY = {
-        "expected_theme_count_range": [8, 10],
+        "invert_distinct_default": True,
+        "expected_theme_count_range": [10, 10],
         "known_merge_pairs": [
             {"entry_ids": ["i01", "i02"], "reason": "bass onset pair"}
         ],
+        # known_distinct_pairs is superseded when invert_distinct_default is True;
+        # kept here for readability only — the scorer ignores it.
         "known_distinct_pairs": [
             {"entry_ids": ["i03", "i04"], "reason": "different singers"},
             {"entry_ids": ["i07", "i08"], "reason": "different techniques"},
@@ -160,5 +163,147 @@ class TestScoreSummary(unittest.TestCase):
         self.assertLess(result["metrics"]["distinct_accuracy"], 1.0)
 
 
-if __name__ == "__main__":
+    def test_full_matrix_distinct_total(self):
+        """Scorer generates 54 distinct pairs (C(11,2)=55 minus 1 merge) when invert_distinct_default is set."""
+        perfect = {
+            "themes": [
+                {"ledger_entry_ids": ["i01", "i02"]},
+                *[{"ledger_entry_ids": [f"i{i:02d}"]} for i in range(3, 12)],
+            ]
+        }
+        result = score_summary(self.GOLD_SUMMARY, perfect, self.GOLD_LEDGER)
+        self.assertEqual(result["metrics"]["distinct_total"], 54)
+        self.assertTrue(result["passed"])
+
+    def test_attack_b_i05_i07_merged_fails(self):
+        """Residual attack B: merging i05+i07 is now caught by matrix and count gate."""
+        predicted = {
+            "themes": [
+                {"ledger_entry_ids": ["i01", "i02"]},
+                {"ledger_entry_ids": ["i03"]},
+                {"ledger_entry_ids": ["i04"]},
+                {"ledger_entry_ids": ["i05", "i07"]},  # BAD: not a permitted merge
+                {"ledger_entry_ids": ["i06"]},
+                {"ledger_entry_ids": ["i08"]},
+                {"ledger_entry_ids": ["i09"]},
+                {"ledger_entry_ids": ["i10"]},
+                {"ledger_entry_ids": ["i11"]},
+            ]
+        }
+        result = score_summary(self.GOLD_SUMMARY, predicted, self.GOLD_LEDGER)
+        self.assertFalse(result["passed"])
+        self.assertFalse(result["metrics"]["count_in_range"])
+        self.assertLess(result["metrics"]["distinct_accuracy"], 1.0)
+
+    def test_attack_c_i06_i08_merged_fails(self):
+        """Residual attack C: merging i06+i08 is now caught by matrix and count gate."""
+        predicted = {
+            "themes": [
+                {"ledger_entry_ids": ["i01", "i02"]},
+                {"ledger_entry_ids": ["i03"]},
+                {"ledger_entry_ids": ["i04"]},
+                {"ledger_entry_ids": ["i05"]},
+                {"ledger_entry_ids": ["i06", "i08"]},  # BAD
+                {"ledger_entry_ids": ["i07"]},
+                {"ledger_entry_ids": ["i09"]},
+                {"ledger_entry_ids": ["i10"]},
+                {"ledger_entry_ids": ["i11"]},
+            ]
+        }
+        result = score_summary(self.GOLD_SUMMARY, predicted, self.GOLD_LEDGER)
+        self.assertFalse(result["passed"])
+        self.assertFalse(result["metrics"]["count_in_range"])
+        self.assertLess(result["metrics"]["distinct_accuracy"], 1.0)
+
+    def test_attack_d_i11_i07_merged_fails(self):
+        """Residual attack D: merging i11+i07 is now caught by matrix and count gate."""
+        predicted = {
+            "themes": [
+                {"ledger_entry_ids": ["i01", "i02"]},
+                {"ledger_entry_ids": ["i03"]},
+                {"ledger_entry_ids": ["i04"]},
+                {"ledger_entry_ids": ["i05"]},
+                {"ledger_entry_ids": ["i06"]},
+                {"ledger_entry_ids": ["i07", "i11"]},  # BAD
+                {"ledger_entry_ids": ["i08"]},
+                {"ledger_entry_ids": ["i09"]},
+                {"ledger_entry_ids": ["i10"]},
+            ]
+        }
+        result = score_summary(self.GOLD_SUMMARY, predicted, self.GOLD_LEDGER)
+        self.assertFalse(result["passed"])
+        self.assertFalse(result["metrics"]["count_in_range"])
+        self.assertLess(result["metrics"]["distinct_accuracy"], 1.0)
+
+    def test_attack_f_cross_group_merges_fail(self):
+        """Residual attack F: cross-group over-merges now caught by matrix and count gate."""
+        predicted = {
+            "themes": [
+                {"ledger_entry_ids": ["i01", "i02"]},
+                {"ledger_entry_ids": ["i03", "i05"]},  # BAD
+                {"ledger_entry_ids": ["i04", "i06"]},  # BAD
+                {"ledger_entry_ids": ["i07"]},
+                {"ledger_entry_ids": ["i08"]},
+                {"ledger_entry_ids": ["i09"]},
+                {"ledger_entry_ids": ["i10"]},
+                {"ledger_entry_ids": ["i11"]},
+            ]
+        }
+        result = score_summary(self.GOLD_SUMMARY, predicted, self.GOLD_LEDGER)
+        self.assertFalse(result["passed"])
+        self.assertFalse(result["metrics"]["count_in_range"])
+        self.assertLess(result["metrics"]["distinct_accuracy"], 1.0)
+
+    def test_wrong_merge_pair_at_correct_count_fails(self):
+        """New attack G: 10 themes with the wrong merge pair — must fail merge+distinct, not just count.
+
+        This is the critical case the count gate alone cannot catch: exactly the right
+        number of themes (10) but the model merged the wrong pair and kept i01+i02 separate.
+        """
+        predicted = {
+            "themes": [
+                {"ledger_entry_ids": ["i01"]},          # BAD: i01+i02 split
+                {"ledger_entry_ids": ["i02"]},
+                {"ledger_entry_ids": ["i03"]},
+                {"ledger_entry_ids": ["i04"]},
+                {"ledger_entry_ids": ["i05", "i07"]},   # BAD: wrong merge fills the slot
+                {"ledger_entry_ids": ["i06"]},
+                {"ledger_entry_ids": ["i08"]},
+                {"ledger_entry_ids": ["i09"]},
+                {"ledger_entry_ids": ["i10"]},
+                {"ledger_entry_ids": ["i11"]},
+            ]
+        }
+        result = score_summary(self.GOLD_SUMMARY, predicted, self.GOLD_LEDGER)
+        self.assertFalse(result["passed"])
+        self.assertEqual(result["metrics"]["merge_accuracy"], 0.0)
+        self.assertLess(result["metrics"]["distinct_accuracy"], 1.0)
+
+    def test_duplicated_entry_at_correct_count_fails(self):
+        """New attack H: model duplicates i01 to keep count=10 while hiding i03 in a second theme.
+
+        A degenerate model could satisfy count and merge gates by listing i01 in two themes
+        while omitting i03 from its own theme. The full matrix catches this because (i01, i03)
+        appears as a distinct constraint and they end up sharing a theme.
+        """
+        predicted = {
+            "themes": [
+                {"ledger_entry_ids": ["i01", "i02"]},
+                {"ledger_entry_ids": ["i01", "i03"]},  # BAD: i01 duplicated, shared with i03
+                {"ledger_entry_ids": ["i04"]},
+                {"ledger_entry_ids": ["i05"]},
+                {"ledger_entry_ids": ["i06"]},
+                {"ledger_entry_ids": ["i07"]},
+                {"ledger_entry_ids": ["i08"]},
+                {"ledger_entry_ids": ["i09"]},
+                {"ledger_entry_ids": ["i10"]},
+                {"ledger_entry_ids": ["i11"]},
+            ]
+        }
+        result = score_summary(self.GOLD_SUMMARY, predicted, self.GOLD_LEDGER)
+        self.assertFalse(result["passed"])
+        self.assertLess(result["metrics"]["distinct_accuracy"], 1.0)
+
+
+if __name__ == '__main__':
     unittest.main()
