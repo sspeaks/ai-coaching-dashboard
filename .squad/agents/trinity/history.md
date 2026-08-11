@@ -77,3 +77,13 @@
 📌 Team update (2026-08-10T14:08:35-07:00): Upload pipeline is NOT local-only: audio goes to Speakr and may go onward to Speakr's configured ASR provider; transcript, ledger, and note text may go to an OpenAI-compatible extraction/summary gateway when configured — decided by Trinity and Fact Checker
 📌 Team update (2026-08-11T01:20:00Z): Contrast pairing rule: `--muted` must NOT sit on elevated blue surfaces (e.g., `--brand-soft`) for consent, status, error text. Fix the *pairing*, never retune the token globally — verified values elsewhere (4.95:1, 5.62:1) would be invalidated. Applies to all future theme changes — decided by Morpheus
 📌 Team update (2026-08-11T01:20:00Z): Product constraint binding team-wide: "Simplicity is #1 priority." Feedback page decluttered twice by user request. Do not reintroduce visual density in future UI changes — decided by sspeaks (user), implemented by Trinity
+## 2026-08-11T01:30:00Z — Issue #31 (PR #33 fix agent) consolidation truncation coverage
+
+- Named fix agent by Neo. Added `test_consolidation_singleton_truncates_long_topic` for `_coerce_consolidation`'s singleton truncation path (was zero-covered; `_coerce_summary`'s equivalent had a test but not consolidation's).
+- Asserts on `caplog` log record ("truncated ungrouped entry topic" + eid) in addition to the truncated output — per Neo's requirement: an untested log line has no evidence it executes.
+- Applied `[:197] + "…"` instead of bare `[:200]` in both truncation paths (Rai + Neo prescription): readers can see text is incomplete rather than guessing whether the sentence ended naturally.
+- Fixed `summary=entry.topic` (full, untruncated topic) in `_coerce_summary` fallback; `SummaryThemeCreate.summary` accepts 4,000 chars and `entry.topic` is max 300, so it always fits whole.
+- Updated `test_fallback_theme_truncates_long_topic` to match new scheme (198 chars = 197 + "…") and added summary assertion.
+- Eval count: 14 eval on this branch (correct baseline). Neo saw 21 because he ran in the shared main checkout while Switch's #32 working-tree files were present — same shared-checkout problem, not branch contamination. Switch's #32 adds 7 eval tests (14→21). My branch was never involved; the worktree isolation worked as intended.
+- pytest: 95 passed (was 94). Web tests: 23 passed. nix rebuild clean.
+- Worked in `/home/sspeaks/projects/acd-issue31` worktree per team protocol.

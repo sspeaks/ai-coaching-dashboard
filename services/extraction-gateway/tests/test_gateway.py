@@ -548,6 +548,54 @@ def test_summarize_requires_authentication(settings):
     assert response.status_code == 401
 
 
+def test_fallback_theme_truncates_long_topic(settings, auth_headers):
+    """A 250-char topic that the model omits must produce a fallback with a
+    truncated 200-char title, not crash with a ValidationError (issue #31)."""
+    long_topic = "A" * 250
+    long_entry = {
+        "id": "entry-long",
+        "topic": long_topic,
+        "exact_coach_feedback": "Some feedback.",
+        "interpretation": None,
+        "applies_to": None,
+        "exercise_or_requested_change": None,
+        "next_action_and_owner": None,
+        "start_ms": 5000,
+        "end_ms": 6000,
+    }
+    # Model returns only a theme citing entry-1; entry-long is omitted.
+    payload = {
+        "themes": [
+            {
+                "title": "Release",
+                "summary": "Worked on releasing tension.",
+                "ledger_entry_ids": ["entry-1"],
+            }
+        ]
+    }
+    request = summary_request(
+        entries=[summary_request()["entries"][0], long_entry],
+        pre_groups=[
+            {"canonical_topic": "Release", "entry_ids": ["entry-1"]},
+            {"canonical_topic": long_topic[:200], "entry_ids": ["entry-long"]},
+        ],
+    )
+
+    with make_client(settings, payload=payload) as (client, _):
+        response = client.post("/summarize", json=request, headers=auth_headers)
+
+    assert response.status_code == 200
+    themes = response.json()["themes"]
+    assert len(themes) == 2
+    fallback = themes[1]
+    assert fallback["ledger_entry_ids"] == ["entry-long"]
+    # Title must be truncated with ellipsis (197 visible chars + "…" = 198), not the full 250
+    assert len(fallback["title"]) == 198
+    assert fallback["title"] == "A" * 197 + "…"
+    # Summary gets the whole topic — 4 000-char limit, topic is ≤ 300 chars, always fits
+    assert fallback["summary"] == long_topic
+
+
 # --- Consolidation endpoint tests ---
 
 
@@ -649,6 +697,51 @@ def test_consolidation_drops_unknown_entry_ids(settings, auth_headers):
     assert "entry-invented" not in entry_ids_flat
     assert "entry-1" in entry_ids_flat
     assert "entry-2" in entry_ids_flat
+
+
+def test_consolidation_singleton_truncates_long_topic(settings, auth_headers, caplog):
+    """A >200-char entry topic that the model forgets must produce a singleton
+    group whose canonical_topic is truncated with an ellipsis, the job must
+    complete (not raise ValidationError), and the truncation warning must
+    appear in the log (issue #31)."""
+    import logging
+
+    long_topic = "B" * 250
+    long_entry = {
+        "id": "entry-long",
+        "topic": long_topic,
+        "exact_coach_feedback": "Some feedback.",
+        "interpretation": None,
+        "applies_to": None,
+        "exercise_or_requested_change": None,
+        "next_action_and_owner": None,
+        "start_ms": 5000,
+        "end_ms": 6000,
+    }
+    # Model groups entry-1 only; entry-long is forgotten and falls through
+    # to the singleton path in _coerce_consolidation.
+    payload = {
+        "groups": [
+            {"canonical_topic": "Release", "entry_ids": ["entry-1"]},
+        ]
+    }
+    request = consolidation_request(
+        entries=[consolidation_request()["entries"][0], long_entry]
+    )
+
+    caplog.set_level(logging.WARNING, logger="extraction_gateway.app")
+    with make_client(settings, payload=payload) as (client, _):
+        response = client.post("/consolidate", json=request, headers=auth_headers)
+
+    assert response.status_code == 200
+    singleton = next(
+        g for g in response.json()["groups"] if "entry-long" in g["entry_ids"]
+    )
+    assert singleton["canonical_topic"] == "B" * 197 + "…"
+    assert len(singleton["canonical_topic"]) == 198
+    # The log record must fire — an untested log line has no evidence it executes
+    assert "truncated ungrouped entry topic" in caplog.text
+    assert "entry-long" in caplog.text
 
 
 def test_consolidation_empty_entries_returns_empty(settings, auth_headers):
