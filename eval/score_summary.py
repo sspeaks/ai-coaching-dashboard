@@ -5,6 +5,14 @@ Checks:
 - Theme recall: every gold entry appears in at least one theme.
 - No orphan entries: no entry assigned to zero themes.
 - Merge accuracy: known merge pairs share a theme; known distinct pairs do not.
+
+Distinct-pair handling:
+  By default the fixture lists a subset of ``known_distinct_pairs`` that must
+  stay separate, and any unlisted pair is unconstrained (allowing undetected
+  over-merges).  When the fixture sets ``invert_distinct_default: true`` the
+  scorer instead generates the *full* distinct-pair matrix from all entry IDs,
+  then subtracts pairs that are explicitly permitted by ``known_merge_pairs``.
+  This inverts the default: merging is a failure unless permitted.
 """
 
 from __future__ import annotations
@@ -59,8 +67,27 @@ def score_summary(
         if common:
             merge_correct += 1
 
-    # Distinct accuracy: known distinct pairs must NOT share a theme
-    distinct_pairs = gold_summary.get("known_distinct_pairs", [])
+    # Distinct accuracy: known distinct pairs must NOT share a theme.
+    # If invert_distinct_default is true, generate the full pair matrix from all
+    # entry IDs and subtract pairs that are explicitly permitted by known_merge_pairs.
+    # This inverts the default from "unlisted pairs are unconstrained" to
+    # "unlisted pairs are forbidden unless in a known merge group".
+    if gold_summary.get("invert_distinct_default", False):
+        permitted_merge_pairs: set[frozenset[str]] = set()
+        for mp in merge_pairs:
+            mp_ids = mp["entry_ids"]
+            for _i in range(len(mp_ids)):
+                for _j in range(_i + 1, len(mp_ids)):
+                    permitted_merge_pairs.add(frozenset([mp_ids[_i], mp_ids[_j]]))
+        all_ids_sorted = sorted(all_entry_ids)
+        distinct_pairs = [
+            {"entry_ids": [a, b]}
+            for _i, a in enumerate(all_ids_sorted)
+            for _j, b in enumerate(all_ids_sorted)
+            if _i < _j and frozenset([a, b]) not in permitted_merge_pairs
+        ]
+    else:
+        distinct_pairs = gold_summary.get("known_distinct_pairs", [])
     distinct_correct = 0
     distinct_total = len(distinct_pairs)
     for pair in distinct_pairs:
