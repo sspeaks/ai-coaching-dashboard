@@ -17,3 +17,17 @@
 📌 Team update (2026-08-10T14:08:35-07:00): PR #5 member-first UI was independently typechecked, tested, built, and approved with no blocking findings — decided by Switch
 📌 Team update (2026-08-11T01:20:00Z): Reviewer verdict mechanism: `gh pr review --approve/--request-changes` always refused (single account authors all PRs). Use `gh pr comment` with verdict in body instead — decided by Switch
 📌 Team update (2026-08-11T01:20:00Z): Caddy `route {}` rule, Silent truncation ban, Contrast pairing rule codified as binding team decisions (rounds 11-18). Prevent repeat defect classes — decided by Morpheus, Rai
+
+## 2026-08-11T02:05:00Z — Rounds 19-21: Board Clear Summary
+
+**Round 20 — Issue #32 fix (PR #34):**
+- Closed #32: fixture inverted to full C(11,2)=55-constraint matrix.
+- Established binding rule: Eval fixtures must default to failure (full matrix) not permission (enumerated list).
+- Incremental attacks (B, C, D, F) now caught. Irreducible gap remains: fixture tests only 11-entry session.
+
+**Team Decisions Binding All Agents:**
+- Concurrent agents MUST use separate git worktrees. Shared checkout prevented proper isolation.
+- Guards must be proven to fire via caplog; untested log lines have no evidence they execute.
+- Schema-boundary mismatches are recurring — validate receiving constraint vs. sending.
+- Truncate user-facing text with `[:N-3] + "…"`, never bare slice.
+- Eval fixtures must default to failure (full matrix). Known-bad enumerations don't catch unnamed attacks.

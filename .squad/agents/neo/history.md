@@ -16,3 +16,21 @@
 
 📌 Team update (2026-08-10T14:08:35-07:00): Future extraction/disclosure work must account for the non-local pipeline: audio goes to Speakr/possibly ASR, while transcript, ledger, and note text may leave via the configured OpenAI-compatible gateway — decided by Trinity and Fact Checker
 📌 Team update (2026-08-11T01:20:00Z): Silent truncation ban codified: any code path dropping user-facing content MUST log warning + attempt fallback. Third instance caught in #30 extraction: unclaimed pre_group IDs → singleton fallback themes — decided by Rai, Morpheus
+
+## 2026-08-11T02:05:00Z — Rounds 19-21: Board Clear Summary
+
+**Round 19 — Review PR #33 (Morpheus consolidation fix):**
+- Rejected: consolidation truncation log had zero test coverage.
+- Established binding rule: Guard branches MUST be proven to fire via caplog; untested log lines have no evidence.
+
+**Round 21 — Re-review PR #33 (Trinity caplog fix):**
+- Approved after Trinity added caplog test.
+- Mutation analysis confirms test captures guard behavior.
+- Note: pytest mutations unverifiable locally (Python 3.10 < 3.11).
+
+**Team Decisions Binding All Agents:**
+- Concurrent agents MUST use separate git worktrees. Shared checkout caused false test count this round (14 vs 21).
+- Guards must be proven to fire via caplog assertions.
+- Schema-boundary mismatches are recurring — validate receiving constraint vs. sending.
+- Truncate user-facing text with `[:N-3] + "…"`, never bare slice.
+- Eval fixtures must default to failure (full matrix) not permission (enumerated list).

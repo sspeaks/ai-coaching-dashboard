@@ -70,3 +70,20 @@ Neo authored the two-pass consolidation for issue #23 (item-cap redesign); Switc
 📌 Team update (2026-08-11T01:20:00Z): Caddy `route {}` rule: any handler combining `try_files` with `forward_auth` MUST wrap in `route {}` to enforce written order and prevent path rewriting from corrupting post-login redirects (issue #28). Standing rule team-wide — decided by Morpheus, verified by Switch
 📌 Team update (2026-08-11T01:20:00Z): Silent truncation ban: any code path dropping user-facing content (themes, ledger, moments) MUST log + surface fallback. Defect appeared 4 times; now codified as binding rule (issue #23, #30). Applies to all future code changes — decided by Morpheus, Rai
 📌 Team update (2026-08-11T01:20:00Z): Contrast pairing rule: `--muted` unsafe on elevated blue surfaces for consent/status/error text. Fix the *pairing*, never retune the token globally — verified values elsewhere (4.95:1, 5.62:1) would be invalidated (issue #22). Applies to all theme changes — decided by Morpheus, verified by Switch, Rai
+
+## 2026-08-11T02:05:00Z — Rounds 19-21: Board Clear Summary
+
+**Round 19 — Issue #31 fix (PR #33):**
+- Closed #31: consolidated truncation coverage, discovered identical bug in `_coerce_consolidation`.
+- Learning: Cross-model field flows must validate receiving constraint vs. sending constraint (lengths, enums).
+
+**Round 20 — Review PR #34 (Switch fixture):**
+- Approved matrix-inversion approach for eval fixture.
+- Independently verified catches over-merge and under-merge defects.
+
+**Team Decisions Binding All Agents:**
+- Concurrent agents MUST use separate git worktrees (squad/{N}-{slug}). Shared checkout caused two real defects this session.
+- Guards must be proven to fire via caplog; untested log lines have no evidence they execute.
+- Schema-boundary mismatches are a recurring bug class — validate receiving constraint vs. sending.
+- Truncate user-facing text with `[:N-3] + "…"`, never bare slice.
+- Eval fixtures must default to failure (full matrix) not permission (enumerated list).

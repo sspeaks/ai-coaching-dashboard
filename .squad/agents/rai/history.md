@@ -66,3 +66,16 @@
 📌 Team update (2026-08-11T01:20:00Z): Silent truncation ban: any code path dropping user-facing content (themes, ledger, moments) MUST log + surface fallback. Defect appeared 4 times; now codified as binding rule. Applies to all future code changes — decided by Morpheus, Rai
 📌 Team update (2026-08-11T01:20:00Z): Contrast pairing rule: `--muted` unsafe on elevated blue surfaces for consent/status/error text. Fix the *pairing*, never retune the token globally — verified values elsewhere (4.95:1, 5.62:1) would be invalidated. Applies to all theme changes — decided by Morpheus, verified by Rai
 📌 Team update (2026-08-11T01:20:00Z): Evidence-link captions are load-bearing for source-grounding — users rely on timestamp button text to navigate and verify coaching. Legibility and contrast both matter for this affordance — decided by Rai
+
+## 2026-08-11T02:05:00Z — Rounds 19-21: Board Clear Summary
+
+**Round 19 — RAI Review PR #33 (Morpheus consolidation fix):**
+- Approved PR #33.
+- Advisory: `summary` field could carry full untruncated topic and be truncated at render time. Storage truncation correct here.
+
+**Team Decisions Binding All Agents:**
+- Concurrent agents MUST use separate git worktrees. Shared checkout caused cross-agent interference.
+- Guards must be proven to fire via caplog; untested log lines have no evidence they execute.
+- Schema-boundary mismatches are recurring defect class — validate receiving constraint vs. sending (lengths, enums, optionality).
+- Truncate user-facing text with `[:N-3] + "…"`, never bare slice — prevents misleading truncation.
+- Eval fixtures must default to failure (full matrix) not permission (enumerated list).

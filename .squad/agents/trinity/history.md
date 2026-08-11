@@ -87,3 +87,17 @@
 - Eval count: 14 eval on this branch (correct baseline). Neo saw 21 because he ran in the shared main checkout while Switch's #32 working-tree files were present — same shared-checkout problem, not branch contamination. Switch's #32 adds 7 eval tests (14→21). My branch was never involved; the worktree isolation worked as intended.
 - pytest: 95 passed (was 94). Web tests: 23 passed. nix rebuild clean.
 - Worked in `/home/sspeaks/projects/acd-issue31` worktree per team protocol.
+
+## 2026-08-11T02:05:00Z — Rounds 19-21: Board Clear Summary
+
+**Round 21 — Fix PR #33 (Morpheus locked out):**
+- Added caplog test for truncation guard.
+- Established binding rule: Truncate user-facing text with `[:N-3] + "…"`, never bare slice.
+- Coaching text is qualifier-dense; ellipsis signals continuation and prevents misleading truncated text.
+
+**Team Decisions Binding All Agents:**
+- Concurrent agents MUST use separate git worktrees. Isolated working trees prevent cross-agent file interference.
+- Guards must be proven to fire via caplog; untested log lines have no evidence they execute.
+- Schema-boundary mismatches are recurring bugs — validate receiving constraint vs. sending.
+- Truncate user-facing text with `[:N-3] + "…"`, never bare slice — users depend on visual honesty.
+- Eval fixtures must default to failure (full matrix) not permission (enumerated list).

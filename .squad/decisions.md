@@ -32,6 +32,31 @@
 **What:** Speakr is configurable: the documented deployment sets `TRANSCRIPTION_API_KEY` and `TRANSCRIPTION_MODEL` for OpenAI transcription, while operators can use Speakr `ASR_BASE_URL` settings for a self-hosted ASR service.
 **Why:** User-facing upload disclosure must say audio may go beyond Speakr to the configured transcription provider without falsely claiming every deployment uses the same provider. `deploy/OPERATIONS.md` documents OpenAI transcription variables, chunk behavior for audio sent per request, and `ASR_BASE_URL` for self-hosted ASR; `nix/containers.nix` says `speakr.env` holds cloud ASR/AI provider credentials populated out-of-band.
 
+### 2026-08-11T02:05:00Z: Concurrent agents MUST use separate git worktrees
+**By:** Scribe (from field experience)
+**What:** Running two or more agents in the same checkout caused two real defects this session: (1) a Scribe commit landed on a feature branch instead of `main`; (2) one agent's branch was silently stacked on another's unmerged commit (would have double-merged and muddied both reviews). A third agent misreported a test count because another's in-flight files were present in the shared working tree. Pattern for spawning: `git worktree add /home/sspeaks/projects/acd-issue{N} squad/{N}-{slug}`, remove when done. Verified this round: Morpheus and Trinity worked independently with separate worktrees and both landed clean commits.
+**Why:** Git worktrees provide isolated working directories with independent staging areas, HEAD, and file state. Concurrent agent work in the same checkout creates race conditions on branch state, test runs, and file existence. Scribe and coordinators cannot reliably synchronize mutable checkout state across concurrent tasks without serializing commits.
+
+### 2026-08-11T02:05:00Z: Guards must be proven to fire, not merely to produce correct output
+**By:** Scribe (from field experience)
+**What:** An untested log/warning line has no evidence it executes — this codebase shipped an unreachable warning on #30 that silently reintroduced the bug it guarded against. Tests for guard branches MUST assert on the log record (`caplog`), and reviewers must mutate the guard to confirm the test goes red. Demonstrated: PR #33 added `test_consolidation_singleton_truncates_long_topic` asserting caplog fired when title exceeded limit, catching edge case where bare `[:200]` slice appeared complete.
+**Why:** Code reviewers cannot visually verify control flow reaches a particular branch without executing it under test. Silent truncation, error fallbacks, and defensive rewrites often live in guard branches that aren't exercised by happy-path tests. Guards that produce correct output by accident (e.g., the slice happens to land at a word boundary) fail silently when input changes slightly.
+
+### 2026-08-11T02:05:00Z: Schema-boundary mismatches are a recurring bug class
+**By:** Scribe (from field experience)
+**What:** A value validated against one model's constraints passed into another model with tighter constraints raises an unhandled `ValidationError`. Found twice in one file: (1) `_coerce_summary` title field (200-char limit on fallback titles); (2) `_coerce_consolidation` canonical_topic field (300-char limit on singleton topics). Both fixed by truncating at storage boundary with `[:197]+"…"`. When adding cross-model field flows, check receiving constraint against sending constraint — lengths, enums, optionality, numeric bounds.
+**Why:** Schema-aware frameworks (Pydantic) define per-model validation. When one model produces a field that another model consumes, mismatches are common because constraints evolve independently. Catching them requires explicit trace of field flow: "topic produced by X with constraint Y passed to Z with constraint Z', check Z' >= Y".
+
+### 2026-08-11T02:05:00Z: Truncate user-facing text with `[:N-3] + "…"`, never a bare slice
+**By:** Scribe (from field experience)
+**What:** Applied to both `_coerce_summary` fallback titles and `_coerce_consolidation` singleton topics. Coaching text is qualifier-dense; "unless the tenors are still scooping" and "unless the tenors" are different instructions. A bare cut reads as a complete thought and can mislead users. The ellipsis signals continuation and directs the user to the audio moment.
+**Why:** Non-technical quartet members depend on coaching feedback for real-time vocal adjustment. Truncated text without visual indication becomes a silent contract violation — users read "feedback is XYZ" when the system stored "feedback is XYZ [truncated]". The `…` is cheap visual honesty.
+
+### 2026-08-11T02:05:00Z: Eval fixtures must default to failure, not permission
+**By:** Scribe (Switch original analysis from PR #34)
+**What:** The over-merge fixture originally listed must-stay-distinct pairs, so any unlisted pair could be merged undetected (Tier 1 strategy: "merging is permitted unless listed"). Inverted (#32) to generate the full C(n,2) matrix minus explicitly permitted merges (Tier 2: "merging is forbidden except listed"). With 11 entries, this produces 54 active distinct constraints automatically. Unlisted pairs automatically fail; new entries participate without manual pair enumeration.
+**Why:** Fixtures that enumerate known-bad cases only catch attacks someone already thought of. The full matrix closes the gap structurally, not incrementally. Attacks B, C, D, F (all unnamed at fixture authoring time) are now caught. Irreducible gap remains: fixture tests only the 11-entry quartet-coaching-01 session; production over-merges on novel sessions are not caught. Gap documented in `_coverage_notes`.
+
 ## Governance
 
 - All meaningful changes require team consensus
