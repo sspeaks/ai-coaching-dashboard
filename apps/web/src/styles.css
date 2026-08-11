@@ -840,7 +840,7 @@ meter {
 
 .evidence-link span:last-child {
   grid-column: 1 / -1;
-  color: var(--muted);
+  color: var(--ink);
   font-size: 0.72rem;
 }
 
