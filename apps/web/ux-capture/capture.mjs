@@ -344,6 +344,10 @@ async function newPage(browser, viewport) {
         transition-duration: 0s !important;
       }
       .spinner { animation: none !important; }
+      [tabindex="-1"]:focus,
+      [tabindex="-1"]:focus-visible {
+        outline: none !important;
+      }
     `,
   }).catch(() => undefined);
   return page;
@@ -357,13 +361,17 @@ async function stabilize(page) {
         transition: none !important;
         caret-color: transparent !important;
       }
+      [tabindex="-1"]:focus,
+      [tabindex="-1"]:focus-visible {
+        outline: none !important;
+      }
     `,
   });
   await page.evaluate(async () => {
     window.scrollTo(0, 0);
     await document.fonts?.ready?.catch?.(() => undefined);
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   });
-  await page.waitForTimeout(100);
 }
 
 function delay(ms) {
