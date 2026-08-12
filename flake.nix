@@ -81,6 +81,7 @@
             ];
             FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = uxFonts; };
             PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
+            PLAYWRIGHT_NIX_DRIVER_VERSION = pkgs.playwright-driver.version;
             PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
           };
         }

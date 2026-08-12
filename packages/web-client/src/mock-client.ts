@@ -350,6 +350,16 @@ export function createMockEvidenceApiClient(): EvidenceApiClient {
       onProgress: (progress: number) => void,
       signal?: AbortSignal,
     ) {
+      if (requestedState === "UPLOAD_PROGRESS") {
+        onProgress(46);
+        await new Promise<void>((_resolve, reject) => {
+          signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("Upload cancelled", "AbortError")),
+            { once: true },
+          );
+        });
+      }
       for (const progress of [15, 38, 64, 86, 100]) {
         if (signal?.aborted) throw new DOMException("Upload cancelled", "AbortError");
         await new Promise((resolve) => setTimeout(resolve, 80));

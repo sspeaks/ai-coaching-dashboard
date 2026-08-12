@@ -1,9 +1,11 @@
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { mkdir, readdir, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { inflateSync, deflateSync } from "node:zlib";
 import { chromium } from "playwright";
 
 const FIXED_RENDER_TIME = "2026-08-12T12:00:00.000Z";
@@ -14,6 +16,7 @@ const VIEWPORTS = [
 ];
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
 const webRoot = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(webRoot, "..", "..");
 const captureDate = process.env.UX_CAPTURE_DATE ?? new Date().toISOString().slice(0, 10);
@@ -44,6 +47,12 @@ const states = [
     run: async (page) => {
       await page.goto(`${baseUrl}/upload?mockState=upload-progress`);
       await page.getByRole("heading", { name: "Upload a coaching recording" }).waitFor();
+      await page.getByLabel("Audio file").setInputFiles({
+        name: "synthetic-quartet-upload.wav",
+        mimeType: "audio/wav",
+        buffer: Buffer.from("synthetic audio for ux capture"),
+      });
+      await page.getByRole("button", { name: "Upload recording" }).click();
       await page.locator(".upload-progress strong", { hasText: "46%" }).waitFor();
     },
   },
@@ -93,12 +102,13 @@ main().catch((error) => {
 
 async function main() {
   if (!process.env.PLAYWRIGHT_BROWSERS_PATH) {
-    console.warn(
-      "PLAYWRIGHT_BROWSERS_PATH is not set. Run inside `nix develop` for reproducible browsers.",
+    throw new Error(
+      "PLAYWRIGHT_BROWSERS_PATH is not set. Run UX capture inside `nix develop` so Nix provides reproducible Playwright browsers.",
     );
   } else if (!existsSync(process.env.PLAYWRIGHT_BROWSERS_PATH)) {
     throw new Error(`PLAYWRIGHT_BROWSERS_PATH does not exist: ${process.env.PLAYWRIGHT_BROWSERS_PATH}`);
   }
+  await assertPlaywrightNixAlignment(process.env.PLAYWRIGHT_BROWSERS_PATH);
 
   await rm(outputRoot, { recursive: true, force: true });
   await mkdir(outputRoot, { recursive: true });
@@ -133,12 +143,12 @@ async function main() {
             await state.run(page);
             await stabilize(page);
             const outPath = path.join(viewportDir, state.file);
-            await page.screenshot({
-              path: outPath,
+            const screenshot = await page.screenshot({
               fullPage: true,
               animations: "disabled",
               caret: "hide",
             });
+            await writeFile(outPath, canonicalizePng(screenshot));
             const size = (await stat(outPath)).size;
             if (size <= 0) throw new Error(`Screenshot is empty: ${outPath}`);
             manifest.shots.push({
@@ -164,6 +174,84 @@ async function main() {
     console.log(`Captured ${manifest.shots.length} screenshots in ${path.relative(repoRoot, outputRoot)}`);
   } finally {
     await stopServer(server);
+  }
+}
+
+function canonicalizePng(input) {
+  const signature = input.subarray(0, 8);
+  if (!signature.equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
+    throw new Error("Screenshot was not a PNG.");
+  }
+
+  let offset = 8;
+  let ihdr;
+  const idat = [];
+  while (offset < input.length) {
+    const length = input.readUInt32BE(offset);
+    const type = input.subarray(offset + 4, offset + 8).toString("ascii");
+    const data = input.subarray(offset + 8, offset + 8 + length);
+    offset += 12 + length;
+    if (type === "IHDR") ihdr = Buffer.from(data);
+    if (type === "IDAT") idat.push(data);
+    if (type === "IEND") break;
+  }
+  if (!ihdr || idat.length === 0) throw new Error("Screenshot PNG is missing IHDR or IDAT chunks.");
+
+  const pixelStream = inflateSync(Buffer.concat(idat));
+  const compressed = deflateSync(pixelStream, { level: 9 });
+  return Buffer.concat([
+    signature,
+    pngChunk("IHDR", ihdr),
+    pngChunk("IDAT", compressed),
+    pngChunk("IEND", Buffer.alloc(0)),
+  ]);
+}
+
+function pngChunk(type, data) {
+  const typeBuffer = Buffer.from(type, "ascii");
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(data.length);
+  const crc = Buffer.alloc(4);
+  crc.writeUInt32BE(crc32(Buffer.concat([typeBuffer, data])));
+  return Buffer.concat([length, typeBuffer, data, crc]);
+}
+
+function crc32(buffer) {
+  let crc = 0xffffffff;
+  for (const byte of buffer) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc = crc & 1 ? (crc >>> 1) ^ 0xedb88320 : crc >>> 1;
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+async function assertPlaywrightNixAlignment(browsersPath) {
+  const npmVersion = require("playwright/package.json").version;
+  const nixVersion = process.env.PLAYWRIGHT_NIX_DRIVER_VERSION ?? "unknown";
+  const browsersJsonPath = path.join(path.dirname(require.resolve("playwright-core/package.json")), "browsers.json");
+  const browsersJson = JSON.parse(readFileSync(browsersJsonPath, "utf8"));
+  const expectedChromium = browsersJson.browsers.find((browser) => browser.name === "chromium");
+  if (!expectedChromium?.revision) {
+    throw new Error(`Could not determine npm Playwright ${npmVersion} Chromium revision from ${browsersJsonPath}`);
+  }
+
+  const entries = await readdir(browsersPath, { withFileTypes: true });
+  const chromiumEntry = entries.find((entry) => /^chromium-\d+$/.test(entry.name));
+  const actualRevision = chromiumEntry?.name.match(/^chromium-(\d+)$/)?.[1];
+  if (nixVersion !== "unknown" && nixVersion !== npmVersion) {
+    throw new Error(
+      `Playwright/Nix version mismatch: npm playwright ${npmVersion} but Nix playwright-driver ${nixVersion}. ` +
+        "Pin apps/web's playwright dependency to the Nix driver version or update flake.lock so they match exactly.",
+    );
+  }
+  if (actualRevision !== expectedChromium.revision) {
+    throw new Error(
+      `Playwright/Nix browser mismatch: npm playwright ${npmVersion} expects chromium-${expectedChromium.revision}, ` +
+        `but Nix playwright-driver ${nixVersion} provides ${chromiumEntry?.name ?? "no chromium-* browser"} in ${browsersPath}. ` +
+        "Do not use npx playwright install; align apps/web/package-lock.json with flake.lock instead.",
+    );
   }
 }
 

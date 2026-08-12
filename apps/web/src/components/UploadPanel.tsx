@@ -15,18 +15,9 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
   const [uploading, setUploading] = useState(false);
   const [disclosureOpen, setDisclosureOpen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
-  const mockUploadHeld =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("mockState") ===
-      "upload-progress";
-  const visibleUploading = uploading || mockUploadHeld;
-  const visibleProgress = mockUploadHeld ? 46 : progress;
-  const visibleFileName =
-    file?.name ?? (mockUploadHeld ? "synthetic-quartet-upload.wav" : undefined);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (mockUploadHeld) return;
     if (!file || file.size === 0) {
       setError("Choose a non-empty recording to upload.");
       return;
@@ -93,7 +84,7 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
           <input
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            disabled={visibleUploading}
+            disabled={uploading}
             placeholder="For example: August coaching with Alex"
           />
         </label>
@@ -103,7 +94,7 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
             type="file"
             accept="audio/*,.m4a,.mp3,.wav,.flac,.aac,.ogg,.opus,.mp4"
             onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-            disabled={visibleUploading}
+            disabled={uploading}
           />
         </label>
         <p className="supporting-text">
@@ -152,14 +143,14 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
             </p>
           </div>
         </div>
-        {visibleProgress !== null && (
+        {progress !== null && (
           <div className="upload-progress" aria-live="polite">
             <div className="progress-row">
-              <span>Uploading {visibleFileName}</span>
-              <strong>{visibleProgress}%</strong>
+              <span>Uploading {file?.name}</span>
+              <strong>{progress}%</strong>
             </div>
-            <progress value={visibleProgress} max="100">
-              {visibleProgress}%
+            <progress value={progress} max="100">
+              {progress}%
             </progress>
           </div>
         )}
@@ -174,14 +165,13 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
           </div>
         )}
         <div className="button-row">
-          <button className="button button--primary" disabled={!file || visibleUploading}>
-            {visibleUploading ? "Uploading…" : "Upload recording"}
+          <button className="button button--primary" disabled={!file || uploading}>
+            {uploading ? "Uploading…" : "Upload recording"}
           </button>
-          {visibleUploading && (
+          {uploading && (
             <button
               className="button button--quiet"
               type="button"
-              disabled={mockUploadHeld}
               onClick={() => abortRef.current?.abort()}
             >
               Cancel upload
