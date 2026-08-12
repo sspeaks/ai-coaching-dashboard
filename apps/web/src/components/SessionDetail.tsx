@@ -87,12 +87,7 @@ export function SessionDetail({
     if (!audio) return undefined;
 
     const updatePlayhead = () => {
-      const { currentTime, duration } = audio;
-      if (!Number.isFinite(duration) || duration <= 0) {
-        setPlayheadPercent(null);
-        return;
-      }
-      setPlayheadPercent((Math.max(0, Math.min(currentTime, duration)) / duration) * 100);
+      updatePlayheadFromAudio(audio);
     };
     const clearPlaybackCue = () => {
       pendingMomentRef.current = null;
@@ -132,6 +127,17 @@ export function SessionDetail({
     };
   }, [session.audioUrl]);
 
+  function updatePlayheadFromAudio(audio: HTMLAudioElement) {
+    const { currentTime, duration } = audio;
+    if (!Number.isFinite(duration) || duration <= 0) {
+      setPlayheadPercent(null);
+      return;
+    }
+    setPlayheadPercent(
+      (Math.max(0, Math.min(currentTime, duration)) / duration) * 100,
+    );
+  }
+
   async function seek(seconds: number, moment: AudioMoment) {
     const audio = audioRef.current;
     pendingMomentRef.current = moment;
@@ -143,6 +149,10 @@ export function SessionDetail({
     audio.currentTime = seconds;
     try {
       await audio.play();
+      if (pendingMomentRef.current?.key === moment.key) {
+        setActiveMoment(moment);
+        updatePlayheadFromAudio(audio);
+      }
     } catch {
       if (pendingMomentRef.current?.key === moment.key) {
         pendingMomentRef.current = null;

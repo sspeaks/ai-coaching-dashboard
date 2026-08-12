@@ -128,6 +128,14 @@ function setMediaDuration(audio: HTMLAudioElement, duration: number) {
   });
 }
 
+function deferredPromise<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((promiseResolve) => {
+    resolve = promiseResolve;
+  });
+  return { promise, resolve };
+}
+
 async function playFirstLedgerMoment(
   user: ReturnType<typeof userEvent.setup>,
   container: HTMLElement,
@@ -567,15 +575,36 @@ describe("evidence ledger app", () => {
 
     expect(audio!.currentTime).toBe(42);
     expect(play).toHaveBeenCalled();
-    expect(screen.queryByText(/now playing 0:42/i)).toBeNull();
-    fireEvent(audio!, new Event("play"));
-    expect(evidence).toHaveAttribute("aria-pressed", "true");
+    await waitFor(() =>
+      expect(evidence).toHaveAttribute("aria-pressed", "true"),
+    );
     expect(screen.getAllByText(/now playing 0:42/i).length).toBeGreaterThan(0);
     expect(
       screen.getAllByText(
         /source recording jumped to this moment for “Breath plan”/i,
       ).length,
     ).toBeGreaterThan(0);
+  });
+
+  it("waits for the audio play promise before showing the active timestamp cue", async () => {
+    const user = userEvent.setup();
+    const playStarted = deferredPromise<void>();
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockReturnValue(
+      playStarted.promise,
+    );
+    const { container } = render(<App client={createClient()} />);
+
+    const { evidence } = await playFirstLedgerMoment(user, container);
+
+    expect(evidence).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByText(/now playing 0:42/i)).toBeNull();
+
+    playStarted.resolve();
+
+    await waitFor(() =>
+      expect(evidence).toHaveAttribute("aria-pressed", "true"),
+    );
+    expect(screen.getAllByText(/now playing 0:42/i).length).toBeGreaterThan(0);
   });
 
   it.each(["pause", "ended", "error"] as const)(
@@ -623,12 +652,17 @@ describe("evidence ledger app", () => {
     setMediaDuration(audio, 100);
     fireEvent(audio, new Event("loadedmetadata"));
     fireEvent(audio, new Event("play"));
-    audio.currentTime = 50;
+    audio.currentTime = 25;
     fireEvent(audio, new Event("timeupdate"));
 
     const cue = screen.getAllByText(/now playing 0:42/i)[0].closest(".now-playing-cue");
     const playhead = cue?.querySelector(".now-playing-cue__track span");
-    expect(playhead).toHaveStyle({ width: "50%" });
+    expect(playhead).toHaveStyle({ width: "25%" });
+
+    audio.currentTime = 75;
+    fireEvent(audio, new Event("timeupdate"));
+
+    expect(playhead).toHaveStyle({ width: "75%" });
   });
 
   it("renders an empty mini playhead before audio metadata is available", async () => {
@@ -697,11 +731,8 @@ describe("evidence ledger app", () => {
 
     await user.click(second);
     expect(first).toHaveAttribute("aria-pressed", "false");
-    expect(second).toHaveAttribute("aria-pressed", "false");
+    await waitFor(() => expect(second).toHaveAttribute("aria-pressed", "true"));
     expect(screen.queryByText(/now playing 0:42/i)).toBeNull();
-
-    fireEvent(audio!, new Event("play"));
-    expect(second).toHaveAttribute("aria-pressed", "true");
     expect(screen.getAllByText(/now playing 1:24/i).length).toBeGreaterThan(0);
   });
 });
