@@ -17,7 +17,17 @@ The PNG screenshots are gitignored because they are large, regenerable binaries 
 
 ## Reproducibility
 
-The dev shell declares Nix's `playwright-driver.browsers` and exports `PLAYWRIGHT_BROWSERS_PATH` plus `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`, so Playwright uses Nix-provided browser binaries instead of downloading global mutable browsers. The script freezes browser `Date`, stubs `Math.random`, requests reduced motion, and disables CSS animations/transitions before capture.
+The dev shell declares Nix's `playwright-driver.browsers` and exports `PLAYWRIGHT_BROWSERS_PATH` plus `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`, so Playwright uses Nix-provided browser binaries instead of downloading global mutable browsers. It also provides a fontconfig file with Noto, Liberation, DejaVu, CJK, and emoji fonts; missing fonts can make screenshots look blank or tofu-filled even when the browser launches. The script freezes browser `Date`, stubs `Math.random`, requests reduced motion, waits for fonts, and disables CSS animations/transitions before capture.
+
+## Browser launch failures
+
+Run captures from `nix develop` so the npm `playwright` driver (`1.61.1`) matches the Nix `playwright-driver.browsers` bundle (`1.61.1`). If Chromium fails to launch, check:
+
+- `echo "$PLAYWRIGHT_BROWSERS_PATH"` points at an existing Nix store path.
+- `echo "$PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD"` prints `1`.
+- `nix eval --raw nixpkgs#playwright-driver.version` matches `apps/web/package.json`.
+
+Do not fix NixOS launch errors with `npx playwright install`; those downloaded binaries are not reproducible and may be linked for non-NixOS systems.
 
 ## Add a new state
 

@@ -31,3 +31,8 @@ Fixed the web `package.json` tooling dependency to a single exact `playwright` v
 Re-ran `cd apps/web && npm run ux:capture` with `PLAYWRIGHT_BROWSERS_PATH=$(nix build nixpkgs#playwright-driver.browsers --no-link --print-out-paths)`; it produced 21 non-empty PNGs under `.squad/files/ux-review/2026-08-12/` (7 states × 3 Mouse viewports). Re-ran `npm run typecheck && npm test && npm run build`; all passed.
 
 📌 Team update (2026-08-12T14:25:08.524-07:00): UX screenshot capture now uses npm Playwright 1.61.1 with Nix-provided browser binaries and npm run ux:capture as the entry point — decided by Tank
+
+## 2026-08-12T15:04:00-07:00 — Hardened UX capture dev shell for NixOS reviewers
+Reproduced the blocker shape with a missing `PLAYWRIGHT_BROWSERS_PATH`; the harness exits before capture with `PLAYWRIGHT_BROWSERS_PATH does not exist`. Confirmed npm Playwright `1.61.1` matches `nixpkgs#playwright-driver.version` `1.61.1`, so no package pin change was needed.
+
+Updated the flake dev shell to provide `fontconfig` plus Noto, Liberation, DejaVu, CJK, and emoji fonts through `FONTCONFIG_FILE`, and made the harness wait for `document.fonts.ready` before taking screenshots. Validation passed from `nix develop`: `UX_CAPTURE_DATE=tank-scratch-nix npm run ux:capture` produced 21 PNGs across Mouse's three viewports, `npm run typecheck` passed, and `nix eval .#devShells.x86_64-linux.default.drvPath --raw` evaluated.

@@ -271,9 +271,9 @@ async function stabilize(page) {
       }
     `,
   });
-  await page.evaluate(() => {
+  await page.evaluate(async () => {
     window.scrollTo(0, 0);
-    document.fonts?.ready?.catch?.(() => undefined);
+    await document.fonts?.ready?.catch?.(() => undefined);
   });
   await page.waitForTimeout(100);
 }
