@@ -31,3 +31,5 @@
 - Schema-boundary mismatches are recurring — validate receiving constraint vs. sending.
 - Truncate user-facing text with `[:N-3] + "…"`, never bare slice.
 - Eval fixtures must default to failure (full matrix). Known-bad enumerations don't catch unnamed attacks.
+
+📌 Team update (2026-08-12T14:25:08.524-07:00): Mouse now owns screenshot-only UX comprehension review. Switch should continue functional/E2E correctness and avoid duplicating visual comprehension verdict scope — decided by squad-coordinator

@@ -14,7 +14,9 @@
         "audio-ai-backend": "Neo",
         "frontend": "Trinity",
         "nixos-platform": "Tank",
-        "quality-evaluation": "Switch"
+        "quality-evaluation": "Switch",
+        "ux-review": "Mouse",
+        "frontend-ux-remediation": "Link"
       },
       "created_at": "2026-08-06T18:29:43.244-07:00"
     }

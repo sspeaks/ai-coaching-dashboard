@@ -101,3 +101,14 @@
 - Schema-boundary mismatches are recurring bugs — validate receiving constraint vs. sending.
 - Truncate user-facing text with `[:N-3] + "…"`, never bare slice — users depend on visual honesty.
 - Eval fixtures must default to failure (full matrix) not permission (enumerated list).
+
+## 2026-08-12T14:25-07:00 — Mock state pinning for screenshot UX review
+
+- Reworked `createMockEvidenceApiClient()` to use fixed timestamps, deterministic synthetic IDs, and realistic-but-obviously-synthetic quartet coaching data.
+- Added `mockState` URL pinning for first-run empty, active processing, failed, awaiting-review, complete/reviewed, and additional backend state aliases without auto-advancing during polling.
+- Added a held upload-progress screenshot state on `/upload?mockState=upload-progress` so Mouse/Tank can capture a non-flickering progress UI.
+- Added mock-client tests for empty, processing, and complete deterministic states.
+- Verified `cd apps/web && npm run typecheck && npm test && npm run build` passes (26 web tests). Also started the Vite dev server in mock mode and browser-checked the required state URLs.
+
+📌 Team update (2026-08-12T14:25:08.524-07:00): Mock UI states are now selected by deterministic mockState URLs so screenshot review is stable across runs — decided by Trinity
+📌 Team update (2026-08-12T14:25:08.524-07:00): Trinity is locked out of UX remediation findings #36-#44 under Reviewer Rejection Protocol. This is not a quality judgment; it preserves independent revision after a screenshot-only rejection, so Link owns the fixes — decided by squad-coordinator

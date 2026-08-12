@@ -11,6 +11,8 @@ How to decide who handles what.
 | Web frontend | Trinity | Upload flow, job status, coaching ledger, timestamp navigation |
 | NixOS and operations | Tank | Packages, services, storage, deployment, NixOS module |
 | Testing and evaluation | Switch | ASR fixtures, factuality checks, timestamp accuracy, end-to-end tests |
+| UX review and usability | Mouse | Screenshot-only comprehension test at phone/desktop viewports, affordance defects, responsive review, visual regression baselines |
+| Rejected-UI revision | Link | Fixes to UI rejected by Mouse or another Reviewer — affordances, error/recovery states, mobile layout, plain-language copy (Trinity is locked out of these per Reviewer Rejection Protocol) |
 | Code review | Morpheus | Review PRs, integration quality, architectural consistency |
 | Scope & priorities | Morpheus | What to build next, trade-offs, decisions |
 | Session logging | Scribe | Automatic — never needs routing |
