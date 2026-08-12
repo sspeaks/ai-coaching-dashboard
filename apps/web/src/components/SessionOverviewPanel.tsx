@@ -9,7 +9,11 @@ import { formatTimestampMs } from "../lib/format";
 interface SessionOverviewPanelProps {
   session: SessionDetail;
   client: EvidenceApiClient;
-  onSeek: (seconds: number) => void;
+  onSeek: (
+    seconds: number,
+    moment: { key: string; label: string; noteTitle: string },
+  ) => void;
+  activeMomentKey: string | null;
   audioAvailable: boolean;
   onShowAll: () => void;
   showManagementTools?: boolean;
@@ -19,6 +23,7 @@ export function SessionOverviewPanel({
   session,
   client,
   onSeek,
+  activeMomentKey,
   audioAvailable,
   onShowAll,
   showManagementTools = false,
@@ -139,21 +144,34 @@ export function SessionOverviewPanel({
                       : `${theme.moments.length} source moments`}
                   </summary>
                   <div className="theme-item__moment-list">
-                    {theme.moments.map((moment) => (
-                      <button
-                        key={moment.interventionId}
-                        className="evidence-link"
-                        onClick={() => onSeek(moment.startMs / 1000)}
-                        disabled={!audioAvailable}
-                        title={
-                          audioAvailable
-                            ? "Play the recording from this moment"
-                            : "Audio playback is not available for this session"
-                        }
-                      >
-                        {formatTimestampMs(moment.startMs)}
-                      </button>
-                    ))}
+                    {theme.moments.map((moment) => {
+                      const label = formatTimestampMs(moment.startMs);
+                      const key = `theme-${theme.rank}-${moment.interventionId}-${moment.startMs}`;
+                      const active = activeMomentKey === key;
+                      return (
+                        <button
+                          key={key}
+                          className={`evidence-link evidence-link--play${active ? " evidence-link--active" : ""}`}
+                          aria-pressed={active}
+                          onClick={() =>
+                            onSeek(moment.startMs / 1000, {
+                              key,
+                              label,
+                              noteTitle: theme.title,
+                            })
+                          }
+                          disabled={!audioAvailable}
+                          title={
+                            audioAvailable
+                              ? "Play the recording from this moment"
+                              : "Audio playback is not available for this session"
+                          }
+                        >
+                          <span aria-hidden="true">▶</span>
+                          <strong>Play source at {label}</strong>
+                        </button>
+                      );
+                    })}
                   </div>
                 </details>
               </li>

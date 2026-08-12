@@ -274,7 +274,9 @@ describe("evidence ledger app", () => {
     expect(screen.getByText(/releasing jaw tension on the F/i)).toBeVisible();
     // Moments are collapsed by default for simplicity; expand to verify content
     await user.click(screen.getByText("1 source moment"));
-    expect(screen.getByRole("button", { name: /0:42/ })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: /play source at 0:42/i }),
+    ).toBeVisible();
     expect(
       screen.queryByText("Speaker identity needs human confirmation."),
     ).toBeNull();
@@ -535,7 +537,7 @@ describe("evidence ledger app", () => {
     await openFirstRecording(user);
     await user.click(await findShowAllInterventions());
     const evidence = await screen.findByRole("button", {
-      name: /coach feedback.*0:42.*feedback/i,
+      name: /play coach feedback at 0:42.*feedback/i,
     });
     const audio = container.querySelector("audio");
     expect(audio).not.toBeNull();
@@ -543,5 +545,7 @@ describe("evidence ledger app", () => {
 
     expect(audio!.currentTime).toBe(42);
     expect(play).toHaveBeenCalled();
+    expect(evidence).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/playing from 0:42 for “Breath plan”/i)).toBeVisible();
   });
 });

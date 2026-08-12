@@ -10,6 +10,12 @@ import { LedgerReview } from "./LedgerReview";
 import { SessionOverviewPanel } from "./SessionOverviewPanel";
 import { StatusBadge } from "./StatusBadge";
 
+interface AudioMoment {
+  key: string;
+  label: string;
+  noteTitle: string;
+}
+
 interface SessionDetailProps {
   session: SessionDetailType;
   client: EvidenceApiClient;
@@ -30,6 +36,7 @@ export function SessionDetail({
   const audioRef = useRef<HTMLAudioElement>(null);
   const [action, setAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [activeMoment, setActiveMoment] = useState<AudioMoment | null>(null);
   // The summary is the landing view: the full ledger is far too dense to be
   // the first thing a singer sees after a rehearsal.
   const [view, setView] = useState<"summary" | "ledger">("summary");
@@ -68,7 +75,8 @@ export function SessionDetail({
     }
   }
 
-  function seek(seconds: number) {
+  function seek(seconds: number, moment: AudioMoment) {
+    setActiveMoment(moment);
     if (!audioRef.current) return;
     audioRef.current.currentTime = seconds;
     audioRef.current.focus();
@@ -204,6 +212,33 @@ export function SessionDetail({
         </div>
       )}
 
+      <div
+        className={`audio-section${activeMoment ? " audio-section--active" : ""}`}
+        aria-live="polite"
+      >
+        <div>
+          <p className="eyebrow">Source recording</p>
+          {activeMoment ? (
+            <p className="audio-section__now">
+              Playing from {activeMoment.label} for “{activeMoment.noteTitle}”
+            </p>
+          ) : (
+            <p className="audio-section__hint">
+              Use any “▶ Play…” button in the notes to jump here.
+            </p>
+          )}
+        </div>
+        {session.audioUrl ? (
+          <audio ref={audioRef} controls preload="metadata" src={session.audioUrl}>
+            Your browser does not support audio playback.
+          </audio>
+        ) : (
+          <p className="missing-value">
+            The recording will be playable here after upload processing finishes.
+          </p>
+        )}
+      </div>
+
       {!readyForFeedback && !isFailedSessionState(session.state) ? (
         <div className="empty-state feedback-waiting">
           <h3>Coaching notes are not ready yet</h3>
@@ -217,6 +252,7 @@ export function SessionDetail({
           session={session}
           client={client}
           onSeek={seek}
+          activeMomentKey={activeMoment?.key ?? null}
           audioAvailable={Boolean(session.audioUrl)}
           onShowAll={() => setView("ledger")}
         />
@@ -241,26 +277,12 @@ export function SessionDetail({
             session={session}
             client={client}
             onSeek={seek}
+            activeMomentKey={activeMoment?.key ?? null}
             audioAvailable={Boolean(session.audioUrl)}
             onUpdated={onChanged}
           />
         </>
       )}
-
-      <div className="audio-section">
-        <div>
-          <p className="eyebrow">Source recording</p>
-        </div>
-        {session.audioUrl ? (
-          <audio ref={audioRef} controls preload="metadata" src={session.audioUrl}>
-            Your browser does not support audio playback.
-          </audio>
-        ) : (
-          <p className="missing-value">
-            The recording will be playable here after upload processing finishes.
-          </p>
-        )}
-      </div>
     </section>
   );
 }
