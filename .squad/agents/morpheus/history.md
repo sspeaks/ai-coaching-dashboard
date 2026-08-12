@@ -87,3 +87,22 @@ Neo authored the two-pass consolidation for issue #23 (item-cap redesign); Switc
 - Schema-boundary mismatches are a recurring bug class — validate receiving constraint vs. sending.
 - Truncate user-facing text with `[:N-3] + "…"`, never bare slice.
 - Eval fixtures must default to failure (full matrix) not permission (enumerated list).
+
+## 2026-08-12 — Mouse UX review issue filing and triage
+
+Filed all 9 findings from Mouse's screenshot-only UX review (`.squad/files/ux-review/2026-08-12/REVIEW.md`) as GitHub issues for Link; Trinity remains locked out by reviewer rejection protocol.
+
+**Created issues:**
+- #36 — Timestamp chips don't look like they play the audio — `priority:p0`, `release:v0.4.0`
+- #37 — Failed recordings do not tell singers how to recover — `priority:p0`, `release:v0.4.0`
+- #38 — Coaching notes start with review warnings instead of the takeaway — `priority:p1`, `release:v0.4.0`
+- #39 — Phone notes force too much scrolling between advice and audio — `priority:p1`, `release:v0.4.0`
+- #40 — Pipeline jargon is used as primary user language — `priority:p1`, `release:v0.5.0`
+- #41 — Upload privacy disclosure is too dense to scan — `priority:p2`, `release:v0.5.0`
+- #42 — Note review controls distract from reading the coaching — `priority:p2`, `release:v0.5.0`
+- #43 — Recording-name example is clipped on narrow phones — `priority:p2`, `release:v0.6.0`, `type:bug`
+- #44 — First-run desktop screen underuses space to guide upload — `priority:p2`, `release:v0.6.0`
+
+**Rationale:** Findings #36 and #37 are release-blocking because Mouse showed two primary user tasks are unachievable: jumping back to a critical audio moment and recovering from failure. Findings #38 and #39 are v0.4.0 P1 because they directly affect whether coaching feedback is readable/useful once generated. Finding #40 is P1 but v0.5.0 because user-language cleanup is foundational yet does not block the two failed primary tasks once #36/#37 are fixed. Findings #41/#42 are next-sprint polish for consent scanning and review-control clarity. Findings #43/#44 are later low-severity fit-and-finish, with #43 tagged `type:bug` because the placeholder is visibly clipped.
+
+📌 Team update (2026-08-12T14:25:08.524-07:00): Mouse UX review findings #36-#44 are filed and triaged; #36/#37 block v0.4.0 and Link owns remediation — decided by Morpheus

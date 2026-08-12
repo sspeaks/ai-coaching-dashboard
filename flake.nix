@@ -56,15 +56,33 @@
         system:
         let
           pkgs = pkgsFor system;
+          uxFonts = with pkgs; [
+            dejavu_fonts
+            liberation_ttf
+            noto-fonts
+            noto-fonts-cjk-sans
+            noto-fonts-color-emoji
+          ];
         in
         {
           default = pkgs.mkShell {
             packages = with pkgs; [
+              nodejs_24
               nixfmt
               statix
               deadnix
               skopeo
+              fontconfig
+              liberation_ttf
+              noto-fonts
+              noto-fonts-cjk-sans
+              noto-fonts-color-emoji
+              playwright-driver.browsers
             ];
+            FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = uxFonts; };
+            PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
+            PLAYWRIGHT_NIX_DRIVER_VERSION = pkgs.playwright-driver.version;
+            PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
           };
         }
       );

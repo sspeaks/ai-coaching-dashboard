@@ -17,6 +17,8 @@
 | Trinity | Frontend Engineer | `.squad/agents/trinity/charter.md` | Active |
 | Tank | NixOS/Platform Engineer | `.squad/agents/tank/charter.md` | Active |
 | Switch | Quality & Evaluation Engineer | `.squad/agents/switch/charter.md` | Active |
+| Mouse | UX Review Engineer | `.squad/agents/mouse/charter.md` | Active |
+| Link | Frontend Engineer (UX Remediation) | `.squad/agents/link/charter.md` | Active |
 | Scribe | Session Logger | `.squad/agents/scribe/charter.md` | Active |
 | Ralph | Work Monitor | `.squad/agents/ralph/charter.md` | Active |
 | Rai | RAI Reviewer | `.squad/agents/Rai/charter.md` | Active |

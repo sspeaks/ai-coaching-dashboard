@@ -90,7 +90,7 @@ let
     version = "0.1.0";
     src = frontendSource;
     sourceRoot = "${frontendSource.name}/apps/web";
-    npmDepsHash = "sha256-MLLfGaOIqhCtOh6PjBWg12Svqd9bLJCw2Y2D5wY2Fb8=";
+    npmDepsHash = "sha256-LNsTj9XdXzOfUoQtZHA9BjYP99VE/JSzSyL2F1VmlP0=";
 
     VITE_API_MODE = "api";
     VITE_API_BASE_URL = "/api";

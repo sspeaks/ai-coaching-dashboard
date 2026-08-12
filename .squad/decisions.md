@@ -57,6 +57,65 @@
 **What:** The over-merge fixture originally listed must-stay-distinct pairs, so any unlisted pair could be merged undetected (Tier 1 strategy: "merging is permitted unless listed"). Inverted (#32) to generate the full C(n,2) matrix minus explicitly permitted merges (Tier 2: "merging is forbidden except listed"). With 11 entries, this produces 54 active distinct constraints automatically. Unlisted pairs automatically fail; new entries participate without manual pair enumeration.
 **Why:** Fixtures that enumerate known-bad cases only catch attacks someone already thought of. The full matrix closes the gap structurally, not incrementally. Attacks B, C, D, F (all unnamed at fixture authoring time) are now caught. Irreducible gap remains: fixture tests only the 11-entry quartet-coaching-01 session; production over-merges on novel sessions are not caught. Gap documented in `_coverage_notes`.
 
+### 2026-08-12: Mouse UX review remediation triage
+**By:** Morpheus
+**What:** Filed Mouse's 2026-08-12 screenshot-only UX review as nine separate Link-owned issues: #36 and #37 are `priority:p0` / `release:v0.4.0`; #38 and #39 are `priority:p1` / `release:v0.4.0`; #40 is `priority:p1` / `release:v0.5.0`; #41 and #42 are `priority:p2` / `release:v0.5.0`; #43 and #44 are `priority:p2` / `release:v0.6.0`. Only #43 also gets `type:bug` because it is a visibly clipped UI element.
+**Why:** Mouse's 🔴 verdict identifies two failed primary tasks: users cannot confidently jump to a critical audio moment (#36) or recover from a failed recording (#37), so those block v0.4.0. The note-reading/mobile-scroll defects (#38/#39) materially affect the same coaching journey and should land with the blocking fixes. Language, disclosure, review-control, and first-run polish remain important but can be staged into v0.5.0/v0.6.0 without hiding or vetoing Mouse's findings. Link owns the remediation; Trinity remains locked out by reviewer rejection protocol.
+
+### 2026-08-12: Timestamp jump and failure recovery block singer tasks
+**By:** Mouse
+**What:** First screenshot-only UX review is 🔴 Illegible because two primary singer tasks fail from pixels alone: timestamp chips do not clearly play/jump the source recording, and the failed-recording state does not provide an actionable recovery path.
+**Why:** The product promise depends on hearing the coach at critical timestamps and recovering from bad uploads. If timestamp controls look like citations and failures only say to check again after an unspecified issue is fixed, non-technical singers will stall.
+
+### 2026-08-12T21-24-02: Added Mouse (UX Review Engineer) — reviews UI via screenshots only, no source code
+**By:** squad-coordinator
+**What:** Added Mouse (UX Review Engineer) — reviews UI via screenshots only, no source code
+**References:** Mouse, Trinity, Switch, Tank, .squad/agents/mouse/charter.md
+**Why:** Requested by Seth Speaks on 2026-08-12.
+
+**What:** Added Mouse as UX Review Engineer to the ai-coaching-dashboard squad.
+
+**Method (the defining constraint):** Mouse reviews the UI using ONLY rendered screenshots at phone (390x844, 360x800) and desktop (1440x900) viewports. While forming a verdict, Mouse may not read HTML, JSX/TSX, CSS, JS, DOM dumps, aria-labels, or any source. If a first-time user cannot figure out what to do from the pixels alone, that is a UI defect. Source code may only be read AFTER the verdict is written, and only to route the fix to the right file — the verdict never changes based on code.
+
+**Verdicts:** Legible (green) / Ambiguous (yellow) / Illegible (red). Any primary-task step that cannot be determined from screenshots is automatically red.
+
+**Boundaries:** Mouse does not implement fixes (Trinity owns UI implementation) and does not own functional/E2E correctness (Switch owns that). Mouse owns screenshot capture, comprehension verdicts, UX defect reports, and visual regression baselines under `.squad/files/ux-review/`.
+
+**Open dependency:** No headless-browser screenshot tooling (Playwright or equivalent) is installed in this repo as of 2026-08-12. Mouse cannot issue a real verdict until capture works against `apps/web`. "Couldn't capture" is never "passed."
+
+**Files changed:** `.squad/agents/mouse/charter.md`, `.squad/agents/mouse/history.md`, `.squad/team.md`, `.squad/routing.md`, `.squad/casting/registry.json`, `.squad/casting/history.json`.
+
+### 2026-08-12T21-46-34: UX review 🔴 — Trinity locked out per Reviewer Rejection Protocol; Link cast to own remediation
+**By:** squad-coordinator
+**What:** UX review 🔴 — Trinity locked out per Reviewer Rejection Protocol; Link cast to own remediation
+**References:** Mouse, Link, Trinity, Morpheus, .squad/files/ux-review/2026-08-12/REVIEW.md
+**Why:** Requested by Seth Speaks on 2026-08-12.
+
+**Context:** Mouse's first Screenshot-Only Comprehension Test returned 🔴 Illegible on the existing web UI (report: `.squad/files/ux-review/2026-08-12/REVIEW.md`). Two primary user tasks are unachievable from the screens alone: jumping back to a critical audio moment, and recovering from a failed recording.
+
+**Decision:** The Reviewer Rejection Protocol is enforced STRICTLY, even though this was a baseline audit of pre-existing UI rather than a rejection of a freshly-produced artifact. The user was offered the option to waive the lockout for Trinity and explicitly chose to cast a new agent instead.
+
+**Consequences:**
+1. Trinity (original author of the reviewed UI) is LOCKED OUT of all 9 UX remediation findings.
+2. Link was cast as Frontend Engineer (UX Remediation) — charter at `.squad/agents/link/charter.md`. Link owns rejected-UI revisions going forward; Trinity retains original feature implementation.
+3. All 9 findings are filed as individual GitHub issues labeled `squad:link` + `type:ux`, triaged by Morpheus.
+4. Mouse re-reviews from FRESH screenshots after fixes land. A described fix is never accepted in place of captured evidence.
+5. If Link's revision is itself rejected, Link is locked out of the next cycle and a third agent takes it.
+
+**Rationale for strict enforcement:** The value of the screenshot-only review is that it is adversarial and independent. Letting the original author fix their own rejected work reintroduces the exact bias the method exists to remove — the author knows what the control does, so they cannot see that the pixels fail to say it.
+
+**Precedent set:** UX review rejections trigger author lockout in this repo by default. Waiving it requires explicit user approval.
+
+### 2026-08-12: UX capture uses Nix Playwright browsers with npm Playwright driver
+**By:** Tank
+**What:** The web UX screenshot harness uses the npm `playwright` package pinned exactly to `1.61.1`, matching `nixpkgs#playwright-driver.version`. The flake dev shell declares `playwright-driver.browsers` and exports `PLAYWRIGHT_BROWSERS_PATH` plus `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`. The harness resolves Chromium from that Nix browser path and passes it as `executablePath`.
+**Why:** This keeps browser binaries declarative and avoids hand-installed global Playwright downloads. Passing the executable path also avoids npm/Nix Playwright revision mismatches while preserving a normal `npm run ux:capture` entry point for Mouse.
+
+### 2026-08-12: Mock UI states are pinned with `mockState` URLs
+**By:** Trinity
+**What:** In mock mode, screenshot-specific UI states are selected with deterministic `mockState` query parameters instead of time-based transitions. The upload form has a dedicated held `mockState=upload-progress`; session states use real backend state values or aliases that map to real state values.
+**Why:** Mouse reviews screenshots only, and Tank's harness needs stable URLs that render byte-identical content across runs without waiting for timers, uploads, or backend jobs.
+
 ## Governance
 
 - All meaningful changes require team consensus
