@@ -1282,3 +1282,58 @@ meter {
   border-radius: 999px;
   font-variant-numeric: tabular-nums;
 }
+
+.moment-play-group {
+  display: grid;
+  gap: 0.5rem;
+  min-width: min(100%, 18rem);
+}
+
+.now-playing-cue {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem 0.85rem;
+  color: var(--on-brand);
+  background: var(--brand);
+  border: 2px solid var(--focus);
+  border-radius: 0.7rem;
+  box-shadow: 0 0 0 2px rgb(56 139 253 / 22%);
+}
+
+.now-playing-cue--section {
+  margin-top: 0.35rem;
+}
+
+.now-playing-cue__header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.95rem;
+}
+
+.now-playing-cue p {
+  margin: 0;
+}
+
+.now-playing-cue__source {
+  font-size: 0.82rem;
+  opacity: 0.92;
+}
+
+.now-playing-cue__track {
+  height: 0.5rem;
+  overflow: hidden;
+  background: rgb(255 255 255 / 35%);
+  border-radius: 999px;
+}
+
+.now-playing-cue__track span {
+  display: block;
+  height: 100%;
+  background: var(--on-brand);
+  border-radius: inherit;
+}
+
+.now-playing-cue__track--empty span {
+  width: 0;
+}

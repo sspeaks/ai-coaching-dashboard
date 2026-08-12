@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
@@ -119,6 +119,28 @@ async function openFirstRecording(user = userEvent.setup()) {
     await screen.findByRole("button", { name: /read feedback|feedback open/i }),
   );
   return user;
+}
+
+function setMediaDuration(audio: HTMLAudioElement, duration: number) {
+  Object.defineProperty(audio, "duration", {
+    configurable: true,
+    value: duration,
+  });
+}
+
+async function playFirstLedgerMoment(
+  user: ReturnType<typeof userEvent.setup>,
+  container: HTMLElement,
+) {
+  await openFirstRecording(user);
+  await user.click(await findShowAllInterventions());
+  const evidence = await screen.findByRole("button", {
+    name: /play coach feedback at 0:42.*feedback/i,
+  });
+  const audio = container.querySelector("audio");
+  expect(audio).not.toBeNull();
+  await user.click(evidence);
+  return { audio: audio!, evidence };
 }
 
 describe("evidence ledger app", () => {
@@ -545,7 +567,141 @@ describe("evidence ledger app", () => {
 
     expect(audio!.currentTime).toBe(42);
     expect(play).toHaveBeenCalled();
+    expect(screen.queryByText(/now playing 0:42/i)).toBeNull();
+    fireEvent(audio!, new Event("play"));
     expect(evidence).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText(/playing from 0:42 for “Breath plan”/i)).toBeVisible();
+    expect(screen.getAllByText(/now playing 0:42/i).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(
+        /source recording jumped to this moment for “Breath plan”/i,
+      ).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it.each(["pause", "ended", "error"] as const)(
+    "clears the active timestamp cue on audio %s",
+    async (eventName) => {
+      const user = userEvent.setup();
+      const play = vi
+        .spyOn(HTMLMediaElement.prototype, "play")
+        .mockResolvedValue(undefined);
+      const { container } = render(<App client={createClient()} />);
+
+      const { audio, evidence } = await playFirstLedgerMoment(user, container);
+      fireEvent(audio, new Event("play"));
+
+      expect(play).toHaveBeenCalled();
+      expect(evidence).toHaveAttribute("aria-pressed", "true");
+      expect(screen.getAllByText(/now playing 0:42/i).length).toBeGreaterThan(0);
+
+      fireEvent(audio, new Event(eventName));
+
+      expect(evidence).toHaveAttribute("aria-pressed", "false");
+      expect(screen.queryByText(/now playing 0:42/i)).toBeNull();
+    },
+  );
+
+  it("clears the active timestamp cue when audio play is rejected", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockRejectedValue(
+      new DOMException("not allowed", "NotAllowedError"),
+    );
+    const { container } = render(<App client={createClient()} />);
+
+    const { evidence } = await playFirstLedgerMoment(user, container);
+
+    expect(evidence).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByText(/now playing 0:42/i)).toBeNull();
+  });
+
+  it("moves the mini playhead from real audio currentTime and duration", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
+    const { container } = render(<App client={createClient()} />);
+
+    const { audio } = await playFirstLedgerMoment(user, container);
+    setMediaDuration(audio, 100);
+    fireEvent(audio, new Event("loadedmetadata"));
+    fireEvent(audio, new Event("play"));
+    audio.currentTime = 50;
+    fireEvent(audio, new Event("timeupdate"));
+
+    const cue = screen.getAllByText(/now playing 0:42/i)[0].closest(".now-playing-cue");
+    const playhead = cue?.querySelector(".now-playing-cue__track span");
+    expect(playhead).toHaveStyle({ width: "50%" });
+  });
+
+  it("renders an empty mini playhead before audio metadata is available", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
+    const { container } = render(<App client={createClient()} />);
+
+    const { audio } = await playFirstLedgerMoment(user, container);
+    setMediaDuration(audio, Number.NaN);
+    fireEvent(audio, new Event("play"));
+
+    const cue = screen.getAllByText(/now playing 0:42/i)[0].closest(".now-playing-cue");
+    expect(cue?.querySelector(".now-playing-cue__track")).toHaveClass(
+      "now-playing-cue__track--empty",
+    );
+    expect(cue?.querySelector(".now-playing-cue__track span")).toHaveStyle({
+      width: "0%",
+    });
+  });
+
+  it("selecting a second timestamp clears the first cue before showing the second", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
+    const client = createClient();
+    vi.mocked(client.getOverview).mockResolvedValue({
+      id: "overview-1",
+      themes: [
+        {
+          rank: 1,
+          title: "Releasing the sound",
+          summary: "The coach worked on timestamp-linked source moments.",
+          interventionIds: ["intervention-1"],
+          moments: [
+            {
+              interventionId: "intervention-1",
+              startMs: 42_000,
+              endMs: 48_000,
+            },
+            {
+              interventionId: "intervention-1",
+              startMs: 84_000,
+              endMs: 90_000,
+            },
+          ],
+          startMs: 42_000,
+          endMs: 90_000,
+        },
+      ],
+      interventionCount: 1,
+      stale: false,
+      generatedAt: new Date().toISOString(),
+    });
+    const { container } = render(<App client={client} />);
+
+    await openFirstRecording(user);
+    await user.click(await screen.findByText("2 source moments"));
+    const first = screen.getByRole("button", { name: /play source at 0:42/i });
+    const second = screen.getByRole("button", { name: /play source at 1:24/i });
+    const audio = container.querySelector("audio");
+    expect(audio).not.toBeNull();
+
+    await user.click(first);
+    fireEvent(audio!, new Event("play"));
+    expect(first).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getAllByText(/now playing 0:42/i).length).toBeGreaterThan(0);
+
+    await user.click(second);
+    expect(first).toHaveAttribute("aria-pressed", "false");
+    expect(second).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByText(/now playing 0:42/i)).toBeNull();
+
+    fireEvent(audio!, new Event("play"));
+    expect(second).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getAllByText(/now playing 1:24/i).length).toBeGreaterThan(0);
   });
 });

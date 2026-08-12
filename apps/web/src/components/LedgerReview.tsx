@@ -7,15 +7,27 @@ import type {
   VerificationStatus,
 } from "@quartet-coach/web-client";
 import { evidenceRoleLabel, formatTimestampMs } from "../lib/format";
+import { NowPlayingCue } from "./NowPlayingCue";
 
 interface LedgerReviewProps {
   session: SessionDetail;
   client: EvidenceApiClient;
   onSeek: (
     seconds: number,
-    moment: { key: string; label: string; noteTitle: string },
+    moment: {
+      key: string;
+      label: string;
+      noteTitle: string;
+      sourceLabel?: string;
+    },
   ) => void;
-  activeMomentKey: string | null;
+  activeMoment: {
+    key: string;
+    label: string;
+    noteTitle: string;
+    sourceLabel?: string;
+  } | null;
+  playheadPercent: number | null;
   audioAvailable: boolean;
   onUpdated: (session: SessionDetail) => void;
 }
@@ -24,7 +36,8 @@ export function LedgerReview({
   session,
   client,
   onSeek,
-  activeMomentKey,
+  activeMoment,
+  playheadPercent,
   audioAvailable,
   onUpdated,
 }: LedgerReviewProps) {
@@ -32,9 +45,7 @@ export function LedgerReview({
     return (
       <div className="empty-state">
         <h3>No coaching notes yet</h3>
-        <p>
-          Notes appear here after the recording is ready.
-        </p>
+        <p>Notes appear here after the recording is ready.</p>
       </div>
     );
   }
@@ -49,7 +60,8 @@ export function LedgerReview({
           index={index}
           client={client}
           onSeek={onSeek}
-          activeMomentKey={activeMomentKey}
+          activeMoment={activeMoment}
+          playheadPercent={playheadPercent}
           audioAvailable={audioAvailable}
           onUpdated={onUpdated}
         />
@@ -65,9 +77,20 @@ interface InterventionCardProps {
   client: EvidenceApiClient;
   onSeek: (
     seconds: number,
-    moment: { key: string; label: string; noteTitle: string },
+    moment: {
+      key: string;
+      label: string;
+      noteTitle: string;
+      sourceLabel?: string;
+    },
   ) => void;
-  activeMomentKey: string | null;
+  activeMoment: {
+    key: string;
+    label: string;
+    noteTitle: string;
+    sourceLabel?: string;
+  } | null;
+  playheadPercent: number | null;
   audioAvailable: boolean;
   onUpdated: (session: SessionDetail) => void;
 }
@@ -78,7 +101,8 @@ function InterventionCard({
   index,
   client,
   onSeek,
-  activeMomentKey,
+  activeMoment,
+  playheadPercent,
   audioAvailable,
   onUpdated,
 }: InterventionCardProps) {
@@ -104,7 +128,9 @@ function InterventionCard({
       setChoice(null);
       setNote("");
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Review could not be saved.");
+      setError(
+        caught instanceof Error ? caught.message : "Review could not be saved.",
+      );
     } finally {
       setSaving(false);
     }
@@ -117,7 +143,7 @@ function InterventionCard({
 
   return (
     <article
-      className={`ledger-card${intervention.evidence.some((evidence) => activeMomentKey === evidence.id) ? " ledger-card--active" : ""}`}
+      className={`ledger-card${intervention.evidence.some((evidence) => activeMoment?.key === evidence.id) ? " ledger-card--active" : ""}`}
       aria-labelledby={`intervention-${intervention.id}`}
     >
       <div className="ledger-card__heading">
@@ -171,15 +197,27 @@ function InterventionCard({
           value={intervention.exactCoachFeedback}
           quote
         />
-        <LedgerField label="Plain-language meaning" value={intervention.interpretation} />
+        <LedgerField
+          label="Plain-language meaning"
+          value={intervention.interpretation}
+        />
         <LedgerField label="Who it applies to" value={intervention.appliesTo} />
-        <LedgerField label="Song or passage" value={intervention.songReference} />
-        <LedgerField label="What the coach heard before" value={intervention.problemBefore} />
+        <LedgerField
+          label="Song or passage"
+          value={intervention.songReference}
+        />
+        <LedgerField
+          label="What the coach heard before"
+          value={intervention.problemBefore}
+        />
         <LedgerField
           label="What the coach asked us to try"
           value={intervention.exerciseOrRequestedChange}
         />
-        <LedgerField label="What happened after we tried it" value={intervention.observedResult} />
+        <LedgerField
+          label="What happened after we tried it"
+          value={intervention.observedResult}
+        />
         <LedgerField label="Next step" value={intervention.nextAction} />
         <LedgerField
           label="Question to check"
@@ -198,13 +236,24 @@ function InterventionCard({
                 key={evidence.id}
                 evidence={evidence}
                 noteTitle={intervention.topic || `Note ${index + 1}`}
-                active={activeMomentKey === evidence.id}
+                active={activeMoment?.key === evidence.id}
                 enabled={audioAvailable}
                 onSeek={onSeek}
               />
             ))}
           </ul>
         )}
+        {activeMoment &&
+          intervention.evidence.some(
+            (evidence) => activeMoment.key === evidence.id,
+          ) && (
+            <NowPlayingCue
+              label={activeMoment.label}
+              noteTitle={activeMoment.noteTitle}
+              sourceLabel={activeMoment.sourceLabel}
+              progressPercent={playheadPercent}
+            />
+          )}
       </div>
 
       <fieldset className="review-controls">
@@ -294,7 +343,12 @@ function EvidenceButton({
   enabled: boolean;
   onSeek: (
     seconds: number,
-    moment: { key: string; label: string; noteTitle: string },
+    moment: {
+      key: string;
+      label: string;
+      noteTitle: string;
+      sourceLabel?: string;
+    },
   ) => void;
 }) {
   const label = formatTimestampMs(evidence.startMs);
@@ -309,13 +363,20 @@ function EvidenceButton({
             key: evidence.id,
             label,
             noteTitle,
+            sourceLabel: evidence.label,
           })
         }
         disabled={!enabled}
-        title={enabled ? "Play the recording from this moment" : "Audio is unavailable"}
+        title={
+          enabled
+            ? "Play the recording from this moment"
+            : "Audio is unavailable"
+        }
       >
         <span aria-hidden="true">▶</span>
-        <strong>Play {role} at {label}</strong>
+        <strong>
+          {active ? "Now playing" : "Play"} {role} at {label}
+        </strong>
         <span>{evidence.label}</span>
       </button>
     </li>

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   isActiveSessionState,
   isFailedSessionState,
@@ -7,6 +7,7 @@ import {
 } from "@quartet-coach/web-client";
 import { formatDate, sessionStatus } from "../lib/format";
 import { LedgerReview } from "./LedgerReview";
+import { NowPlayingCue } from "./NowPlayingCue";
 import { SessionOverviewPanel } from "./SessionOverviewPanel";
 import { StatusBadge } from "./StatusBadge";
 
@@ -14,6 +15,7 @@ interface AudioMoment {
   key: string;
   label: string;
   noteTitle: string;
+  sourceLabel?: string;
 }
 
 interface SessionDetailProps {
@@ -34,9 +36,11 @@ export function SessionDetail({
   showRecordingOptions = false,
 }: SessionDetailProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const pendingMomentRef = useRef<AudioMoment | null>(null);
   const [action, setAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeMoment, setActiveMoment] = useState<AudioMoment | null>(null);
+  const [playheadPercent, setPlayheadPercent] = useState<number | null>(null);
   // The summary is the landing view: the full ledger is far too dense to be
   // the first thing a singer sees after a rehearsal.
   const [view, setView] = useState<"summary" | "ledger">("summary");
@@ -75,14 +79,76 @@ export function SessionDetail({
     }
   }
 
-  function seek(seconds: number, moment: AudioMoment) {
-    setActiveMoment(moment);
-    if (!audioRef.current) return;
-    audioRef.current.currentTime = seconds;
-    audioRef.current.focus();
-    void audioRef.current.play().catch(() => {
-      // Browser autoplay policy may require the user to press play.
-    });
+  useEffect(() => {
+    const audio = audioRef.current;
+    pendingMomentRef.current = null;
+    setActiveMoment(null);
+    setPlayheadPercent(null);
+    if (!audio) return undefined;
+
+    const updatePlayhead = () => {
+      const { currentTime, duration } = audio;
+      if (!Number.isFinite(duration) || duration <= 0) {
+        setPlayheadPercent(null);
+        return;
+      }
+      setPlayheadPercent((Math.max(0, Math.min(currentTime, duration)) / duration) * 100);
+    };
+    const clearPlaybackCue = () => {
+      pendingMomentRef.current = null;
+      setActiveMoment(null);
+      updatePlayhead();
+    };
+    const handlePlay = () => {
+      setActiveMoment(pendingMomentRef.current);
+      updatePlayhead();
+    };
+    const handleEmptied = () => {
+      pendingMomentRef.current = null;
+      setActiveMoment(null);
+      setPlayheadPercent(null);
+    };
+
+    audio.addEventListener("play", handlePlay);
+    audio.addEventListener("pause", clearPlaybackCue);
+    audio.addEventListener("ended", clearPlaybackCue);
+    audio.addEventListener("error", clearPlaybackCue);
+    audio.addEventListener("emptied", handleEmptied);
+    audio.addEventListener("timeupdate", updatePlayhead);
+    audio.addEventListener("loadedmetadata", updatePlayhead);
+    audio.addEventListener("seeking", updatePlayhead);
+    audio.addEventListener("seeked", updatePlayhead);
+
+    return () => {
+      audio.removeEventListener("play", handlePlay);
+      audio.removeEventListener("pause", clearPlaybackCue);
+      audio.removeEventListener("ended", clearPlaybackCue);
+      audio.removeEventListener("error", clearPlaybackCue);
+      audio.removeEventListener("emptied", handleEmptied);
+      audio.removeEventListener("timeupdate", updatePlayhead);
+      audio.removeEventListener("loadedmetadata", updatePlayhead);
+      audio.removeEventListener("seeking", updatePlayhead);
+      audio.removeEventListener("seeked", updatePlayhead);
+    };
+  }, [session.audioUrl]);
+
+  async function seek(seconds: number, moment: AudioMoment) {
+    const audio = audioRef.current;
+    pendingMomentRef.current = moment;
+    setActiveMoment(null);
+    if (!audio) {
+      pendingMomentRef.current = null;
+      return;
+    }
+    audio.currentTime = seconds;
+    try {
+      await audio.play();
+    } catch {
+      if (pendingMomentRef.current?.key === moment.key) {
+        pendingMomentRef.current = null;
+        setActiveMoment(null);
+      }
+    }
   }
 
   const canCancel =
@@ -105,10 +171,14 @@ export function SessionDetail({
       </div>
 
       {!readyForFeedback && (
-        <div className={`status-callout status-callout--${status.tone}`} role="status">
+        <div
+          className={`status-callout status-callout--${status.tone}`}
+          role="status"
+        >
           <strong>{status.label}</strong>
           <p>
-            {status.detail ?? "We will show the coaching notes here when the recording is ready."}
+            {status.detail ??
+              "We will show the coaching notes here when the recording is ready."}
           </p>
           {session.progress != null &&
             session.progress < 100 &&
@@ -135,7 +205,9 @@ export function SessionDetail({
               }
               disabled={action !== null}
             >
-              {action === "refresh" ? "Checking…" : "Check for transcript updates"}
+              {action === "refresh"
+                ? "Checking…"
+                : "Check for transcript updates"}
             </button>
             {session.speakrSessionUrl && (
               <a
@@ -219,9 +291,13 @@ export function SessionDetail({
         <div>
           <p className="eyebrow">Source recording</p>
           {activeMoment ? (
-            <p className="audio-section__now">
-              Playing from {activeMoment.label} for “{activeMoment.noteTitle}”
-            </p>
+            <NowPlayingCue
+              label={activeMoment.label}
+              noteTitle={activeMoment.noteTitle}
+              sourceLabel={activeMoment.sourceLabel}
+              progressPercent={playheadPercent}
+              variant="section"
+            />
           ) : (
             <p className="audio-section__hint">
               Use any “▶ Play…” button in the notes to jump here.
@@ -229,12 +305,18 @@ export function SessionDetail({
           )}
         </div>
         {session.audioUrl ? (
-          <audio ref={audioRef} controls preload="metadata" src={session.audioUrl}>
+          <audio
+            ref={audioRef}
+            controls
+            preload="metadata"
+            src={session.audioUrl}
+          >
             Your browser does not support audio playback.
           </audio>
         ) : (
           <p className="missing-value">
-            The recording will be playable here after upload processing finishes.
+            The recording will be playable here after upload processing
+            finishes.
           </p>
         )}
       </div>
@@ -252,7 +334,8 @@ export function SessionDetail({
           session={session}
           client={client}
           onSeek={seek}
-          activeMomentKey={activeMoment?.key ?? null}
+          activeMoment={activeMoment}
+          playheadPercent={playheadPercent}
           audioAvailable={Boolean(session.audioUrl)}
           onShowAll={() => setView("ledger")}
         />
@@ -263,9 +346,7 @@ export function SessionDetail({
               <p className="eyebrow">Every note</p>
               <h3>All timestamped coaching notes</h3>
             </div>
-            <strong>
-              {session.interventionCount} notes
-            </strong>
+            <strong>{session.interventionCount} notes</strong>
           </div>
           <button
             className="button button--quiet"
@@ -277,7 +358,8 @@ export function SessionDetail({
             session={session}
             client={client}
             onSeek={seek}
-            activeMomentKey={activeMoment?.key ?? null}
+            activeMoment={activeMoment}
+            playheadPercent={playheadPercent}
             audioAvailable={Boolean(session.audioUrl)}
             onUpdated={onChanged}
           />
