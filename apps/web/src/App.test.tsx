@@ -136,6 +136,12 @@ function deferredPromise<T>() {
   return { promise, resolve };
 }
 
+function expectToPrecede(first: Element, second: Element) {
+  expect(
+    first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
+}
+
 async function playFirstLedgerMoment(
   user: ReturnType<typeof userEvent.setup>,
   container: HTMLElement,
@@ -537,10 +543,11 @@ describe("evidence ledger app", () => {
     await user.click(await findShowAllInterventions());
     expect(
       await screen.findByText("Speaker identity needs human confirmation."),
+    ).not.toBeVisible();
+    await user.click(screen.getByText(/why might this be wrong/i));
+    expect(
+      screen.getByText("Speaker identity needs human confirmation."),
     ).toBeVisible();
-    await user.click(
-      screen.getByText(/how sure is the assistant about this note/i),
-    );
     expect(screen.getByText(/does not prove the coach's point/i)).toBeVisible();
 
     await user.click(screen.getByLabelText("Looks right"));
@@ -554,6 +561,72 @@ describe("evidence ledger app", () => {
       ),
     );
     expect(await screen.findByText("Checked")).toBeVisible();
+  });
+
+  it("puts the coaching takeaway before review warnings while keeping warnings reachable", async () => {
+    const user = userEvent.setup();
+    render(<App client={createClient()} />);
+
+    await openFirstRecording(user);
+    await user.click(await findShowAllInterventions());
+    const note = (await screen.findByRole("heading", { name: "Breath plan" }))
+      .closest("article");
+    expect(note).not.toBeNull();
+
+    const takeaway = within(note!).getByText("Coaching takeaway");
+    const warningSummary = within(note!).getByText("Why might this be wrong?");
+    expectToPrecede(takeaway, warningSummary);
+    expect(
+      within(note!).queryByText("Speaker identity needs human confirmation."),
+    ).not.toBeVisible();
+
+    await user.click(warningSummary);
+
+    const warnings = within(note!).getByText("Review these uncertainties");
+    expectToPrecede(takeaway, warnings);
+    expect(
+      within(note!).getByText("Speaker identity needs human confirmation."),
+    ).toBeVisible();
+    expect(
+      within(note!).getByText(/does not prove the coach's point/i),
+    ).toBeVisible();
+  });
+
+  it("keeps a no-warning note focused on the takeaway before note mechanics", async () => {
+    const cleanSession = {
+      ...createSession(),
+      interventions: [
+        {
+          ...createSession().interventions[0],
+          interpretation:
+            "Release the jaw before the tag so the final chord can ring.",
+          nextAction: "Sing the tag slowly once, then repeat at tempo.",
+          confidence: null,
+          uncertaintyReasons: [],
+        },
+      ],
+    };
+    const user = userEvent.setup();
+    render(<App client={createClient(cleanSession)} />);
+
+    await openFirstRecording(user);
+    await user.click(await findShowAllInterventions());
+    const note = (await screen.findByRole("heading", { name: "Breath plan" }))
+      .closest("article");
+    expect(note).not.toBeNull();
+
+    const takeawaySection = within(note!)
+      .getByText("Coaching takeaway")
+      .closest("section");
+    expect(takeawaySection).not.toBeNull();
+    const takeaway = within(takeawaySection!).getByText(
+      "Release the jaw before the tag so the final chord can ring.",
+    );
+    expect(
+      within(note!).queryByText("Why might this be wrong?"),
+    ).not.toBeInTheDocument();
+    expectToPrecede(takeaway, within(note!).getByText("Source moments"));
+    expectToPrecede(takeaway, within(note!).getByText("Mark this note"));
   });
 
   it("seeks the audio player when an evidence timestamp is activated", async () => {

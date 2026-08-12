@@ -843,6 +843,29 @@ meter {
   box-shadow: 0 0 0 2px rgb(56 139 253 / 22%);
 }
 
+.note-takeaway {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.9rem;
+  margin-top: 1rem;
+  background: linear-gradient(135deg, var(--brand-soft), var(--surface-muted));
+  border: 1px solid rgb(121 192 255 / 35%);
+  border-radius: 0.7rem;
+}
+
+.note-takeaway p {
+  margin: 0;
+}
+
+.note-takeaway > p:first-of-type {
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.note-takeaway__next {
+  color: var(--muted);
+}
+
 .confidence-panel {
   display: grid;
   grid-template-columns: 4rem minmax(8rem, 1fr) minmax(14rem, 1.5fr);
@@ -867,7 +890,6 @@ meter {
 
 .uncertainty-box {
   padding: 0.8rem;
-  margin-bottom: 1rem;
   color: var(--attention);
   background: var(--attention-soft);
   border-left: 4px solid #8a6110;
