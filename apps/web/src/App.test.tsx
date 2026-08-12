@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
@@ -115,7 +115,9 @@ function findShowAllInterventions() {
 }
 
 async function openFirstRecording(user = userEvent.setup()) {
-  await user.click(await screen.findByRole("button", { name: /read feedback/i }));
+  await user.click(
+    await screen.findByRole("button", { name: /read feedback|feedback open/i }),
+  );
   return user;
 }
 
@@ -193,14 +195,14 @@ describe("evidence ledger app", () => {
       screen.queryByRole("button", { name: "Upload a recording" }),
     ).toBeNull();
     await user.click(screen.getByRole("link", { name: "Upload" }));
-    expect(screen.getByText("Example: August coaching with Alex")).toBeVisible();
-    expect(screen.getByPlaceholderText("August coaching")).toHaveAccessibleDescription(
-      "Example: August coaching with Alex",
-    );
-    expect(screen.getByText("Audio is stored here.")).toBeVisible();
     expect(
-      screen.getByText("Audio is sent for transcription."),
+      screen.getByText("Example: August coaching with Alex"),
     ).toBeVisible();
+    expect(
+      screen.getByPlaceholderText("August coaching"),
+    ).toHaveAccessibleDescription("Example: August coaching with Alex");
+    expect(screen.getByText("Audio is stored here.")).toBeVisible();
+    expect(screen.getByText("Audio is sent for transcription.")).toBeVisible();
     expect(screen.getByText("Text may be analyzed by AI.")).toBeVisible();
     expect(screen.getByText("Deletion is explicit.")).toBeVisible();
     expect(
@@ -210,7 +212,9 @@ describe("evidence ledger app", () => {
       name: /what happens to my recording/i,
     });
     expect(disclosure).toHaveAttribute("aria-expanded", "false");
-    expect(screen.getByText(/original file is kept until an admin deletes/i)).not.toBeVisible();
+    expect(
+      screen.getByText(/original file is kept until an admin deletes/i),
+    ).not.toBeVisible();
     await user.click(disclosure);
     expect(disclosure).toHaveAttribute("aria-expanded", "true");
     expect(
@@ -235,7 +239,9 @@ describe("evidence ledger app", () => {
         "upload-1",
       ),
     );
-    expect(await screen.findByText(/Practice upload was uploaded/i)).toBeVisible();
+    expect(
+      await screen.findByText(/Practice upload was uploaded/i),
+    ).toBeVisible();
   });
 
   it("keeps recording management off the feedback page", async () => {
@@ -245,7 +251,9 @@ describe("evidence ledger app", () => {
     render(<App client={client} />);
 
     await screen.findByText("Choose a coaching session");
-    expect(screen.queryByRole("button", { name: /delete recording/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /delete recording/i }),
+    ).toBeNull();
     await user.click(screen.getByRole("link", { name: "Manage recordings" }));
     expect(await screen.findByText("Recording controls")).toBeVisible();
     await user.click(screen.getByRole("button", { name: /delete recording/i }));
@@ -263,9 +271,7 @@ describe("evidence ledger app", () => {
     // The dense ledger is a drill-down; the headline items are what a singer
     // should land on after a rehearsal.
     expect(await screen.findByText("Releasing the sound")).toBeVisible();
-    expect(
-      screen.getByText(/releasing jaw tension on the F/i),
-    ).toBeVisible();
+    expect(screen.getByText(/releasing jaw tension on the F/i)).toBeVisible();
     // Moments are collapsed by default for simplicity; expand to verify content
     await user.click(screen.getByText("1 source moment"));
     expect(screen.getByRole("button", { name: /0:42/ })).toBeVisible();
@@ -274,13 +280,81 @@ describe("evidence ledger app", () => {
     ).toBeNull();
   });
 
+  it("exposes feedback disclosure state and moves focus to newly opened notes", async () => {
+    const user = userEvent.setup();
+    const first = createSession();
+    const second = {
+      ...createSession(),
+      id: "session-2",
+      title: "Second rehearsal",
+      originalFileName: "second.wav",
+    };
+    const client = createClient(first);
+    vi.mocked(client.listSessions).mockResolvedValue([
+      { ...first, interventions: undefined } as never,
+      { ...second, interventions: undefined } as never,
+    ]);
+    vi.mocked(client.getSession).mockImplementation(async (id) =>
+      id === "session-2" ? second : first,
+    );
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    render(<App client={client} />);
+
+    expect(
+      await screen.findByRole("button", { name: /feedback open/i }),
+    ).toBeVisible();
+    expect(
+      await screen.findByRole("heading", { name: "Review session", level: 2 }),
+    ).toBeVisible();
+    const secondCard = screen.getByText("Second rehearsal").closest("article");
+    expect(secondCard).not.toBeNull();
+    const secondButton = within(secondCard!).getByRole("button", {
+      name: /read feedback/i,
+    });
+    expect(secondButton).toHaveAttribute("aria-expanded", "false");
+    expect(secondButton).toHaveAttribute(
+      "aria-controls",
+      "feedback-detail-panel",
+    );
+    await user.click(secondButton);
+
+    const openButton = await screen.findByRole("button", {
+      name: /feedback open/i,
+    });
+    expect(openButton).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText(/feedback is open below/i)).toBeVisible();
+    expect(
+      await screen.findByRole("heading", {
+        name: "Second rehearsal",
+        level: 2,
+      }),
+    ).toBeVisible();
+    const detailRegion = screen.getByLabelText(
+      "Opened coaching feedback for Second rehearsal",
+    );
+    await waitFor(() => expect(detailRegion).toHaveFocus());
+    expect(scrollIntoView).toHaveBeenCalled();
+    await user.click(
+      screen.getByRole("button", { name: /choose another recording/i }),
+    );
+    expect(screen.getByText("Select a recording")).toBeVisible();
+    expect(document.getElementById("feedback-detail-panel")).not.toBeNull();
+    expect(secondButton).toHaveAttribute(
+      "aria-controls",
+      "feedback-detail-panel",
+    );
+  });
+
   it("does not auto-open anything when there are no sessions", async () => {
     const client = createClient();
     vi.mocked(client.listSessions).mockResolvedValue([]);
     render(<App client={client} />);
 
     expect(await screen.findByText("No feedback yet")).toBeVisible();
-    expect(screen.getByText(/There are no coaching summaries yet/i)).toBeVisible();
+    expect(
+      screen.getByText(/There are no coaching summaries yet/i),
+    ).toBeVisible();
     expect(client.getSession).not.toHaveBeenCalled();
   });
 
@@ -295,7 +369,11 @@ describe("evidence ledger app", () => {
       interventions: [],
       interventionCount: 0,
     };
-    const older = { ...createSession(), id: "older-session", title: "Older take" };
+    const older = {
+      ...createSession(),
+      id: "older-session",
+      title: "Older take",
+    };
     const client = createClient(processing);
     vi.mocked(client.listSessions).mockResolvedValue([
       { ...processing, interventions: undefined } as never,
@@ -310,7 +388,9 @@ describe("evidence ledger app", () => {
 
     expect(await screen.findByText("Newest processing take")).toBeVisible();
     expect(await screen.findByText("42%")).toBeVisible();
-    expect(await screen.findByText("Coaching notes are not ready yet")).toBeVisible();
+    expect(
+      await screen.findByText("Coaching notes are not ready yet"),
+    ).toBeVisible();
     expect(client.getSession).toHaveBeenCalledWith(
       "processing-session",
       expect.any(AbortSignal),
@@ -328,7 +408,11 @@ describe("evidence ledger app", () => {
       interventions: [],
       interventionCount: 0,
     };
-    const older = { ...createSession(), id: "older-session", title: "Older take" };
+    const older = {
+      ...createSession(),
+      id: "older-session",
+      title: "Older take",
+    };
     const client = createClient(failed);
     vi.mocked(client.listSessions).mockResolvedValue([
       { ...failed, interventions: undefined } as never,
@@ -355,8 +439,12 @@ describe("evidence ledger app", () => {
     await waitFor(() =>
       expect(client.refreshFromSpeakr).toHaveBeenCalledWith("failed-session"),
     );
-    await user.click(screen.getByRole("button", { name: "Upload a different file" }));
-    expect(await screen.findByText("Upload one coaching recording.")).toBeVisible();
+    await user.click(
+      screen.getByRole("button", { name: "Upload a different file" }),
+    );
+    expect(
+      await screen.findByText("Upload one coaching recording."),
+    ).toBeVisible();
     expect(client.getSession).toHaveBeenCalledWith(
       "failed-session",
       expect.any(AbortSignal),
@@ -403,7 +491,9 @@ describe("evidence ledger app", () => {
     render(<App client={client} />);
 
     await openFirstRecording(user);
-    expect(await screen.findByText(/summary may be out of date/i)).toBeVisible();
+    expect(
+      await screen.findByText(/summary may be out of date/i),
+    ).toBeVisible();
   });
 
   it("shows uncertainty and saves a human verification decision", async () => {
@@ -413,8 +503,12 @@ describe("evidence ledger app", () => {
 
     await openFirstRecording(user);
     await user.click(await findShowAllInterventions());
-    expect(await screen.findByText("Speaker identity needs human confirmation.")).toBeVisible();
-    await user.click(screen.getByText(/how sure is the assistant about this note/i));
+    expect(
+      await screen.findByText("Speaker identity needs human confirmation."),
+    ).toBeVisible();
+    await user.click(
+      screen.getByText(/how sure is the assistant about this note/i),
+    );
     expect(screen.getByText(/does not prove the coach's point/i)).toBeVisible();
 
     await user.click(screen.getByLabelText("Looks right"));
