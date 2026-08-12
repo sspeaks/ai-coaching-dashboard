@@ -39,7 +39,10 @@ export function App({ client, mockMode = false }: AppProps) {
 
   const handleError = useCallback((caught: unknown) => {
     if (caught instanceof DOMException && caught.name === "AbortError") return;
-    if (caught instanceof ApiError && (caught.status === 401 || caught.status === 403)) {
+    if (
+      caught instanceof ApiError &&
+      (caught.status === 401 || caught.status === 403)
+    ) {
       setUnauthorized(true);
       return;
     }
@@ -125,7 +128,8 @@ export function App({ client, mockMode = false }: AppProps) {
   }, [client, handleError, openId]);
 
   useEffect(() => {
-    if (!sessions.some((session) => isActiveSessionState(session.state))) return;
+    if (!sessions.some((session) => isActiveSessionState(session.state)))
+      return;
     const timer = window.setInterval(() => void loadSessions(), 10_000);
     return () => window.clearInterval(timer);
   }, [loadSessions, sessions]);
@@ -139,7 +143,9 @@ export function App({ client, mockMode = false }: AppProps) {
         .then((next) => {
           setDetail(next);
           setSessions((current) =>
-            current.map((item) => (item.id === next.id ? toSummary(next) : item)),
+            current.map((item) =>
+              item.id === next.id ? toSummary(next) : item,
+            ),
           );
         })
         .catch(handleError);
@@ -152,7 +158,9 @@ export function App({ client, mockMode = false }: AppProps) {
       const nextSummary = toSummary(session);
       const existing = current.findIndex((item) => item.id === session.id);
       if (existing === -1) return [nextSummary, ...current];
-      return current.map((item) => (item.id === session.id ? nextSummary : item));
+      return current.map((item) =>
+        item.id === session.id ? nextSummary : item,
+      );
     });
   }
 
@@ -168,7 +176,9 @@ export function App({ client, mockMode = false }: AppProps) {
   }
 
   function handleDeleted(sessionId: string) {
-    setSessions((current) => current.filter((session) => session.id !== sessionId));
+    setSessions((current) =>
+      current.filter((session) => session.id !== sessionId),
+    );
     setDetail(null);
     setOpenId(null);
     setAutoOpenSuppressed(false);
@@ -202,9 +212,14 @@ export function App({ client, mockMode = false }: AppProps) {
         </div>
         <div className="account-menu" aria-label="Account">
           {currentUser && (
-            <span className="account-menu__user">Signed in as {currentUser.username}</span>
+            <span className="account-menu__user">
+              Signed in as {currentUser.username}
+            </span>
           )}
-          <a className="button button--quiet" href="/oauth2/sign_out?rd=/signed-out">
+          <a
+            className="button button--quiet"
+            href="/oauth2/sign_out?rd=/signed-out"
+          >
             Sign out
           </a>
         </div>
@@ -251,7 +266,10 @@ export function App({ client, mockMode = false }: AppProps) {
         {error && (
           <div className="inline-alert inline-alert--danger" role="alert">
             <span>{error}</span>
-            <button className="button button--quiet" onClick={() => void loadSessions()}>
+            <button
+              className="button button--quiet"
+              onClick={() => void loadSessions()}
+            >
               Try again
             </button>
           </div>
@@ -327,6 +345,34 @@ function FeedbackPage({
   client: EvidenceApiClient;
   onNavigate: (route: Route) => void;
 }) {
+  const detailRegionId = "feedback-detail-panel";
+  const detailRegionRef = useRef<HTMLDivElement>(null);
+  const [shouldFocusDetail, setShouldFocusDetail] = useState(false);
+
+  useEffect(() => {
+    if (
+      !shouldFocusDetail ||
+      !openId ||
+      loadingDetail ||
+      !detail ||
+      detail.id !== openId
+    ) {
+      return;
+    }
+    const detailRegion = detailRegionRef.current;
+    if (!detailRegion) return;
+    if (typeof detailRegion.scrollIntoView === "function") {
+      detailRegion.scrollIntoView({ block: "start" });
+    }
+    detailRegion.focus();
+    setShouldFocusDetail(false);
+  }, [detail, loadingDetail, openId, shouldFocusDetail]);
+
+  function handleOpen(id: string) {
+    setShouldFocusDetail(true);
+    onOpen(id);
+  }
+
   return (
     <>
       <h2 className="page-section-heading">Coaching feedback</h2>
@@ -335,39 +381,58 @@ function FeedbackPage({
           sessions={sessions}
           loading={loadingList}
           selectedId={openId}
-          onOpen={onOpen}
+          detailId={detailRegionId}
+          onOpen={handleOpen}
           onRefresh={onRefresh}
         />
-        {openId === null ? (
-          <section className="panel detail-empty" aria-labelledby="feedback-empty-heading">
-            <h2 id="feedback-empty-heading">
-              {sessions.length === 0 ? "No feedback yet" : "Select a recording"}
-            </h2>
-            <p>
-              {sessions.length === 0
-                ? "There are no coaching summaries yet. Use Upload in the main navigation when you have a recording to add."
-                : "Choose one recording from the list to read its coaching summary."}
-            </p>
-          </section>
-        ) : loadingDetail || !detail ? (
-          <section className="panel detail-loading" role="status">
-            <span className="spinner" aria-hidden="true" />
-            Opening this recording…
-          </section>
-        ) : (
-          <div className="feedback-detail">
-            <button className="back-link" onClick={onClose}>
-              ← Choose another recording
-            </button>
-            <SessionDetailView
-              session={detail}
-              client={client}
-              onChanged={onChanged}
-              onDeleted={() => undefined}
-              onUploadDifferent={() => onNavigate("upload")}
-            />
-          </div>
-        )}
+        <div
+          id={detailRegionId}
+          ref={detailRegionRef}
+          className="feedback-detail"
+          role="region"
+          aria-label={
+            detail && openId === detail.id
+              ? `Opened coaching feedback for ${detail.title}`
+              : "Coaching feedback detail"
+          }
+          tabIndex={-1}
+        >
+          {openId === null ? (
+            <section
+              className="panel detail-empty"
+              aria-labelledby="feedback-empty-heading"
+            >
+              <h2 id="feedback-empty-heading">
+                {sessions.length === 0
+                  ? "No feedback yet"
+                  : "Select a recording"}
+              </h2>
+              <p>
+                {sessions.length === 0
+                  ? "There are no coaching summaries yet. Use Upload in the main navigation when you have a recording to add."
+                  : "Choose one recording from the list to read its coaching summary."}
+              </p>
+            </section>
+          ) : loadingDetail || !detail ? (
+            <section className="panel detail-loading" role="status">
+              <span className="spinner" aria-hidden="true" />
+              Opening this recording…
+            </section>
+          ) : (
+            <>
+              <button className="back-link" onClick={onClose}>
+                ← Choose another recording
+              </button>
+              <SessionDetailView
+                session={detail}
+                client={client}
+                onChanged={onChanged}
+                onDeleted={() => undefined}
+                onUploadDifferent={() => onNavigate("upload")}
+              />
+            </>
+          )}
+        </div>
       </div>
     </>
   );
@@ -375,14 +440,20 @@ function FeedbackPage({
 
 function NotFoundPage({ onNavigate }: { onNavigate: (route: Route) => void }) {
   return (
-    <section className="panel not-found-panel" aria-labelledby="not-found-heading">
+    <section
+      className="panel not-found-panel"
+      aria-labelledby="not-found-heading"
+    >
       <p className="eyebrow">Page not found</p>
       <h2 id="not-found-heading">This page does not exist.</h2>
       <p>
         The link may be old, or the address may have been typed wrong. Go back
         to the feedback list to choose a coaching session.
       </p>
-      <button className="button button--primary" onClick={() => onNavigate("feedback")}>
+      <button
+        className="button button--primary"
+        onClick={() => onNavigate("feedback")}
+      >
         Back to feedback
       </button>
     </section>
@@ -408,10 +479,16 @@ function UploadPage({
           reading and listening.
         </p>
         <div className="page-actions">
-          <button className="button button--quiet" onClick={() => onNavigate("feedback")}>
+          <button
+            className="button button--quiet"
+            onClick={() => onNavigate("feedback")}
+          >
             ← Back to feedback
           </button>
-          <button className="button button--secondary" onClick={() => onNavigate("manage")}>
+          <button
+            className="button button--secondary"
+            onClick={() => onNavigate("manage")}
+          >
             Manage recordings
           </button>
         </div>
@@ -442,7 +519,11 @@ function ManagementPage({
 }) {
   const [working, setWorking] = useState<string | null>(null);
 
-  async function run(sessionId: string, action: string, operation: () => Promise<void>) {
+  async function run(
+    sessionId: string,
+    action: string,
+    operation: () => Promise<void>,
+  ) {
     setWorking(`${action}:${sessionId}`);
     try {
       await operation();
@@ -477,15 +558,24 @@ function ManagementPage({
           summaries and source time links.
         </p>
         <div className="page-actions">
-          <button className="button button--primary" onClick={() => onNavigate("upload")}>
+          <button
+            className="button button--primary"
+            onClick={() => onNavigate("upload")}
+          >
             Upload a recording
           </button>
-          <button className="button button--quiet" onClick={() => onNavigate("feedback")}>
+          <button
+            className="button button--quiet"
+            onClick={() => onNavigate("feedback")}
+          >
             ← Back to feedback
           </button>
         </div>
       </section>
-      <section className="panel management-panel" aria-labelledby="management-list-heading">
+      <section
+        className="panel management-panel"
+        aria-labelledby="management-list-heading"
+      >
         <div className="section-heading">
           <div>
             <p className="eyebrow">All recordings</p>
@@ -504,8 +594,14 @@ function ManagementPage({
         ) : sessions.length === 0 ? (
           <div className="empty-state">
             <h3>No recordings to manage</h3>
-            <p>Upload a recording first, then deletion and update controls appear here.</p>
-            <button className="button button--primary" onClick={() => onNavigate("upload")}>
+            <p>
+              Upload a recording first, then deletion and update controls appear
+              here.
+            </p>
+            <button
+              className="button button--primary"
+              onClick={() => onNavigate("upload")}
+            >
               Upload a recording
             </button>
           </div>
@@ -517,7 +613,8 @@ function ManagementPage({
                   <div>
                     <h3>{session.title}</h3>
                     <p>
-                      {session.originalFileName} · Added {formatDate(session.createdAt)}
+                      {session.originalFileName} · Added{" "}
+                      {formatDate(session.createdAt)}
                     </p>
                     <p>{sessionStatus(session.state).label}</p>
                   </div>
@@ -531,7 +628,9 @@ function ManagementPage({
                         })
                       }
                     >
-                      {working === `refresh:${session.id}` ? "Checking…" : "Check transcript"}
+                      {working === `refresh:${session.id}`
+                        ? "Checking…"
+                        : "Check transcript"}
                     </button>
                     <button
                       className="button button--quiet"
@@ -543,7 +642,9 @@ function ManagementPage({
                         })
                       }
                     >
-                      {working === `summary:${session.id}` ? "Updating…" : "Update summary"}
+                      {working === `summary:${session.id}`
+                        ? "Updating…"
+                        : "Update summary"}
                     </button>
                     {isActiveSessionState(session.state) &&
                       session.state !== "DELETE_PENDING" && (
@@ -556,7 +657,9 @@ function ManagementPage({
                             })
                           }
                         >
-                          {working === `cancel:${session.id}` ? "Cancelling…" : "Cancel"}
+                          {working === `cancel:${session.id}`
+                            ? "Cancelling…"
+                            : "Cancel"}
                         </button>
                       )}
                     <button
@@ -564,7 +667,9 @@ function ManagementPage({
                       disabled={working !== null}
                       onClick={() => void deleteRecording(session)}
                     >
-                      {working === `delete:${session.id}` ? "Deleting…" : "Delete recording"}
+                      {working === `delete:${session.id}`
+                        ? "Deleting…"
+                        : "Delete recording"}
                     </button>
                   </div>
                 </article>

@@ -6,6 +6,7 @@ interface SessionListProps {
   sessions: SessionSummary[];
   loading: boolean;
   selectedId?: string | null;
+  detailId: string;
   onOpen: (id: string) => void;
   onRefresh: () => void;
 }
@@ -14,11 +15,15 @@ export function SessionList({
   sessions,
   loading,
   selectedId = null,
+  detailId,
   onOpen,
   onRefresh,
 }: SessionListProps) {
   return (
-    <section className="panel session-list-panel" aria-labelledby="sessions-heading">
+    <section
+      className="panel session-list-panel"
+      aria-labelledby="sessions-heading"
+    >
       <div className="section-heading">
         <div>
           <p className="eyebrow">Your recordings</p>
@@ -46,20 +51,31 @@ export function SessionList({
         <ul className="session-list">
           {sessions.map((session) => {
             const status = sessionStatus(session.state);
+            const selected = selectedId === session.id;
             const action =
               status.tone === "ready"
-                ? "Read feedback"
+                ? selected
+                  ? "Feedback open"
+                  : "Read feedback"
                 : status.tone === "problem"
                   ? "Recover"
                   : "See progress";
+            const openHint =
+              status.tone === "problem"
+                ? "Recovery options are open below. Jumping to help now."
+                : "Feedback is open below. Jumping to the notes now.";
             return (
               <li key={session.id}>
-                <article className="session-card">
+                <article
+                  className={`session-card${selected ? " session-card--selected" : ""}`}
+                >
                   <div className="session-card__topline">
                     <h3>{session.title}</h3>
                     <StatusBadge state={session.state} />
                   </div>
-                  <p className="session-card__file">{session.originalFileName}</p>
+                  <p className="session-card__file">
+                    {session.originalFileName}
+                  </p>
                   <p className="session-card__meta">
                     Added {formatDate(session.createdAt)}
                   </p>
@@ -79,15 +95,31 @@ export function SessionList({
                       </div>
                     )}
                   {session.error && (
-                    <p className="session-card__error">{session.error.message}</p>
+                    <p className="session-card__error">
+                      {session.error.message}
+                    </p>
                   )}
                   <button
                     className="button button--secondary"
                     aria-pressed={selectedId === session.id}
+                    aria-expanded={selected}
+                    aria-controls={detailId}
+                    aria-describedby={
+                      selected ? `${session.id}-feedback-open-hint` : undefined
+                    }
                     onClick={() => onOpen(session.id)}
                   >
-                    {action}
+                    <span>{action}</span>
+                    <span aria-hidden="true">{selected ? "↓" : "›"}</span>
                   </button>
+                  {selected && (
+                    <p
+                      id={`${session.id}-feedback-open-hint`}
+                      className="session-card__open-hint"
+                    >
+                      {openHint}
+                    </p>
+                  )}
                 </article>
               </li>
             );
