@@ -85,8 +85,12 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             disabled={uploading}
-            placeholder="For example: August coaching with Alex"
+            placeholder="August coaching"
+            aria-describedby="recording-name-hint"
           />
+          <span id="recording-name-hint" className="field-hint">
+            Example: August coaching with Alex
+          </span>
         </label>
         <label>
           Audio file
@@ -102,12 +106,31 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
           accepted. Keep this page open until the upload finishes.
         </p>
         <div className="privacy-disclosure">
-          <p>
-            Before you upload: make sure everyone on the recording is okay with
-            it being uploaded and analyzed. Your audio is saved here and sent
-            to Speakr for transcription; depending on this setup, Speakr may
-            send it to an outside transcription provider.
+          <p className="privacy-disclosure__intro">
+            Before you upload, make sure everyone on the recording is okay with
+            these processing steps:
           </p>
+          <ul className="privacy-disclosure__facts">
+            <li>
+              <strong>Audio is stored here.</strong> The dashboard saves the
+              uploaded recording so it can be processed and played back.
+            </li>
+            <li>
+              <strong>Audio is sent for transcription.</strong> The recording
+              goes through the configured Speakr/transcription path, which may
+              use a downstream ASR provider.
+            </li>
+            <li>
+              <strong>Text may be analyzed by AI.</strong> When enabled,
+              transcript text and coaching-note text may be sent to the
+              configured AI extraction gateway.
+            </li>
+            <li>
+              <strong>Deletion is explicit.</strong> Recordings and notes stay
+              until an admin deletes them or operator retention tooling removes
+              them.
+            </li>
+          </ul>
           <button
             className="disclosure-button"
             type="button"

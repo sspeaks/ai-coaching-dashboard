@@ -283,6 +283,7 @@ label {
 input,
 textarea {
   width: 100%;
+  min-height: 44px;
   padding: 0.7rem 0.8rem;
   color: var(--ink);
   background: var(--background);
@@ -299,10 +300,15 @@ textarea {
 }
 
 .optional,
-.supporting-text {
+.supporting-text,
+.field-hint {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 400;
+}
+
+.field-hint {
+  line-height: 1.35;
 }
 
 .privacy-disclosure {
@@ -319,6 +325,28 @@ textarea {
   margin-bottom: 0;
 }
 
+.privacy-disclosure__intro {
+  font-weight: 700;
+}
+
+.privacy-disclosure__facts {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.privacy-disclosure__facts li {
+  padding-left: 0.8rem;
+  border-left: 3px solid var(--brand);
+}
+
+.privacy-disclosure__facts strong {
+  display: block;
+  color: var(--brand-strong);
+}
+
 .privacy-disclosure div {
   display: grid;
   gap: 0.6rem;
@@ -326,14 +354,20 @@ textarea {
   font-size: 0.9rem;
 }
 
+.privacy-disclosure [hidden] {
+  display: none;
+}
+
 .disclosure-button {
   justify-self: start;
-  padding: 0;
+  min-height: 44px;
+  padding: 0.55rem 0;
   color: var(--brand-strong);
   background: transparent;
   border: 0;
   cursor: pointer;
   font-weight: 800;
+  text-align: left;
   text-decoration: underline;
 }
 
