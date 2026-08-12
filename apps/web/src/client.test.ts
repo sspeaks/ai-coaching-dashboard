@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   ApiError,
   createHttpEvidenceApiClient,
+  createMockEvidenceApiClient,
   type EvidenceApiLedgerEntry,
   type EvidenceApiSession,
 } from "@quartet-coach/web-client";
@@ -146,6 +147,7 @@ describe("HTTP evidence API client", () => {
     });
   });
 
+
   it("uses the concrete create, multipart upload, refresh, review, cancel, and deletion routes", async () => {
     const calls: Array<{ url: string; init?: RequestInit }> = [];
     const fetcher = vi.fn<typeof fetch>(async (input, init) => {
@@ -258,5 +260,46 @@ describe("HTTP evidence API client", () => {
     expect((FakeXhr.latest.body as FormData).get("media")).toBe(file);
     expect(progress).toHaveBeenLastCalledWith(100);
     vi.unstubAllGlobals();
+  });
+});
+
+describe("mock evidence API client", () => {
+  it("can be pinned to an empty first-run state", async () => {
+    window.history.pushState({}, "", "/?mockState=empty");
+    const client = createMockEvidenceApiClient();
+
+    await expect(client.listSessions()).resolves.toEqual([]);
+  });
+
+  it("can hold a deterministic transcribing state", async () => {
+    window.history.pushState({}, "", "/?mockState=processing");
+    const client = createMockEvidenceApiClient();
+
+    const sessions = await client.listSessions();
+
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0]).toMatchObject({
+      id: "synthetic-transcribing",
+      state: "TRANSCRIBING",
+      progress: 38,
+      createdAt: "2026-08-12T18:30:00.000Z",
+      updatedAt: "2026-08-12T18:30:00.000Z",
+    });
+  });
+
+  it("can hold a reviewed complete session with realistic synthetic notes", async () => {
+    window.history.pushState({}, "", "/?mockState=complete");
+    const client = createMockEvidenceApiClient();
+
+    const [session] = await client.listSessions();
+    const detail = await client.getSession(session.id);
+    const overview = await client.getOverview(session.id);
+
+    expect(detail.state).toBe("COMPLETE");
+    expect(detail.reviewedInterventionCount).toBe(detail.interventionCount);
+    expect(detail.interventions[0].exactCoachFeedback).toContain(
+      "synthetic demo coaching",
+    );
+    expect(overview?.generatedAt).toBe("2026-08-12T18:35:00.000Z");
   });
 });
