@@ -6,6 +6,11 @@
 .squad/sessions/
 .squad/.scratch/
 .squad/.cache/
+# UX screenshots are large regenerable binaries (`cd apps/web && npm run ux:capture`)
+# and churn on every UI change; keep REVIEW.md and manifest.json tracked.
+.squad/files/ux-review/*/phone-390x844/*.png
+.squad/files/ux-review/*/narrow-phone-360x800/*.png
+.squad/files/ux-review/*/desktop-1440x900/*.png
 # Squad: SubSquad activation file (local to this machine)
 .squad-workstream
 

@@ -60,11 +60,15 @@
         {
           default = pkgs.mkShell {
             packages = with pkgs; [
+              nodejs_24
               nixfmt
               statix
               deadnix
               skopeo
+              playwright-driver.browsers
             ];
+            PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
+            PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
           };
         }
       );
