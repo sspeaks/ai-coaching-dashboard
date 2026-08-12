@@ -15,6 +15,7 @@ interface SessionDetailProps {
   client: EvidenceApiClient;
   onChanged: (session: SessionDetailType) => void;
   onDeleted: (sessionId: string) => void;
+  onUploadDifferent?: () => void;
   showRecordingOptions?: boolean;
 }
 
@@ -23,6 +24,7 @@ export function SessionDetail({
   client,
   onChanged,
   onDeleted,
+  onUploadDifferent,
   showRecordingOptions = false,
 }: SessionDetailProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -79,6 +81,7 @@ export function SessionDetail({
     isActiveSessionState(session.state) && session.state !== "DELETE_PENDING";
   const status = sessionStatus(session.state);
   const readyForFeedback = status.tone === "ready";
+  const failed = session.error || isFailedSessionState(session.state);
 
   return (
     <section className="panel detail-panel" aria-labelledby="detail-heading">
@@ -158,14 +161,41 @@ export function SessionDetail({
         </details>
       )}
 
-      {(session.error || isFailedSessionState(session.state)) && (
-        <div className="inline-alert inline-alert--danger" role="alert">
-          <strong>We could not finish this recording.</strong>{" "}
-          {session.error?.message ||
-            "No specific reason was provided."}
-          {session.error?.retryable && (
-            <span> Try checking for transcript updates after the issue is fixed.</span>
+      {failed && (
+        <div
+          className="recovery-panel"
+          role="alert"
+          aria-labelledby={`recovery-${session.id}`}
+        >
+          <p className="eyebrow">Needs action</p>
+          <h3 id={`recovery-${session.id}`}>This file could not be read.</h3>
+          <p>
+            Upload a different MP3, WAV, or M4A file. If the new file also
+            fails, ask an admin for help.
+          </p>
+          {session.error?.message && (
+            <p className="recovery-panel__detail">{session.error.message}</p>
           )}
+          <div className="page-actions">
+            {onUploadDifferent ? (
+              <button className="button button--primary" onClick={onUploadDifferent}>
+                Upload a different file
+              </button>
+            ) : (
+              <a className="button button--primary" href="/upload">
+                Upload a different file
+              </a>
+            )}
+            <button
+              className="button button--secondary"
+              onClick={() =>
+                runAction("refresh", () => client.refreshFromSpeakr(session.id))
+              }
+              disabled={action !== null}
+            >
+              {action === "refresh" ? "Checking…" : "Check again"}
+            </button>
+          </div>
         </div>
       )}
       {error && (
