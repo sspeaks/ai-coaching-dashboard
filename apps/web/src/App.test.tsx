@@ -193,13 +193,24 @@ describe("evidence ledger app", () => {
       screen.queryByRole("button", { name: "Upload a recording" }),
     ).toBeNull();
     await user.click(screen.getByRole("link", { name: "Upload" }));
+    expect(screen.getByText("Example: August coaching with Alex")).toBeVisible();
+    expect(screen.getByPlaceholderText("August coaching")).toHaveAccessibleDescription(
+      "Example: August coaching with Alex",
+    );
+    expect(screen.getByText("Audio is stored here.")).toBeVisible();
     expect(
-      screen.getByText(/sent to Speakr for transcription/i),
+      screen.getByText("Audio is sent for transcription."),
+    ).toBeVisible();
+    expect(screen.getByText("Text may be analyzed by AI.")).toBeVisible();
+    expect(screen.getByText("Deletion is explicit.")).toBeVisible();
+    expect(
+      screen.getByText(/make sure everyone on the recording is okay/i),
     ).toBeVisible();
     const disclosure = screen.getByRole("button", {
       name: /what happens to my recording/i,
     });
     expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByText(/original file is kept until an admin deletes/i)).not.toBeVisible();
     await user.click(disclosure);
     expect(disclosure).toHaveAttribute("aria-expanded", "true");
     expect(
