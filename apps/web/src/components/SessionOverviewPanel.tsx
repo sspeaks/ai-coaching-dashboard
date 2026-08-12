@@ -5,11 +5,27 @@ import type {
   SessionOverview,
 } from "@quartet-coach/web-client";
 import { formatTimestampMs } from "../lib/format";
+import { NowPlayingCue } from "./NowPlayingCue";
 
 interface SessionOverviewPanelProps {
   session: SessionDetail;
   client: EvidenceApiClient;
-  onSeek: (seconds: number) => void;
+  onSeek: (
+    seconds: number,
+    moment: {
+      key: string;
+      label: string;
+      noteTitle: string;
+      sourceLabel?: string;
+    },
+  ) => void;
+  activeMoment: {
+    key: string;
+    label: string;
+    noteTitle: string;
+    sourceLabel?: string;
+  } | null;
+  playheadPercent: number | null;
   audioAvailable: boolean;
   onShowAll: () => void;
   showManagementTools?: boolean;
@@ -19,6 +35,8 @@ export function SessionOverviewPanel({
   session,
   client,
   onSeek,
+  activeMoment,
+  playheadPercent,
   audioAvailable,
   onShowAll,
   showManagementTools = false,
@@ -107,7 +125,8 @@ export function SessionOverviewPanel({
       {overview?.stale && (
         <div className="inline-alert" role="status">
           <strong>This summary may be out of date.</strong> Someone changed the
-          detailed notes after it was written. Use the management page to update it.
+          detailed notes after it was written. Use the management page to update
+          it.
         </div>
       )}
 
@@ -139,21 +158,47 @@ export function SessionOverviewPanel({
                       : `${theme.moments.length} source moments`}
                   </summary>
                   <div className="theme-item__moment-list">
-                    {theme.moments.map((moment) => (
-                      <button
-                        key={moment.interventionId}
-                        className="evidence-link"
-                        onClick={() => onSeek(moment.startMs / 1000)}
-                        disabled={!audioAvailable}
-                        title={
-                          audioAvailable
-                            ? "Play the recording from this moment"
-                            : "Audio playback is not available for this session"
-                        }
-                      >
-                        {formatTimestampMs(moment.startMs)}
-                      </button>
-                    ))}
+                    {theme.moments.map((moment) => {
+                      const label = formatTimestampMs(moment.startMs);
+                      const key = `theme-${theme.rank}-${moment.interventionId}-${moment.startMs}`;
+                      const active = activeMoment?.key === key;
+                      return (
+                        <div className="moment-play-group" key={key}>
+                          <button
+                            className={`evidence-link evidence-link--play${active ? " evidence-link--active" : ""}`}
+                            aria-pressed={active}
+                            onClick={() =>
+                              onSeek(moment.startMs / 1000, {
+                                key,
+                                label,
+                                noteTitle: theme.title,
+                                sourceLabel: theme.summary,
+                              })
+                            }
+                            disabled={!audioAvailable}
+                            title={
+                              audioAvailable
+                                ? "Play the recording from this moment"
+                                : "Audio playback is not available for this session"
+                            }
+                          >
+                            <span aria-hidden="true">▶</span>
+                            <strong>
+                              {active ? "Now playing" : "Play"} source at{" "}
+                              {label}
+                            </strong>
+                          </button>
+                          {active && activeMoment && (
+                            <NowPlayingCue
+                              label={activeMoment.label}
+                              noteTitle={activeMoment.noteTitle}
+                              sourceLabel={activeMoment.sourceLabel}
+                              progressPercent={playheadPercent}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </details>
               </li>
