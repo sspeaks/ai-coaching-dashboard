@@ -274,6 +274,7 @@ export function App({ client, mockMode = false }: AppProps) {
             onRefresh={() => void loadSessions()}
             onChanged={handleChanged}
             client={client}
+            onNavigate={navigate}
           />
         )}
         {route === "upload" && (
@@ -312,6 +313,7 @@ function FeedbackPage({
   onRefresh,
   onChanged,
   client,
+  onNavigate,
 }: {
   sessions: SessionSummary[];
   loadingList: boolean;
@@ -323,6 +325,7 @@ function FeedbackPage({
   onRefresh: () => void;
   onChanged: (session: SessionDetail) => void;
   client: EvidenceApiClient;
+  onNavigate: (route: Route) => void;
 }) {
   return (
     <>
@@ -361,6 +364,7 @@ function FeedbackPage({
               client={client}
               onChanged={onChanged}
               onDeleted={() => undefined}
+              onUploadDifferent={() => onNavigate("upload")}
             />
           </div>
         )}

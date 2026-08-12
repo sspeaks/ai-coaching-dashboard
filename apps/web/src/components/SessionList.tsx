@@ -46,7 +46,12 @@ export function SessionList({
         <ul className="session-list">
           {sessions.map((session) => {
             const status = sessionStatus(session.state);
-            const action = status.tone === "ready" ? "Read feedback" : "See progress";
+            const action =
+              status.tone === "ready"
+                ? "Read feedback"
+                : status.tone === "problem"
+                  ? "Recover"
+                  : "See progress";
             return (
               <li key={session.id}>
                 <article className="session-card">

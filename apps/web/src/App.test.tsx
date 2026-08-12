@@ -317,7 +317,8 @@ describe("evidence ledger app", () => {
     );
   });
 
-  it("auto-opens the newest failed session", async () => {
+  it("auto-opens the newest failed session with recovery actions", async () => {
+    const user = userEvent.setup();
     const failed = {
       ...createSession(),
       id: "failed-session",
@@ -341,11 +342,21 @@ describe("evidence ledger app", () => {
     render(<App client={client} />);
 
     expect(await screen.findByText("Newest failed take")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Recover" })).toBeVisible();
     await waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent(
-        "We could not finish this recording. Speakr could not read the file.",
+        "This file could not be read.",
       ),
     );
+    expect(
+      screen.getByText(/Upload a different MP3, WAV, or M4A file/i),
+    ).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Check again" }));
+    await waitFor(() =>
+      expect(client.refreshFromSpeakr).toHaveBeenCalledWith("failed-session"),
+    );
+    await user.click(screen.getByRole("button", { name: "Upload a different file" }));
+    expect(await screen.findByText("Upload one coaching recording.")).toBeVisible();
     expect(client.getSession).toHaveBeenCalledWith(
       "failed-session",
       expect.any(AbortSignal),
