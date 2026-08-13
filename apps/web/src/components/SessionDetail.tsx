@@ -254,6 +254,7 @@ export function SessionDetail({
       {failed && (
         <div
           className="recovery-panel"
+          data-testid="failed-recording-recovery"
           role="alert"
           aria-labelledby={`recovery-${session.id}`}
         >

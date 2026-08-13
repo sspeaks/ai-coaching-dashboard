@@ -70,7 +70,7 @@ const states = [
     description: "opened Feedback after processing failed; the error message and recovery guidance are visible.",
     run: async (page) => {
       await page.goto(`${baseUrl}/?mockState=failed`);
-      await page.getByText("We could not finish this recording.").waitFor();
+      await page.getByTestId("failed-recording-recovery").waitFor();
     },
   },
   {
