@@ -281,49 +281,69 @@ function InterventionCard({
           )}
       </div>
 
-      <fieldset className="review-controls">
-        <legend>Mark this note</legend>
-        <div className="segmented-control">
-          {(["VERIFIED", "REJECTED"] as const).map((status) => (
-            <label key={status}>
-              <input
-                type="radio"
-                name={`review-${intervention.id}`}
-                value={status}
-                checked={choice === status}
-                onChange={() => setChoice(status)}
-                disabled={saving}
-              />
-              {status === "VERIFIED" ? "Looks right" : "Needs correction"}
-            </label>
-          ))}
-        </div>
-        <label>
-          Your note <span className="optional">(optional)</span>
-          <textarea
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            rows={3}
-            disabled={saving}
-          />
-          <span className="supporting-text">
-            If the transcript itself is wrong, fix it in the transcript editor
-            and then check for transcript updates from Recording options.
+      <details className="review-disclosure">
+        <summary>
+          <span className="review-disclosure__title">
+            Optional: check this note
           </span>
-        </label>
-        {error && (
-          <div className="inline-alert inline-alert--danger" role="alert">
-            {error}
-          </div>
-        )}
-        <button
-          className="button button--primary"
-          onClick={saveReview}
-          disabled={!choice || saving}
+          <span className="review-disclosure__hint">
+            The coaching is ready to read. Open this only if you want to mark
+            whether the note looks right.
+          </span>
+        </summary>
+        <fieldset
+          className="review-controls"
+          aria-describedby={`review-${intervention.id}-intro`}
         >
-          {saving ? "Saving…" : "Save"}
-        </button>
-      </fieldset>
+          <legend className="sr-only">Optional note check</legend>
+          <p
+            id={`review-${intervention.id}-intro`}
+            className="review-controls__intro"
+          >
+            This does not block reading or playing the coaching note.
+          </p>
+          <div className="segmented-control">
+            {(["VERIFIED", "REJECTED"] as const).map((status) => (
+              <label key={status}>
+                <input
+                  type="radio"
+                  name={`review-${intervention.id}`}
+                  value={status}
+                  checked={choice === status}
+                  onChange={() => setChoice(status)}
+                  disabled={saving}
+                />
+                {status === "VERIFIED" ? "Looks right" : "Needs correction"}
+              </label>
+            ))}
+          </div>
+          <label>
+            Your note <span className="optional">(optional)</span>
+            <textarea
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              rows={3}
+              disabled={saving}
+            />
+            <span className="supporting-text">
+              If the transcript itself is wrong, fix it in the transcript editor
+              and then check for transcript updates from Recording options.
+            </span>
+          </label>
+          {error && (
+            <div className="inline-alert inline-alert--danger" role="alert">
+              {error}
+            </div>
+          )}
+          <button
+            className="button button--primary"
+            onClick={saveReview}
+            disabled={!choice || saving}
+          >
+            {saving ? "Saving…" : "Save note check"}
+          </button>
+        </fieldset>
+      </details>
     </article>
   );
 }
