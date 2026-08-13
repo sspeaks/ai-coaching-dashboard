@@ -1417,3 +1417,72 @@ meter {
     min-width: 100%;
   }
 }
+
+/* Issue #42: keep optional note review out of the coaching-reading path. */
+.review-disclosure {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: rgb(13 17 23 / 35%);
+}
+
+.review-disclosure summary {
+  display: grid;
+  gap: 0.25rem;
+  min-height: 44px;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+}
+
+.review-disclosure summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.review-disclosure__title {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.review-disclosure__hint,
+.review-controls__intro {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.review-disclosure .review-controls {
+  margin: 0 1rem 1rem;
+  background: var(--surface);
+}
+
+.review-disclosure .segmented-control label {
+  min-height: 44px;
+  padding: 0.65rem 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .review-disclosure summary {
+    padding: 0.9rem;
+  }
+
+  .review-disclosure .review-controls {
+    margin: 0 0.7rem 0.7rem;
+  }
+
+  .review-disclosure .segmented-control,
+  .review-disclosure .segmented-control label,
+  .review-disclosure .review-controls .button {
+    width: 100%;
+  }
+}
+
+.review-disclosure__title::before {
+  content: "▸";
+  margin-right: 0.4rem;
+  color: var(--brand);
+}
+
+.review-disclosure[open] .review-disclosure__title::before {
+  content: "▾";
+}
