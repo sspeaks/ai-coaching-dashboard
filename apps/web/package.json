@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:phone-audio-controls": "node ux-capture/issue54-phone-audio.mjs",
     "ux:capture": "node ux-capture/capture.mjs",
     "ux:control-guard": "node ux-capture/capture.mjs --check-usable-controls"
   },

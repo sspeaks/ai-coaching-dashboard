@@ -143,7 +143,7 @@ function InterventionCard({
   const takeaway =
     intervention.interpretation ||
     intervention.exactCoachFeedback ||
-    "Read the source moments and note details for this coaching point.";
+    "Listen to the marked moments and read the note details for this coaching point.";
   const hasReviewWarnings =
     confidence != null || intervention.uncertaintyReasons.length > 0;
 
@@ -251,7 +251,7 @@ function InterventionCard({
       </div>
 
       <div className="evidence-section">
-        <span className="field-label">Source moments</span>
+        <span className="field-label">Moments to hear</span>
         {intervention.evidence.length === 0 ? (
           <p className="missing-value">No timestamped source was supplied.</p>
         ) : (

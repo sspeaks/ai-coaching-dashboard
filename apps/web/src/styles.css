@@ -744,12 +744,14 @@ meter {
 }
 
 .advanced-panel,
+.technical-details,
 .note-details {
   margin-top: 1rem;
   color: var(--muted);
 }
 
 .advanced-panel summary,
+.technical-details summary,
 .inline-details summary,
 .note-details summary {
   cursor: pointer;

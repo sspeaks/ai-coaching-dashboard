@@ -25,7 +25,7 @@ export function NowPlayingCue({
         <span aria-hidden="true">▶</span>
         <strong>Now playing {label}</strong>
       </div>
-      <p>Source recording jumped to this moment for “{noteTitle}”.</p>
+      <p>Your recording jumped to this moment for “{noteTitle}”.</p>
       {sourceLabel && <p className="now-playing-cue__source">{sourceLabel}</p>}
       <div
         className={`now-playing-cue__track${clampedProgress == null ? " now-playing-cue__track--empty" : ""}`}

@@ -148,11 +148,11 @@ export function SessionOverviewPanel({
                   </h4>
                 </div>
                 <p>{theme.summary}</p>
-                <div className="theme-item__moments" aria-label="Source moments">
+                <div className="theme-item__moments" aria-label="Moments to hear">
                   <span className="field-label">
                     {theme.moments.length === 1
-                      ? "Play the source moment"
-                      : "Play source moments"}
+                      ? "Play this moment"
+                      : "Play these moments"}
                   </span>
                   <div className="theme-item__moment-list">
                     {theme.moments.map((moment) => {
@@ -162,6 +162,7 @@ export function SessionOverviewPanel({
                       return (
                         <div className="moment-play-group" key={key}>
                           <button
+                            data-testid={`summary-source-moment-${theme.rank}-${moment.startMs}`}
                             className={`evidence-link evidence-link--play${active ? " evidence-link--active" : ""}`}
                             aria-pressed={active}
                             onClick={() =>
@@ -180,7 +181,7 @@ export function SessionOverviewPanel({
                           >
                             <span aria-hidden="true">▶</span>
                             <strong>
-                              {active ? "Now playing" : "Play"} source at{" "}
+                              {active ? "Now playing" : "Play"} recording at{" "}
                               {label}
                             </strong>
                           </button>
