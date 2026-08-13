@@ -14,6 +14,8 @@ const VIEWPORTS = [
   { name: "narrow-phone-360x800", width: 360, height: 800 },
   { name: "desktop-1440x900", width: 1440, height: 900 },
 ];
+const PHONE_VIEWPORTS = VIEWPORTS.filter((viewport) => viewport.width <= 390);
+const CHECK_USABLE_CONTROLS = process.argv.includes("--check-usable-controls");
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -93,6 +95,16 @@ const states = [
       await page.getByText("Checked").first().waitFor();
     },
   },
+  {
+    file: "08-feedback-source-playing.png",
+    description: "tapped a source timestamp and the source recording panel shows the now-playing state.",
+    run: async (page) => {
+      await page.goto(`${baseUrl}/?mockState=complete`);
+      await page.getByRole("heading", { name: "What the coach worked on" }).waitFor();
+      await page.getByRole("button", { name: /Play .* at / }).first().click();
+      await page.getByText(/Now playing/).first().waitFor();
+    },
+  },
 ].sort((a, b) => a.file.localeCompare(b.file));
 
 main().catch((error) => {
@@ -110,8 +122,10 @@ async function main() {
   }
   await assertPlaywrightNixAlignment(process.env.PLAYWRIGHT_BROWSERS_PATH);
 
-  await rm(outputRoot, { recursive: true, force: true });
-  await mkdir(outputRoot, { recursive: true });
+  if (!CHECK_USABLE_CONTROLS) {
+    await rm(outputRoot, { recursive: true, force: true });
+    await mkdir(outputRoot, { recursive: true });
+  }
 
   const server = startServer();
   try {
@@ -120,12 +134,15 @@ async function main() {
       headless: true,
       executablePath: await chromiumExecutablePath(),
     });
+    const runViewports = CHECK_USABLE_CONTROLS ? PHONE_VIEWPORTS : VIEWPORTS;
     const manifest = {
       generatedAt: new Date().toISOString(),
       fixedRenderTime: FIXED_RENDER_TIME,
-      command: "cd apps/web && npm run ux:capture",
+      command: CHECK_USABLE_CONTROLS
+        ? "cd apps/web && npm run ux:control-guard"
+        : "cd apps/web && npm run ux:capture",
       outputRoot: path.relative(repoRoot, outputRoot),
-      viewports: VIEWPORTS.map(({ name, width, height }) => ({ name, width, height })),
+      viewports: runViewports.map(({ name, width, height }) => ({ name, width, height })),
       shots: [],
       caveats: [
         "Only states reachable through the current mock client are captured.",
@@ -134,14 +151,25 @@ async function main() {
     };
 
     try {
-      for (const viewport of VIEWPORTS) {
+      let checkedControls = 0;
+      for (const viewport of runViewports) {
         const viewportDir = path.join(outputRoot, viewport.name);
-        await mkdir(viewportDir, { recursive: true });
+        if (!CHECK_USABLE_CONTROLS) {
+          await mkdir(viewportDir, { recursive: true });
+        }
         for (const state of states) {
           const page = await newPage(browser, viewport);
           try {
             await state.run(page);
             await stabilize(page);
+            if (CHECK_USABLE_CONTROLS) {
+              const result = await assertUsableInteractiveControls(page, { viewport, state });
+              checkedControls += result.checked;
+              console.log(
+                `Checked ${result.checked} visible controls (${result.skipped} intentionally hidden/collapsed) in ${viewport.name}/${state.file}`,
+              );
+              continue;
+            }
             const outPath = path.join(viewportDir, state.file);
             const screenshot = await page.screenshot({
               fullPage: true,
@@ -163,10 +191,14 @@ async function main() {
           }
         }
       }
+      if (CHECK_USABLE_CONTROLS) {
+        console.log(`Viewport usability guard checked ${checkedControls} controls across ${runViewports.length} phone viewports.`);
+      }
     } finally {
       await browser.close().catch(() => undefined);
     }
 
+    if (CHECK_USABLE_CONTROLS) return;
     await writeFile(
       path.join(outputRoot, "manifest.json"),
       `${JSON.stringify(manifest, null, 2)}\n`,
@@ -331,6 +363,10 @@ async function newPage(browser, viewport) {
     FrozenDate.prototype = RealDate.prototype;
     globalThis.Date = FrozenDate;
     Math.random = () => 0.123456789;
+    HTMLMediaElement.prototype.play = function play() {
+      this.dispatchEvent(new Event("play"));
+      return Promise.resolve();
+    };
   }, { fixedTime: FIXED_RENDER_TIME });
   const page = await context.newPage();
   await page.addStyleTag({
@@ -351,6 +387,145 @@ async function newPage(browser, viewport) {
     `,
   }).catch(() => undefined);
   return page;
+}
+
+async function assertUsableInteractiveControls(page, { viewport, state }) {
+  const result = await page.evaluate(async () => {
+    const selector = [
+      "button",
+      "summary",
+      "audio[controls]",
+      "input:not([type='hidden'])",
+      "select",
+      "textarea",
+      "a[href]",
+      "[role='button']",
+      "[role='checkbox']",
+      "[role='combobox']",
+      "[role='radio']",
+      "[role='slider']",
+      "[role='switch']",
+      "[role='textbox']",
+    ].join(",");
+    const controls = Array.from(document.querySelectorAll(selector));
+    const failures = [];
+    let checked = 0;
+    let skipped = 0;
+
+    const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const isInClosedDetails = (element) => {
+      const details = element.closest("details:not([open])");
+      return Boolean(details && !(element.tagName === "SUMMARY" && element.parentElement === details));
+    };
+    const isIntentionallyCollapsed = (element) =>
+      Boolean(element.closest("[hidden], [aria-hidden='true'], [inert]")) || isInClosedDetails(element);
+    const describe = (element) => {
+      const tag = element.tagName.toLowerCase();
+      const id = element.id ? `#${element.id}` : "";
+      const classes = typeof element.className === "string" && element.className.trim()
+        ? `.${element.className.trim().split(/\s+/).slice(0, 3).join(".")}`
+        : "";
+      const name =
+        element.getAttribute("aria-label") ||
+        element.getAttribute("title") ||
+        element.textContent?.replace(/\s+/g, " ").trim().slice(0, 80) ||
+        element.getAttribute("name") ||
+        element.getAttribute("type") ||
+        "";
+      return `${tag}${id}${classes}${name ? ` "${name}"` : ""}`;
+    };
+    const hitBelongsTo = (element, hit) => {
+      if (!hit) return false;
+      if (hit === element || element.contains(hit)) return true;
+      if (element instanceof HTMLInputElement) {
+        return Array.from(element.labels ?? []).some((label) => label === hit || label.contains(hit));
+      }
+      return false;
+    };
+    const rectSnapshot = (rect) => ({
+      x: Number(rect.x.toFixed(2)),
+      y: Number(rect.y.toFixed(2)),
+      width: Number(rect.width.toFixed(2)),
+      height: Number(rect.height.toFixed(2)),
+      top: Number(rect.top.toFixed(2)),
+      right: Number(rect.right.toFixed(2)),
+      bottom: Number(rect.bottom.toFixed(2)),
+      left: Number(rect.left.toFixed(2)),
+    });
+
+    for (const [index, element] of controls.entries()) {
+      if (isIntentionallyCollapsed(element)) {
+        skipped += 1;
+        continue;
+      }
+
+      checked += 1;
+      const style = getComputedStyle(element);
+      const reasons = [];
+      if (style.display === "none") reasons.push("display:none");
+      if (style.visibility === "hidden" || style.visibility === "collapse") reasons.push(`visibility:${style.visibility}`);
+      if (Number(style.opacity) === 0) reasons.push("opacity:0");
+
+      if (!(element instanceof HTMLButtonElement && element.disabled) && !(element instanceof HTMLInputElement && element.disabled)) {
+        element.focus?.({ preventScroll: true });
+        await nextFrame();
+      }
+      element.scrollIntoView({ block: "center", inline: "center" });
+      await nextFrame();
+
+      const rect = element.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) {
+        reasons.push(`zero rendered size ${rect.width.toFixed(2)}x${rect.height.toFixed(2)}`);
+      }
+      const intersectsViewport =
+        rect.right > 0 &&
+        rect.bottom > 0 &&
+        rect.left < window.innerWidth &&
+        rect.top < window.innerHeight;
+      if (!intersectsViewport) {
+        reasons.push("not reachable in the viewport after scrollIntoView");
+      }
+
+      const samplePoints = [
+        [rect.left + rect.width / 2, rect.top + rect.height / 2],
+        [rect.left + Math.min(6, Math.max(1, rect.width / 4)), rect.top + Math.min(6, Math.max(1, rect.height / 4))],
+        [rect.right - Math.min(6, Math.max(1, rect.width / 4)), rect.bottom - Math.min(6, Math.max(1, rect.height / 4))],
+      ].filter(([x, y]) => x >= 0 && y >= 0 && x < window.innerWidth && y < window.innerHeight);
+      if (samplePoints.length === 0) {
+        reasons.push("no testable point inside the viewport");
+      } else if (!samplePoints.some(([x, y]) => hitBelongsTo(element, document.elementFromPoint(x, y)))) {
+        reasons.push("fully clipped or covered at sampled hit-test points");
+      }
+
+      if (reasons.length > 0) {
+        failures.push({
+          index,
+          control: describe(element),
+          reasons,
+          rect: rectSnapshot(rect),
+          display: style.display,
+          visibility: style.visibility,
+          opacity: style.opacity,
+        });
+      }
+    }
+
+    return { checked, skipped, failures };
+  });
+
+  if (result.failures.length > 0) {
+    const details = result.failures
+      .slice(0, 20)
+      .map(
+        (failure) =>
+          `- ${failure.control}: ${failure.reasons.join(", ")}; rect=${JSON.stringify(failure.rect)}; display=${failure.display}; visibility=${failure.visibility}; opacity=${failure.opacity}`,
+      )
+      .join("\n");
+    throw new Error(
+      `Viewport usability guard failed in ${viewport.name}/${state.file}:\n${details}`,
+    );
+  }
+  return result;
 }
 
 async function stabilize(page) {

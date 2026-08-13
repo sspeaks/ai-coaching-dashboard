@@ -33,3 +33,7 @@
 - Eval fixtures must default to failure (full matrix). Known-bad enumerations don't catch unnamed attacks.
 
 📌 Team update (2026-08-12T14:25:08.524-07:00): Mouse now owns screenshot-only UX comprehension review. Switch should continue functional/E2E correctness and avoid duplicating visual comprehension verdict scope — decided by squad-coordinator
+
+## 2026-08-12T17:49:51.136-07:00 — Phone viewport usability guard
+
+Issue #54/PR #57 exposed a DOM-present-but-unusable control class: native audio controls rendered at `height: 0px` on phone after timestamp play. Added a CI guard using the UX capture harness at 390x844 and 360x800 to check visible buttons, links, audio controls, disclosure summaries, and form controls for non-zero geometry, computed visibility, viewport reachability, and hit-testability. The guard skips only explicit collapsed semantics (`hidden`, `aria-hidden`, `inert`, or non-summary content in closed `<details>`) so #60-style collapsed-by-design disclosures do not false-positive while broken visible controls fail.
