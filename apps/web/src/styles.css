@@ -1299,6 +1299,13 @@ meter {
   margin-top: 0.5rem;
 }
 
+.theme-item__moment-list {
+  display: flex;
+  flex: 1 1 14rem;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
 .theme-item__moments .evidence-link {
   padding: 0.65rem 0.8rem;
   border-radius: 999px;
@@ -1358,4 +1365,28 @@ meter {
 
 .now-playing-cue__track--empty span {
   width: 0;
+}
+
+@media (max-width: 640px) {
+  .theme-item__moments {
+    align-items: stretch;
+    padding: 0.7rem;
+    background: var(--surface-muted);
+    border: 1px solid var(--line);
+    border-radius: 0.65rem;
+  }
+
+  .theme-item__moments .field-label {
+    flex-basis: 100%;
+  }
+
+  .theme-item__moments .evidence-link {
+    width: 100%;
+    justify-content: start;
+    border-radius: 0.55rem;
+  }
+
+  .moment-play-group {
+    min-width: 100%;
+  }
 }

@@ -299,8 +299,7 @@ describe("evidence ledger app", () => {
     );
   });
 
-  it("opens the newest session summary on the feedback page", async () => {
-    const user = userEvent.setup();
+  it("opens the newest session summary with playable source moments beside the advice", async () => {
     const client = createClient();
     render(<App client={client} />);
 
@@ -308,14 +307,30 @@ describe("evidence ledger app", () => {
     // should land on after a rehearsal.
     expect(await screen.findByText("Releasing the sound")).toBeVisible();
     expect(screen.getByText(/releasing jaw tension on the F/i)).toBeVisible();
-    // Moments are collapsed by default for simplicity; expand to verify content
-    await user.click(screen.getByText("1 source moment"));
+    expect(screen.getByText("Play the source moment")).toBeVisible();
     expect(
       screen.getByRole("button", { name: /play source at 0:42/i }),
     ).toBeVisible();
+    expect(screen.queryByText("1 source moment")).toBeNull();
     expect(
       screen.queryByText("Speaker identity needs human confirmation."),
     ).toBeNull();
+  });
+
+  it("keeps summary source moments visible but disabled when audio is unavailable", async () => {
+    const client = createClient({ ...createSession(), audioUrl: null });
+    render(<App client={client} />);
+
+    expect(await screen.findByText("Releasing the sound")).toBeVisible();
+    const sourceMoment = screen.getByRole("button", {
+      name: /play source at 0:42/i,
+    });
+    expect(sourceMoment).toBeVisible();
+    expect(sourceMoment).toBeDisabled();
+    expect(sourceMoment).toHaveAttribute(
+      "title",
+      "Audio playback is not available for this session",
+    );
   });
 
   it("exposes feedback disclosure state and moves focus to newly opened notes", async () => {
@@ -791,7 +806,7 @@ describe("evidence ledger app", () => {
     const { container } = render(<App client={client} />);
 
     await openFirstRecording(user);
-    await user.click(await screen.findByText("2 source moments"));
+    expect(await screen.findByText("Play source moments")).toBeVisible();
     const first = screen.getByRole("button", { name: /play source at 0:42/i });
     const second = screen.getByRole("button", { name: /play source at 1:24/i });
     const audio = container.querySelector("audio");
