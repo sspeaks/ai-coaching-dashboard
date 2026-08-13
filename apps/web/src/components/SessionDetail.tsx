@@ -346,7 +346,6 @@ export function SessionDetail({
           client={client}
           onSeek={seek}
           activeMoment={activeMoment}
-          playheadPercent={playheadPercent}
           audioAvailable={Boolean(session.audioUrl)}
           onShowAll={() => setView("ledger")}
         />

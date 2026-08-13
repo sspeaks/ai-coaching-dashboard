@@ -5,7 +5,6 @@ import type {
   SessionOverview,
 } from "@quartet-coach/web-client";
 import { formatTimestampMs } from "../lib/format";
-import { NowPlayingCue } from "./NowPlayingCue";
 
 interface SessionOverviewPanelProps {
   session: SessionDetail;
@@ -25,7 +24,6 @@ interface SessionOverviewPanelProps {
     noteTitle: string;
     sourceLabel?: string;
   } | null;
-  playheadPercent: number | null;
   audioAvailable: boolean;
   onShowAll: () => void;
   showManagementTools?: boolean;
@@ -36,7 +34,6 @@ export function SessionOverviewPanel({
   client,
   onSeek,
   activeMoment,
-  playheadPercent,
   audioAvailable,
   onShowAll,
   showManagementTools = false,
@@ -172,7 +169,6 @@ export function SessionOverviewPanel({
                                 key,
                                 label,
                                 noteTitle: theme.title,
-                                sourceLabel: theme.summary,
                               })
                             }
                             disabled={!audioAvailable}
@@ -188,14 +184,6 @@ export function SessionOverviewPanel({
                               {label}
                             </strong>
                           </button>
-                          {active && activeMoment && (
-                            <NowPlayingCue
-                              label={activeMoment.label}
-                              noteTitle={activeMoment.noteTitle}
-                              sourceLabel={activeMoment.sourceLabel}
-                              progressPercent={playheadPercent}
-                            />
-                          )}
                         </div>
                       );
                     })}
