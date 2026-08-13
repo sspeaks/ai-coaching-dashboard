@@ -140,6 +140,12 @@ function InterventionCard({
     intervention.confidence == null
       ? null
       : Math.round(Math.max(0, Math.min(1, intervention.confidence)) * 100);
+  const takeaway =
+    intervention.interpretation ||
+    intervention.exactCoachFeedback ||
+    "Read the source moments and note details for this coaching point.";
+  const hasReviewWarnings =
+    confidence != null || intervention.uncertaintyReasons.length > 0;
 
   return (
     <article
@@ -156,39 +162,58 @@ function InterventionCard({
         <VerificationBadge status={intervention.verificationStatus} />
       </div>
 
-      {confidence != null && (
-        <details className="note-details">
-          <summary>How sure is the assistant about this note?</summary>
-          <div className="confidence-panel">
-            <strong>{confidence}%</strong>
-            <meter
-              min="0"
-              max="100"
-              low={60}
-              high={80}
-              optimum={100}
-              value={confidence}
-            >
-              {confidence}%
-            </meter>
-            <p>
-              This number is only about how clearly the assistant found the note
-              in the transcript. It does not prove the coach's point or the
-              musical result.
-            </p>
-          </div>
-        </details>
-      )}
+      <section
+        className="note-takeaway"
+        aria-labelledby={`intervention-${intervention.id}-takeaway`}
+      >
+        <span
+          id={`intervention-${intervention.id}-takeaway`}
+          className="field-label"
+        >
+          Coaching takeaway
+        </span>
+        <p>{takeaway}</p>
+        {intervention.nextAction && (
+          <p className="note-takeaway__next">
+            <strong>Try next:</strong> {intervention.nextAction}
+          </p>
+        )}
+      </section>
 
-      {intervention.uncertaintyReasons.length > 0 && (
-        <div className="uncertainty-box">
-          <strong>Review these uncertainties</strong>
-          <ul>
-            {intervention.uncertaintyReasons.map((reason) => (
-              <li key={reason}>{reason}</li>
-            ))}
-          </ul>
-        </div>
+      {hasReviewWarnings && (
+        <details className="note-details note-details--review">
+          <summary>Why might this be wrong?</summary>
+          {confidence != null && (
+            <div className="confidence-panel">
+              <strong>{confidence}%</strong>
+              <meter
+                min="0"
+                max="100"
+                low={60}
+                high={80}
+                optimum={100}
+                value={confidence}
+              >
+                {confidence}%
+              </meter>
+              <p>
+                This number is only about how clearly the assistant found the
+                note in the transcript. It does not prove the coach's point or
+                the musical result.
+              </p>
+            </div>
+          )}
+          {intervention.uncertaintyReasons.length > 0 && (
+            <div className="uncertainty-box">
+              <strong>Review these uncertainties</strong>
+              <ul>
+                {intervention.uncertaintyReasons.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </details>
       )}
 
       <div className="ledger-grid">
