@@ -7,6 +7,7 @@ from pathlib import Path
 
 from coaching_contracts import JobStatus, JobType, SessionState
 from fastapi.testclient import TestClient
+from sqlalchemy import update
 from evidence_api.app import create_app
 from evidence_api.config import Settings
 from evidence_api.models import (
@@ -19,6 +20,7 @@ from evidence_api.models import (
 from evidence_api.services import (
     AMBIGUOUS_OPERATION_ERROR_CODE,
     begin_pending_operation,
+    has_active_job,
 )
 from media_adapter import AdapterResponseError, SpeakrRecording
 
@@ -1009,6 +1011,63 @@ def test_confirm_deletion_defers_while_worker_holds_active_lease(client, app):
     with app.state.session_factory() as db:
         job = db.get(JobRecord, job_id)
         job.status = JobStatus.CANCELLED.value
+        db.commit()
+
+    confirmed = client.post(
+        f"/api/sessions/{created['id']}/deletion/confirm",
+        json={"confirm_session_id": created["id"]},
+    )
+    assert confirmed.status_code == 204
+    assert client.get(f"/api/sessions/{created['id']}").status_code == 404
+
+
+def test_confirm_deletion_defers_running_pending_provider_operation_after_expired_lease(
+    client, app, settings
+):
+    """A stale heartbeat is not enough to delete a session while a worker
+    is still in a durable non-idempotent provider-write section."""
+    created = create_session(client)
+    with app.state.session_factory() as db:
+        record = db.get(SessionRecord, created["id"])
+        begin_pending_operation(record, "upload")
+        job = JobRecord(
+            session_id=created["id"],
+            type=JobType.TRANSCRIBE.value,
+            status=JobStatus.RUNNING.value,
+            max_attempts=3,
+        )
+        db.add(job)
+        db.commit()
+        job_id = job.id
+
+    pending = client.delete(f"/api/sessions/{created['id']}")
+    assert pending.status_code == 200
+
+    stale = datetime.now(UTC) - timedelta(
+        seconds=settings.worker_job_lease_seconds + 60
+    )
+    with app.state.session_factory() as db:
+        db.execute(
+            update(JobRecord).where(JobRecord.id == job_id).values(updated_at=stale)
+        )
+        db.commit()
+        assert (
+            has_active_job(db, created["id"], settings.worker_job_lease_seconds)
+            is False
+        )
+
+    deferred = client.post(
+        f"/api/sessions/{created['id']}/deletion/confirm",
+        json={"confirm_session_id": created["id"]},
+    )
+    assert deferred.status_code == 202
+    assert deferred.json()["code"] == "deletion_pending_active_job"
+    assert client.get(f"/api/sessions/{created['id']}").status_code == 200
+
+    with app.state.session_factory() as db:
+        job = db.get(JobRecord, job_id)
+        job.status = JobStatus.FAILED.value
+        job.error_code = AMBIGUOUS_OPERATION_ERROR_CODE
         db.commit()
 
     confirmed = client.post(
