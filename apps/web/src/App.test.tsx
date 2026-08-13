@@ -668,8 +668,9 @@ describe("evidence ledger app", () => {
     ).toBeVisible();
     expect(screen.getByText(/does not prove the coach's point/i)).toBeVisible();
 
+    await user.click(screen.getByText("Optional: check this note"));
     await user.click(screen.getByLabelText("Looks right"));
-    await user.click(screen.getByRole("button", { name: "Save" }));
+    await user.click(screen.getByRole("button", { name: "Save note check" }));
 
     await waitFor(() =>
       expect(client.reviewIntervention).toHaveBeenCalledWith(
@@ -744,7 +745,60 @@ describe("evidence ledger app", () => {
       within(note!).queryByText("Why might this be wrong?"),
     ).not.toBeInTheDocument();
     expectToPrecede(takeaway, within(note!).getByText("Source moments"));
-    expectToPrecede(takeaway, within(note!).getByText("Mark this note"));
+    expectToPrecede(
+      takeaway,
+      within(note!).getByText("Optional: check this note"),
+    );
+  });
+
+  it("keeps note review optional, accessible, and stateful after note interactions", async () => {
+    const user = userEvent.setup();
+    const play = vi
+      .spyOn(HTMLMediaElement.prototype, "play")
+      .mockResolvedValue(undefined);
+    render(<App client={createClient()} />);
+
+    await openFirstRecording(user);
+    await user.click(await findShowAllInterventions());
+    const note = (await screen.findByRole("heading", { name: "Breath plan" }))
+      .closest("article");
+    expect(note).not.toBeNull();
+
+    const optionalSummary = within(note!).getByText("Optional: check this note");
+    expect(optionalSummary).toBeVisible();
+    expect(
+      within(note!).getByText(/the coaching is ready to read/i),
+    ).toBeVisible();
+    expect(
+      within(note!).getByText(/does not block reading or playing/i),
+    ).not.toBeVisible();
+
+    const summary = optionalSummary.closest("summary");
+    expect(summary).not.toBeNull();
+    summary!.focus();
+    expect(summary).toHaveFocus();
+    await user.click(optionalSummary);
+
+    const reviewGroup = within(note!).getByRole("group", {
+      name: "Optional note check",
+    });
+    expect(reviewGroup).toHaveAccessibleDescription(
+      "This does not block reading or playing the coaching note.",
+    );
+    await user.click(within(note!).getByLabelText("Needs correction"));
+    await user.type(within(note!).getByLabelText(/your note/i), "Check label");
+
+    await user.click(
+      within(note!).getByRole("button", {
+        name: /play coach feedback at 0:42.*feedback/i,
+      }),
+    );
+
+    expect(play).toHaveBeenCalled();
+    expect(within(note!).getByLabelText("Needs correction")).toBeChecked();
+    expect(within(note!).getByLabelText(/your note/i)).toHaveValue(
+      "Check label",
+    );
   });
 
   it("seeks the audio player when an evidence timestamp is activated", async () => {
