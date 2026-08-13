@@ -1586,3 +1586,15 @@ meter {
 .review-disclosure[open] .review-disclosure__title::before {
   content: "▾";
 }
+
+.audio-section audio[controls] {
+  min-height: 2.5rem;
+}
+
+@media (max-width: 640px) {
+  .audio-section audio[controls] {
+    flex: 0 0 auto;
+    height: 2.5rem;
+    min-height: 2.5rem;
+  }
+}

@@ -34,3 +34,4 @@
 - Schema-boundary mismatches are recurring — validate receiving constraint vs. sending.
 - Truncate user-facing text with `[:N-3] + "…"`, never bare slice.
 - Eval fixtures must default to failure (full matrix) not permission (enumerated list).
+- 2026-08-12T17:49:51.136-07:00: Issue #54 phone playback revision found the native `<audio controls>` was rendered on phone (`controls=true`, `display:block`) but Chromium gave it 0px height in the column mobile audio section until CSS assigned an explicit 2.5rem control height; added focused Playwright/Nix assertion and screenshots for 390x844 and 360x800, including mini-playhead rendered-width checks at 1:14 and 2:12.

@@ -162,6 +162,7 @@ export function SessionOverviewPanel({
                       return (
                         <div className="moment-play-group" key={key}>
                           <button
+                            data-testid={`summary-source-moment-${theme.rank}-${moment.startMs}`}
                             className={`evidence-link evidence-link--play${active ? " evidence-link--active" : ""}`}
                             aria-pressed={active}
                             onClick={() =>
