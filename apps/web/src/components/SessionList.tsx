@@ -27,14 +27,14 @@ export function SessionList({
       <div className="section-heading">
         <div>
           <p className="eyebrow">Your recordings</p>
-          <h2 id="sessions-heading">Choose a coaching session</h2>
+          <h2 id="sessions-heading">Choose a coaching recording</h2>
         </div>
         <button
           className="button button--quiet button--compact"
           onClick={onRefresh}
           disabled={loading}
         >
-          {loading ? "Checking…" : "Check for updates"}
+          {loading ? "Checking…" : "Check again"}
         </button>
       </div>
       {loading && sessions.length === 0 ? (
@@ -55,15 +55,17 @@ export function SessionList({
             const action =
               status.tone === "ready"
                 ? selected
-                  ? "Feedback open"
-                  : "Read feedback"
+                  ? "Coaching notes open"
+                  : "Read coaching notes"
                 : status.tone === "problem"
-                  ? "Recover"
+                  ? "Get help"
                   : "See progress";
             const openHint =
               status.tone === "problem"
                 ? "Recovery options are open below. Jumping to help now."
-                : "Feedback is open below. Jumping to the notes now.";
+                : status.tone === "ready"
+                  ? "Coaching notes are open below."
+                  : "Progress is open below.";
             return (
               <li key={session.id}>
                 <article
