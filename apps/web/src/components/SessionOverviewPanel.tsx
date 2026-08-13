@@ -151,12 +151,12 @@ export function SessionOverviewPanel({
                   </h4>
                 </div>
                 <p>{theme.summary}</p>
-                <details className="theme-item__moments">
-                  <summary className="supporting-text">
+                <div className="theme-item__moments" aria-label="Source moments">
+                  <span className="field-label">
                     {theme.moments.length === 1
-                      ? "1 source moment"
-                      : `${theme.moments.length} source moments`}
-                  </summary>
+                      ? "Play the source moment"
+                      : "Play source moments"}
+                  </span>
                   <div className="theme-item__moment-list">
                     {theme.moments.map((moment) => {
                       const label = formatTimestampMs(moment.startMs);
@@ -200,7 +200,7 @@ export function SessionOverviewPanel({
                       );
                     })}
                   </div>
-                </details>
+                </div>
               </li>
             ))}
           </ol>
