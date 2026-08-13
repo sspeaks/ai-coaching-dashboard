@@ -112,3 +112,11 @@
 
 📌 Team update (2026-08-12T14:25:08.524-07:00): Mock UI states are now selected by deterministic mockState URLs so screenshot review is stable across runs — decided by Trinity
 📌 Team update (2026-08-12T14:25:08.524-07:00): Trinity is locked out of UX remediation findings #36-#44 under Reviewer Rejection Protocol. This is not a quality judgment; it preserves independent revision after a screenshot-only rejection, so Link owns the fixes — decided by squad-coordinator
+
+## 2026-08-12T17:49:51.136-07:00 — Issue #54 compact summary source playback
+
+- Fixed the summary-level “Play source at mm:ss” control so activation stays in the button plus the sticky Source recording player instead of inserting a full inline NowPlayingCue under the summary moment.
+- Stopped passing the full theme summary as the playback cue source label, preventing the large blue now-playing box from repeating the whole advice paragraph.
+- Tightened summary source-control/mobile audio CSS: explicit 44px minimum tap height, bounded moment groups, smaller sticky source-player padding, and compact transparent section cue styling.
+- Added summary-specific interaction tests for seek/play, compact post-click state, pause/end/error clearing, and repeated moment clicks without inline layout insertion.
+- Verified `cd apps/web && npm run typecheck`, `npm test`, and `npm run build` pass.

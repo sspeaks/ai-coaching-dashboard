@@ -157,6 +157,21 @@ async function playFirstLedgerMoment(
   return { audio: audio!, evidence };
 }
 
+async function playFirstSummaryMoment(
+  user: ReturnType<typeof userEvent.setup>,
+  container: HTMLElement,
+) {
+  await openFirstRecording(user);
+  expect(await screen.findByText("Play the source moment")).toBeVisible();
+  const evidence = await screen.findByRole("button", {
+    name: /play source at 0:42/i,
+  });
+  const audio = container.querySelector("audio");
+  expect(audio).not.toBeNull();
+  await user.click(evidence);
+  return { audio: audio!, evidence };
+}
+
 describe("evidence ledger app", () => {
   beforeEach(() => {
     window.history.pushState({}, "", "/");
@@ -672,6 +687,122 @@ describe("evidence ledger app", () => {
         /source recording jumped to this moment for “Breath plan”/i,
       ).length,
     ).toBeGreaterThan(0);
+  });
+
+  it("keeps the summary source moment active state compact after playback starts", async () => {
+    const user = userEvent.setup();
+    const client = createClient();
+    const play = vi
+      .spyOn(HTMLMediaElement.prototype, "play")
+      .mockResolvedValue(undefined);
+    const { container } = render(<App client={client} />);
+
+    const { audio, evidence } = await playFirstSummaryMoment(user, container);
+
+    expect(audio.currentTime).toBe(42);
+    expect(play).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(evidence).toHaveAttribute("aria-pressed", "true"),
+    );
+    expect(evidence).toHaveTextContent(/now playing source at 0:42/i);
+
+    const momentGroup = evidence.closest(".moment-play-group");
+    expect(momentGroup).not.toBeNull();
+    expect(momentGroup!.querySelector(".now-playing-cue")).toBeNull();
+
+    const activeAudioSection = container.querySelector(".audio-section--active");
+    expect(activeAudioSection).not.toBeNull();
+    expect(activeAudioSection!.querySelector("audio[controls]")).not.toBeNull();
+    expect(
+      within(activeAudioSection as HTMLElement).getByText(/now playing 0:42/i),
+    ).toBeVisible();
+    expect(
+      within(activeAudioSection as HTMLElement).queryByText(
+        /releasing jaw tension on the F/i,
+      ),
+    ).toBeNull();
+  });
+
+  it.each(["pause", "ended", "error"] as const)(
+    "clears the summary source moment cue on audio %s",
+    async (eventName) => {
+      const user = userEvent.setup();
+      vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
+      const { container } = render(<App client={createClient()} />);
+
+      const { audio, evidence } = await playFirstSummaryMoment(user, container);
+      fireEvent(audio, new Event("play"));
+
+      await waitFor(() =>
+        expect(evidence).toHaveAttribute("aria-pressed", "true"),
+      );
+      expect(screen.getAllByText(/now playing 0:42/i).length).toBeGreaterThan(0);
+
+      fireEvent(audio, new Event(eventName));
+
+      expect(evidence).toHaveAttribute("aria-pressed", "false");
+      expect(screen.queryByText(/now playing 0:42/i)).toBeNull();
+    },
+  );
+
+  it("updates summary source moments without inserting inline playback layout", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
+    const client = createClient();
+    vi.mocked(client.getOverview).mockResolvedValue({
+      id: "overview-1",
+      themes: [
+        {
+          rank: 1,
+          title: "Releasing the sound",
+          summary: "The coach worked on timestamp-linked source moments.",
+          interventionIds: ["intervention-1"],
+          moments: [
+            {
+              interventionId: "intervention-1",
+              startMs: 42_000,
+              endMs: 48_000,
+            },
+            {
+              interventionId: "intervention-1",
+              startMs: 84_000,
+              endMs: 90_000,
+            },
+          ],
+          startMs: 42_000,
+          endMs: 90_000,
+        },
+      ],
+      interventionCount: 1,
+      stale: false,
+      generatedAt: new Date().toISOString(),
+    });
+    const { container } = render(<App client={client} />);
+
+    await openFirstRecording(user);
+    expect(await screen.findByText("Play source moments")).toBeVisible();
+    const first = screen.getByRole("button", { name: /play source at 0:42/i });
+    const second = screen.getByRole("button", { name: /play source at 1:24/i });
+    const firstGroup = first.closest(".moment-play-group");
+    const secondGroup = second.closest(".moment-play-group");
+
+    await user.click(first);
+    await waitFor(() => expect(first).toHaveAttribute("aria-pressed", "true"));
+    expect(firstGroup!.querySelector(".now-playing-cue")).toBeNull();
+
+    await user.click(second);
+    await waitFor(() => expect(second).toHaveAttribute("aria-pressed", "true"));
+
+    expect(first).toHaveAttribute("aria-pressed", "false");
+    expect(first.closest(".moment-play-group")).toBe(firstGroup);
+    expect(second.closest(".moment-play-group")).toBe(secondGroup);
+    expect(firstGroup!.querySelector(".now-playing-cue")).toBeNull();
+    expect(secondGroup!.querySelector(".now-playing-cue")).toBeNull();
+    expect(screen.queryByText(/now playing 0:42/i)).toBeNull();
+    expect(screen.getAllByText(/now playing 1:24/i).length).toBeGreaterThan(0);
+    expect(
+      container.querySelector(".audio-section--active audio[controls]"),
+    ).not.toBeNull();
   });
 
   it("waits for the audio play promise before showing the active timestamp cue", async () => {
