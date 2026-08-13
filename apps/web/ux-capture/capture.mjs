@@ -29,7 +29,7 @@ const states = [
     description: "opened Feedback before any recordings have been added.",
     run: async (page) => {
       await page.goto(`${baseUrl}/?mockState=empty`);
-      await page.getByRole("heading", { name: "No feedback yet" }).waitFor();
+      await page.getByRole("heading", { name: "Upload your first rehearsal recording" }).waitFor();
     },
   },
   {
