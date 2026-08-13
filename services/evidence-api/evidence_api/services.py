@@ -517,5 +517,33 @@ def has_active_job(
     return db.scalar(query) is not None
 
 
+def has_running_pending_provider_operation(db: Session, session_id: str) -> bool:
+    """True when a transcription worker is inside a provider-write section.
+
+    `pending_operation_kind` is written and committed immediately before
+    non-idempotent provider writes (upload_recording / queue_transcription)
+    and cleared only with the durable outcome. While the owning job is still
+    RUNNING, deletion confirmation must defer even if the heartbeat lease is
+    momentarily stale; otherwise a delayed heartbeat can let confirmation
+    delete a session out from under a worker that is still in the provider
+    call.
+    """
+    return (
+        db.scalar(
+            select(JobRecord.id)
+            .join(SessionRecord, SessionRecord.id == JobRecord.session_id)
+            .where(
+                JobRecord.session_id == session_id,
+                JobRecord.type == JobType.TRANSCRIBE.value,
+                JobRecord.status == JobStatus.RUNNING.value,
+                SessionRecord.pending_operation_kind.in_(
+                    ["upload", "queue_transcription"]
+                ),
+            )
+        )
+        is not None
+    )
+
+
 def _normalize_text(value: str) -> str:
     return re.sub(r"\s+", " ", value).strip().casefold()

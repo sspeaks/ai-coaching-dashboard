@@ -69,6 +69,7 @@ from .services import (
     ensure_job,
     has_active_job,
     has_pending_deletion_compensation,
+    has_running_pending_provider_operation,
     job_response,
     ledger_response,
     provider_deletion_not_found,
@@ -991,14 +992,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "deletion_not_pending", "session is not pending deletion", 409
             )
         record_deletion_intent(db, session_id)
-        if has_active_job(db, session_id, settings.worker_job_lease_seconds):
+        if has_active_job(
+            db, session_id, settings.worker_job_lease_seconds
+        ) or has_running_pending_provider_operation(db, session_id):
             # A worker still holds an active lease on a job for this
-            # session -- it has not yet had a chance to observe the
-            # tombstone and self-cancel at a safe checkpoint. Deleting the
-            # row now would race its in-flight work (e.g. it could still
-            # be mid-upload to the provider). Report truthfully that
-            # deletion has not completed rather than claiming success
-            # while that race is still possible.
+            # session -- or is inside a durable pending provider-write
+            # section whose heartbeat may be momentarily stale. It has not
+            # yet had a chance to observe the tombstone and self-cancel at
+            # a safe checkpoint. Deleting the row now would race its
+            # in-flight work (e.g. it could still be mid-upload to the
+            # provider). Report truthfully that deletion has not completed
+            # rather than claiming success while that race is still
+            # possible.
             db.commit()
             return JSONResponse(
                 status_code=status.HTTP_202_ACCEPTED,
