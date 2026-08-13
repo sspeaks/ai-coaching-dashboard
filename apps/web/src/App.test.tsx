@@ -243,8 +243,8 @@ describe("evidence ledger app", () => {
     await screen.findByText("No recordings yet");
     expect(screen.queryByLabelText(/recording name/i)).toBeNull();
     expect(
-      screen.queryByRole("button", { name: "Upload a recording" }),
-    ).toBeNull();
+      screen.getByRole("button", { name: "Upload a recording" }),
+    ).toBeVisible();
     await user.click(screen.getByRole("link", { name: "Upload" }));
     expect(
       screen.getByText("Example: August coaching with Alex"),
@@ -252,6 +252,9 @@ describe("evidence ledger app", () => {
     expect(
       screen.getByPlaceholderText("August coaching"),
     ).toHaveAccessibleDescription("Example: August coaching with Alex");
+    expect(
+      screen.getByText("Drag an audio file here or choose a file"),
+    ).toBeVisible();
     expect(screen.getByText("Audio is stored here.")).toBeVisible();
     expect(screen.getByText("Audio is sent for transcription.")).toBeVisible();
     expect(screen.getByText("Text may be analyzed by AI.")).toBeVisible();
@@ -282,6 +285,7 @@ describe("evidence ledger app", () => {
       screen.getByLabelText("Audio file"),
       new File(["recording"], "practice.wav", { type: "audio/wav" }),
     );
+    expect(screen.getByText("practice.wav selected")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Upload recording" }));
 
     await waitFor(() =>
@@ -419,11 +423,95 @@ describe("evidence ledger app", () => {
     vi.mocked(client.listSessions).mockResolvedValue([]);
     render(<App client={client} />);
 
-    expect(await screen.findByText("No feedback yet")).toBeVisible();
     expect(
-      screen.getByText(/There are no coaching summaries yet/i),
+      await screen.findByRole("heading", {
+        name: "Upload your first rehearsal recording",
+      }),
     ).toBeVisible();
+    expect(screen.getByText("What happens next")).toBeVisible();
     expect(client.getSession).not.toHaveBeenCalled();
+  });
+
+  it("uses the empty first-run space to guide upload and explain the next steps", async () => {
+    const user = userEvent.setup();
+    const client = createClient();
+    vi.mocked(client.listSessions).mockResolvedValue([]);
+    render(<App client={client} />);
+
+    expect(await screen.findByText("No recordings yet")).toBeVisible();
+    expect(
+      screen.getByRole("heading", {
+        name: "Upload your first rehearsal recording",
+      }),
+    ).toBeVisible();
+    expect(screen.getByText("1. Choose your audio file")).toBeVisible();
+    expect(screen.getByText("2. We listen to the recording")).toBeVisible();
+    expect(screen.getByText("3. Coaching notes appear here")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Upload" })).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Upload a recording" }));
+
+    expect(await screen.findByText("Upload one coaching recording.")).toBeVisible();
+    expect(screen.getByLabelText(/recording name/i)).toBeVisible();
+  });
+
+  it("shows drag affordance, selected-file feedback, and live upload progress", async () => {
+    const user = userEvent.setup();
+    const uploadFinished = deferredPromise<void>();
+    const uploaded = {
+      ...createSession(),
+      id: "drag-upload-session",
+      title: "Dragged upload",
+      originalFileName: "quartet.wav",
+      state: "UPLOADED" as const,
+      interventions: [],
+      interventionCount: 0,
+    };
+    const client = createClient();
+    vi.mocked(client.listSessions).mockResolvedValue([]);
+    vi.mocked(client.initiateUpload).mockResolvedValue({
+      session: uploaded,
+      upload: { id: "upload-2", url: "/storage/upload", method: "PUT" },
+    });
+    vi.mocked(client.uploadFile).mockImplementation(
+      async (_target, _file, onProgress) => {
+        onProgress(46);
+        await uploadFinished.promise;
+      },
+    );
+    vi.mocked(client.completeUpload).mockResolvedValue(uploaded);
+    render(<App client={client} />);
+
+    await user.click(await screen.findByRole("button", { name: "Upload a recording" }));
+    const dropzone = screen
+      .getByText("Drag an audio file here or choose a file")
+      .closest("label");
+    expect(dropzone).not.toBeNull();
+
+    fireEvent.dragEnter(dropzone!, {
+      dataTransfer: { files: [] },
+    });
+    expect(screen.getByText("Drop the recording here")).toBeVisible();
+
+    const file = new File(["recording"], "quartet.wav", { type: "audio/wav" });
+    fireEvent.drop(dropzone!, {
+      dataTransfer: { files: [file] },
+    });
+
+    expect(screen.getByText("quartet.wav selected")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Upload recording" }));
+    expect(await screen.findByText("Uploading quartet.wav")).toBeVisible();
+    expect(screen.getAllByText("46%").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "Uploading…" })).toBeDisabled();
+
+    uploadFinished.resolve();
+
+    await waitFor(() =>
+      expect(client.completeUpload).toHaveBeenCalledWith(
+        "drag-upload-session",
+        "upload-2",
+      ),
+    );
   });
 
   it("auto-opens the newest processing session", async () => {

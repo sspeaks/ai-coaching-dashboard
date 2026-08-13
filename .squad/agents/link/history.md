@@ -15,3 +15,5 @@
 
 📌 Team update (2026-08-12T14:25:08.524-07:00): Link owns remediation for Mouse UX findings #36-#44. #36 and #37 are p0 release blockers; fixes require fresh screenshots and Mouse re-review — decided by squad-coordinator
 📌 Team update (2026-08-12T14:25:08.524-07:00): Morpheus triaged UX review issues #36-#44 with squad:link and type:ux labels; #43 also has type:bug — decided by Morpheus
+
+📌 Team update (2026-08-12T17:49:51.136-07:00): Issue #44 first-run desktop guidance now uses the empty feedback detail space as a large start-here callout with a primary upload action and a three-step next-preview; validation included dynamic first-run/upload tests plus fresh UX screenshots at .squad/files/ux-review/2026-08-12-link-44/. — decided by Link

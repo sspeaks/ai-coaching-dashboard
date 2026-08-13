@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type DragEvent, type FormEvent } from "react";
 import type { EvidenceApiClient, SessionDetail } from "@quartet-coach/web-client";
 
 interface UploadPanelProps {
@@ -14,7 +14,33 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
   const [uploadedMessage, setUploadedMessage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [disclosureOpen, setDisclosureOpen] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  function chooseFile(nextFile: File | null) {
+    setFile(nextFile);
+    setError(null);
+    setUploadedMessage(null);
+  }
+
+  function handleDrag(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    if (!uploading) {
+      setDragging(true);
+    }
+  }
+
+  function handleDragLeave(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    setDragging(false);
+  }
+
+  function handleDrop(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    setDragging(false);
+    if (uploading) return;
+    chooseFile(event.dataTransfer.files?.[0] ?? null);
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -92,12 +118,29 @@ export function UploadPanel({ client, onUploaded }: UploadPanelProps) {
             Example: August coaching with Alex
           </span>
         </label>
-        <label>
-          Audio file
+        <label
+          className={`upload-dropzone${dragging ? " upload-dropzone--active" : ""}${file ? " upload-dropzone--selected" : ""}`}
+          onDragEnter={handleDrag}
+          onDragOver={handleDrag}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <span>Audio file</span>
+          <span className="upload-dropzone__prompt">
+            {dragging
+              ? "Drop the recording here"
+              : file
+                ? `${file.name} selected`
+                : "Drag an audio file here or choose a file"}
+          </span>
+          <span className="upload-dropzone__hint">
+            MP3, WAV, M4A, FLAC, AAC, OGG, OPUS, or MP4 audio.
+          </span>
           <input
             type="file"
+            aria-label="Audio file"
             accept="audio/*,.m4a,.mp3,.wav,.flac,.aac,.ogg,.opus,.mp4"
-            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+            onChange={(event) => chooseFile(event.target.files?.[0] ?? null)}
             disabled={uploading}
           />
         </label>

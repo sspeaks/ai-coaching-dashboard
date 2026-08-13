@@ -398,21 +398,20 @@ function FeedbackPage({
           tabIndex={-1}
         >
           {openId === null ? (
-            <section
-              className="panel detail-empty"
-              aria-labelledby="feedback-empty-heading"
-            >
-              <h2 id="feedback-empty-heading">
-                {sessions.length === 0
-                  ? "No feedback yet"
-                  : "Select a recording"}
-              </h2>
-              <p>
-                {sessions.length === 0
-                  ? "There are no coaching summaries yet. Use Upload in the main navigation when you have a recording to add."
-                  : "Choose one recording from the list to read its coaching summary."}
-              </p>
-            </section>
+            sessions.length === 0 ? (
+              <FirstRunGuide onUpload={() => onNavigate("upload")} />
+            ) : (
+              <section
+                className="panel detail-empty"
+                aria-labelledby="feedback-empty-heading"
+              >
+                <h2 id="feedback-empty-heading">Select a recording</h2>
+                <p>
+                  Choose one recording from the list to read its coaching
+                  summary.
+                </p>
+              </section>
+            )
           ) : loadingDetail || !detail ? (
             <section className="panel detail-loading" role="status">
               <span className="spinner" aria-hidden="true" />
@@ -435,6 +434,47 @@ function FeedbackPage({
         </div>
       </div>
     </>
+  );
+}
+
+function FirstRunGuide({ onUpload }: { onUpload: () => void }) {
+  return (
+    <section
+      className="panel first-run-guide"
+      aria-labelledby="feedback-empty-heading"
+    >
+      <div className="first-run-guide__hero">
+        <p className="eyebrow">Start here</p>
+        <h2 id="feedback-empty-heading">
+          Upload your first rehearsal recording
+        </h2>
+        <p>
+          Add an MP3, WAV, M4A, or other audio file. We will listen to the
+          recording and turn the coach&apos;s comments into notes you can
+          review with your quartet.
+        </p>
+        <button className="button button--primary" onClick={onUpload}>
+          Upload a recording
+        </button>
+      </div>
+      <div className="first-run-guide__preview">
+        <h3>What happens next</h3>
+        <ol className="first-run-guide__steps">
+          <li>
+            <strong>1. Choose your audio file</strong>
+            <span>Use a recording from rehearsal or coaching.</span>
+          </li>
+          <li>
+            <strong>2. We listen to the recording</strong>
+            <span>Keep this page open while the upload finishes.</span>
+          </li>
+          <li>
+            <strong>3. Coaching notes appear here</strong>
+            <span>Come back to read notes and play the source moments.</span>
+          </li>
+        </ol>
+      </div>
+    </section>
   );
 }
 
