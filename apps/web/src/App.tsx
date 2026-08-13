@@ -408,7 +408,7 @@ function FeedbackPage({
                 <h2 id="feedback-empty-heading">Select a recording</h2>
                 <p>
                   Choose one recording from the list to read its coaching
-                  summary.
+                  notes.
                 </p>
               </section>
             )
@@ -488,7 +488,7 @@ function NotFoundPage({ onNavigate }: { onNavigate: (route: Route) => void }) {
       <h2 id="not-found-heading">This page does not exist.</h2>
       <p>
         The link may be old, or the address may have been typed wrong. Go back
-        to the feedback list to choose a coaching session.
+        to the feedback list to choose a coaching recording.
       </p>
       <button
         className="button button--primary"
@@ -626,7 +626,7 @@ function ManagementPage({
             onClick={onRefresh}
             disabled={loading}
           >
-            {loading ? "Checking…" : "Check for updates"}
+            {loading ? "Checking…" : "Check again"}
           </button>
         </div>
         {loading && sessions.length === 0 ? (

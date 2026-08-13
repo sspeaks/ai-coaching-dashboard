@@ -201,6 +201,12 @@ export function SessionDetail({
                 <progress value={session.progress} max="100" />
               </div>
             )}
+          {status.technicalDetail && (
+            <details className="technical-details">
+              <summary>Technical details</summary>
+              <p>{status.technicalDetail}</p>
+            </details>
+          )}
         </div>
       )}
 
@@ -217,7 +223,7 @@ export function SessionDetail({
             >
               {action === "refresh"
                 ? "Checking…"
-                : "Check for transcript updates"}
+                : "Check again"}
             </button>
             {session.speakrSessionUrl && (
               <a
@@ -258,7 +264,7 @@ export function SessionDetail({
           role="alert"
           aria-labelledby={`recovery-${session.id}`}
         >
-          <p className="eyebrow">Needs action</p>
+          <p className="eyebrow">Needs help</p>
           <h3 id={`recovery-${session.id}`}>This file could not be read.</h3>
           <p>
             Upload a different MP3, WAV, or M4A file. If the new file also
@@ -300,7 +306,7 @@ export function SessionDetail({
         aria-live="polite"
       >
         <div>
-          <p className="eyebrow">Source recording</p>
+          <p className="eyebrow">Hear the recording</p>
           {activeMoment ? (
             <NowPlayingCue
               label={activeMoment.label}
@@ -326,8 +332,7 @@ export function SessionDetail({
           </audio>
         ) : (
           <p className="missing-value">
-            The recording will be playable here after upload processing
-            finishes.
+            The recording will be playable here after upload finishes.
           </p>
         )}
       </div>

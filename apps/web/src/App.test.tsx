@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   EvidenceApiClient,
   SessionDetail,
+  SessionState,
 } from "@quartet-coach/web-client";
 import { App } from "./App";
 
@@ -110,13 +111,34 @@ function createClient(session = createSession()): EvidenceApiClient {
   };
 }
 
+function createSessionInState(state: SessionState): SessionDetail {
+  const ready = state === "AWAITING_REVIEW" || state === "COMPLETE";
+  return {
+    ...createSession(),
+    id: `session-${state.toLowerCase()}`,
+    title: `${state} recording`,
+    state,
+    progress: ready ? 100 : state === "FAILED" ? null : 42,
+    error:
+      state === "FAILED"
+        ? { message: "Provider detail: unreadable audio.", retryable: true }
+        : null,
+    audioUrl: ready ? createSession().audioUrl : null,
+    interventions: ready ? createSession().interventions : [],
+    interventionCount: ready ? 1 : 0,
+    reviewedInterventionCount: state === "COMPLETE" ? 1 : 0,
+  };
+}
+
 function findShowAllInterventions() {
   return screen.findByRole("button", { name: /see every coaching note/i });
 }
 
 async function openFirstRecording(user = userEvent.setup()) {
   await user.click(
-    await screen.findByRole("button", { name: /read feedback|feedback open/i }),
+    await screen.findByRole("button", {
+      name: /read coaching notes|coaching notes open/i,
+    }),
   );
   return user;
 }
@@ -162,9 +184,9 @@ async function playFirstSummaryMoment(
   container: HTMLElement,
 ) {
   await openFirstRecording(user);
-  expect(await screen.findByText("Play the source moment")).toBeVisible();
+  expect(await screen.findByText("Play this moment")).toBeVisible();
   const evidence = await screen.findByRole("button", {
-    name: /play source at 0:42/i,
+    name: /play recording at 0:42/i,
   });
   const audio = container.querySelector("audio");
   expect(audio).not.toBeNull();
@@ -305,7 +327,7 @@ describe("evidence ledger app", () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<App client={client} />);
 
-    await screen.findByText("Choose a coaching session");
+    await screen.findByText("Choose a coaching recording");
     expect(
       screen.queryByRole("button", { name: /delete recording/i }),
     ).toBeNull();
@@ -318,7 +340,7 @@ describe("evidence ledger app", () => {
     );
   });
 
-  it("opens the newest session summary with playable source moments beside the advice", async () => {
+  it("opens the newest session summary with playable moments beside the advice", async () => {
     const client = createClient();
     render(<App client={client} />);
 
@@ -326,23 +348,23 @@ describe("evidence ledger app", () => {
     // should land on after a rehearsal.
     expect(await screen.findByText("Releasing the sound")).toBeVisible();
     expect(screen.getByText(/releasing jaw tension on the F/i)).toBeVisible();
-    expect(screen.getByText("Play the source moment")).toBeVisible();
+    expect(screen.getByText("Play this moment")).toBeVisible();
     expect(
-      screen.getByRole("button", { name: /play source at 0:42/i }),
+      screen.getByRole("button", { name: /play recording at 0:42/i }),
     ).toBeVisible();
-    expect(screen.queryByText("1 source moment")).toBeNull();
+    expect(screen.queryByText("1 moment")).toBeNull();
     expect(
       screen.queryByText("Speaker identity needs human confirmation."),
     ).toBeNull();
   });
 
-  it("keeps summary source moments visible but disabled when audio is unavailable", async () => {
+  it("keeps summary play moments visible but disabled when audio is unavailable", async () => {
     const client = createClient({ ...createSession(), audioUrl: null });
     render(<App client={client} />);
 
     expect(await screen.findByText("Releasing the sound")).toBeVisible();
     const sourceMoment = screen.getByRole("button", {
-      name: /play source at 0:42/i,
+      name: /play recording at 0:42/i,
     });
     expect(sourceMoment).toBeVisible();
     expect(sourceMoment).toBeDisabled();
@@ -374,7 +396,7 @@ describe("evidence ledger app", () => {
     render(<App client={client} />);
 
     expect(
-      await screen.findByRole("button", { name: /feedback open/i }),
+      await screen.findByRole("button", { name: /coaching notes open/i }),
     ).toBeVisible();
     expect(
       await screen.findByRole("heading", { name: "Review session", level: 2 }),
@@ -382,7 +404,7 @@ describe("evidence ledger app", () => {
     const secondCard = screen.getByText("Second rehearsal").closest("article");
     expect(secondCard).not.toBeNull();
     const secondButton = within(secondCard!).getByRole("button", {
-      name: /read feedback/i,
+      name: /read coaching notes/i,
     });
     expect(secondButton).toHaveAttribute("aria-expanded", "false");
     expect(secondButton).toHaveAttribute(
@@ -392,10 +414,10 @@ describe("evidence ledger app", () => {
     await user.click(secondButton);
 
     const openButton = await screen.findByRole("button", {
-      name: /feedback open/i,
+      name: /coaching notes open/i,
     });
     expect(openButton).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText(/feedback is open below/i)).toBeVisible();
+    expect(screen.getByText(/coaching notes are open below/i)).toBeVisible();
     expect(
       await screen.findByRole("heading", {
         name: "Second rehearsal",
@@ -553,6 +575,46 @@ describe("evidence ledger app", () => {
     );
   });
 
+  it.each([
+    ["CREATED", "Uploading", /Technical status: CREATED/i],
+    ["UPLOADING", "Uploading", /Technical status: UPLOADING/i],
+    ["UPLOADED", "Uploading", /Technical status: UPLOADED/i],
+    [
+      "TRANSCRIBING",
+      "Listening to the recording",
+      /Technical status: transcription is in progress/i,
+    ],
+    ["RECONCILING", "Writing coaching notes", /Technical status: RECONCILING/i],
+    [
+      "TRANSCRIPT_READY",
+      "Writing coaching notes",
+      /Technical status: TRANSCRIPT_READY/i,
+    ],
+    ["EXTRACTING", "Writing coaching notes", /Technical status: EXTRACTING/i],
+    ["RETRY_PENDING", "Writing coaching notes", /Technical status: RETRY_PENDING/i],
+    ["AWAITING_REVIEW", "Ready to read", null],
+    ["COMPLETE", "Ready to read", null],
+    ["FAILED", "Needs help", /Technical status: FAILED/i],
+  ] as const)(
+    "drives singer-friendly status for real job state %s",
+    async (state, label, technicalDetail) => {
+      const user = userEvent.setup();
+      const client = createClient(createSessionInState(state));
+      render(<App client={client} />);
+
+      await waitFor(() =>
+        expect(screen.getAllByText(label)[0]).toBeVisible(),
+      );
+
+      if (technicalDetail) {
+        const detail = await screen.findByText(technicalDetail);
+        expect(detail).not.toBeVisible();
+        await user.click(screen.getByText("Technical details"));
+        expect(detail).toBeVisible();
+      }
+    },
+  );
+
   it("auto-opens the newest failed session with recovery actions", async () => {
     const user = userEvent.setup();
     const failed = {
@@ -582,7 +644,7 @@ describe("evidence ledger app", () => {
     render(<App client={client} />);
 
     expect(await screen.findByText("Newest failed take")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Recover" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Get help" })).toBeVisible();
     await waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent(
         "This file could not be read.",
@@ -591,7 +653,11 @@ describe("evidence ledger app", () => {
     expect(
       screen.getByText(/Upload a different MP3, WAV, or M4A file/i),
     ).toBeVisible();
-    await user.click(screen.getByRole("button", { name: "Check again" }));
+    await user.click(
+      within(screen.getByRole("alert")).getByRole("button", {
+        name: "Check again",
+      }),
+    );
     await waitFor(() =>
       expect(client.refreshFromSpeakr).toHaveBeenCalledWith("failed-session"),
     );
@@ -744,7 +810,7 @@ describe("evidence ledger app", () => {
     expect(
       within(note!).queryByText("Why might this be wrong?"),
     ).not.toBeInTheDocument();
-    expectToPrecede(takeaway, within(note!).getByText("Source moments"));
+    expectToPrecede(takeaway, within(note!).getByText("Moments to hear"));
     expectToPrecede(
       takeaway,
       within(note!).getByText("Optional: check this note"),
@@ -826,7 +892,7 @@ describe("evidence ledger app", () => {
     expect(screen.getAllByText(/now playing 0:42/i).length).toBeGreaterThan(0);
     expect(
       screen.getAllByText(
-        /source recording jumped to this moment for “Breath plan”/i,
+        /your recording jumped to this moment for “Breath plan”/i,
       ).length,
     ).toBeGreaterThan(0);
   });
@@ -846,7 +912,7 @@ describe("evidence ledger app", () => {
     await waitFor(() =>
       expect(evidence).toHaveAttribute("aria-pressed", "true"),
     );
-    expect(evidence).toHaveTextContent(/now playing source at 0:42/i);
+    expect(evidence).toHaveTextContent(/now playing recording at 0:42/i);
 
     const momentGroup = evidence.closest(".moment-play-group");
     expect(momentGroup).not.toBeNull();
@@ -887,7 +953,7 @@ describe("evidence ledger app", () => {
     },
   );
 
-  it("updates summary source moments without inserting inline playback layout", async () => {
+  it("updates summary play moments without inserting inline playback layout", async () => {
     const user = userEvent.setup();
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
     const client = createClient();
@@ -897,7 +963,7 @@ describe("evidence ledger app", () => {
         {
           rank: 1,
           title: "Releasing the sound",
-          summary: "The coach worked on timestamp-linked source moments.",
+          summary: "The coach worked on timestamp-linked moments.",
           interventionIds: ["intervention-1"],
           moments: [
             {
@@ -922,9 +988,13 @@ describe("evidence ledger app", () => {
     const { container } = render(<App client={client} />);
 
     await openFirstRecording(user);
-    expect(await screen.findByText("Play source moments")).toBeVisible();
-    const first = screen.getByRole("button", { name: /play source at 0:42/i });
-    const second = screen.getByRole("button", { name: /play source at 1:24/i });
+    expect(await screen.findByText("Play these moments")).toBeVisible();
+    const first = screen.getByRole("button", {
+      name: /play recording at 0:42/i,
+    });
+    const second = screen.getByRole("button", {
+      name: /play recording at 1:24/i,
+    });
     const firstGroup = first.closest(".moment-play-group");
     const secondGroup = second.closest(".moment-play-group");
 
@@ -1054,7 +1124,7 @@ describe("evidence ledger app", () => {
         {
           rank: 1,
           title: "Releasing the sound",
-          summary: "The coach worked on timestamp-linked source moments.",
+          summary: "The coach worked on timestamp-linked moments.",
           interventionIds: ["intervention-1"],
           moments: [
             {
@@ -1079,9 +1149,9 @@ describe("evidence ledger app", () => {
     const { container } = render(<App client={client} />);
 
     await openFirstRecording(user);
-    expect(await screen.findByText("Play source moments")).toBeVisible();
-    const first = screen.getByRole("button", { name: /play source at 0:42/i });
-    const second = screen.getByRole("button", { name: /play source at 1:24/i });
+    expect(await screen.findByText("Play these moments")).toBeVisible();
+    const first = screen.getByRole("button", { name: /play recording at 0:42/i });
+    const second = screen.getByRole("button", { name: /play recording at 1:24/i });
     const audio = container.querySelector("audio");
     expect(audio).not.toBeNull();
 

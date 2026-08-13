@@ -30,6 +30,8 @@ export interface SessionStatus {
   tone: StatusTone;
   /** One sentence a singer can act on, or null when the label says enough. */
   detail: string | null;
+  /** Optional operator-facing pipeline detail; never the primary status. */
+  technicalDetail: string | null;
 }
 
 /**
@@ -39,42 +41,69 @@ export interface SessionStatus {
 export function sessionStatus(state: SessionState): SessionStatus {
   if (isFailedSessionState(state)) {
     return {
-      label: "Something went wrong",
+      label: "Needs help",
       tone: "problem",
       detail: "This recording could not be turned into coaching notes.",
+      technicalDetail: `Technical status: ${state}`,
     };
   }
   switch (state) {
     case "CREATED":
     case "UPLOADING":
     case "UPLOADED":
-      return { label: "Uploading", tone: "working", detail: null };
+      return {
+        label: "Uploading",
+        tone: "working",
+        detail: null,
+        technicalDetail: `Technical status: ${state}`,
+      };
     case "TRANSCRIBING":
-    case "RECONCILING":
-    case "TRANSCRIPT_READY":
       return {
         label: "Listening to the recording",
         tone: "working",
         detail: "This usually takes a few minutes for a full rehearsal.",
+        technicalDetail: "Technical status: transcription is in progress.",
       };
+    case "RECONCILING":
+    case "TRANSCRIPT_READY":
     case "EXTRACTING":
+    case "RETRY_PENDING":
       return {
-        label: "Writing up the coaching notes",
+        label: "Writing coaching notes",
         tone: "working",
-        detail: "Almost there — the notes are being pulled out of the recording.",
+        detail: "The notes are being prepared from the recording.",
+        technicalDetail: `Technical status: ${state}`,
       };
     case "AWAITING_REVIEW":
     case "COMPLETE":
-      return { label: "Ready", tone: "ready", detail: null };
-    case "RETRY_PENDING":
-      return { label: "Trying again", tone: "working", detail: null };
+      return {
+        label: "Ready to read",
+        tone: "ready",
+        detail: null,
+        technicalDetail: `Technical status: ${state}`,
+      };
     case "CANCELLED":
-      return { label: "Cancelled", tone: "neutral", detail: null };
+      return {
+        label: "Cancelled",
+        tone: "neutral",
+        detail: null,
+        technicalDetail: `Technical status: ${state}`,
+      };
     case "DELETE_PENDING":
     case "DELETED":
-      return { label: "Deleting", tone: "neutral", detail: null };
+      return {
+        label: "Deleting",
+        tone: "neutral",
+        detail: null,
+        technicalDetail: `Technical status: ${state}`,
+      };
     default:
-      return { label: "Working on it", tone: "working", detail: null };
+      return {
+        label: "Getting this ready",
+        tone: "working",
+        detail: null,
+        technicalDetail: `Technical status: ${state}`,
+      };
   }
 }
 
