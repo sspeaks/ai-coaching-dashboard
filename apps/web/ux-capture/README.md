@@ -12,6 +12,16 @@ Output is written to `.squad/files/ux-review/{UX_CAPTURE_DATE-or-YYYY-MM-DD}/{vi
 
 The PNG screenshots are gitignored because they are large, regenerable binaries that churn on every UI change. Regenerate them locally with `npm run ux:capture` before a UX review; a fresh clone may only contain the tracked text artifacts (`manifest.json` and Mouse's `REVIEW.md`).
 
+## Phone viewport usability guard
+
+```sh
+nix develop -c bash -lc 'cd apps/web && npm ci && npm run ux:control-guard'
+```
+
+This CI guard reuses the same mock states, Vite server, fixed clock, Nix Playwright browser, and phone viewports as screenshot capture, but it asserts geometry instead of pixels. It checks every visible interactive surface (`button`, `summary`, `audio[controls]`, links, inputs, textareas, selects, and ARIA button/form roles) at 390x844 and 360x800. A control fails if it has zero rendered size, `display:none`, `visibility:hidden`, `opacity:0`, cannot be scrolled into the viewport, or has no hit-testable point because it is clipped or covered.
+
+Intentionally collapsed content is skipped only when it is under explicit collapse semantics: `[hidden]`, `[aria-hidden="true"]`, `[inert]`, or the non-`summary` contents of a closed `<details>`. The disclosure trigger itself is still checked. Do not hide a should-be-usable control with CSS and expect this guard to ignore it.
+
 ## Reproducibility
 
 The dev shell declares Nix's `playwright-driver.browsers` and exports `PLAYWRIGHT_BROWSERS_PATH` plus `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`, so Playwright uses Nix-provided browser binaries instead of downloading global mutable browsers. It also provides a fontconfig file with Noto, Liberation, DejaVu, CJK, and emoji fonts; missing fonts can make screenshots look blank or tofu-filled even when the browser launches. The script freezes browser `Date`, stubs `Math.random`, requests reduced motion, waits for fonts, and disables CSS animations/transitions before capture.

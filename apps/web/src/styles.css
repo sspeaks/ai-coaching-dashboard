@@ -1551,6 +1551,18 @@ meter {
   font-size: 0.86rem;
 }
 
+.audio-section audio[controls] {
+  min-height: 2.5rem;
+}
+
+@media (max-width: 640px) {
+  .audio-section audio[controls] {
+    flex: 0 0 auto;
+    height: 2.5rem;
+    min-height: 2.5rem;
+  }
+}
+
 .review-disclosure .review-controls {
   margin: 0 1rem 1rem;
   background: var(--surface);

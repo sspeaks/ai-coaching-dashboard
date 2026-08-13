@@ -99,6 +99,9 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+      - name: Run phone viewport usability guard
+        timeout-minutes: 10
+        run: nix develop -c bash -lc 'cd apps/web && npm ci --no-audit --no-fund && npm run ux:control-guard'
       - name: Require NixOS module and fresh-deploy/backup-restore checks
         run: python3 -m unittest discover -s tests/nix -v
       - name: Run all Nix flake checks
