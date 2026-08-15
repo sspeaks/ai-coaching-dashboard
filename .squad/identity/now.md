@@ -22,7 +22,11 @@ Combined-state health check on merged `main` (ee0771b) came back clean: timestam
 
 `.squad/decisions.md` grew 22,808 → 43,786 bytes this session (32 inbox entries merged). Nothing was archive-eligible (all within 30 days). It is approaching the 51,200-byte gate that triggers 7-day archiving — next session should expect aggressive archiving, and it is worth asking whether every entry needed to be a decision rather than agent history.
 
-## Housekeeping left for Seth
+## Housekeeping
 
-- Uncommitted `.squad/` state (agent histories, decisions.md, UX review artifacts); local `main` is 2 commits behind origin/main and cannot fast-forward until resolved.
-- Stale worktrees predating this session: `acd-issue39`, `acd-pr56-review`, `.review-pr55`.
+All clear as of the last session — no outstanding items.
+
+- `.squad/` state committed and pushed; `main` in sync with `origin/main`.
+- Stale worktrees (`acd-issue39`, `acd-pr56-review`, `.review-pr55`) and their branches removed.
+- `decisions.md` trimmed to real decisions (24,358 bytes / 38 entries), well under the 51,200-byte archive gate.
+- UX review PNGs are gitignored and regenerable via `npm run ux:capture`; findings live in the committed `REVIEW.md` files. Do not commit captures.
