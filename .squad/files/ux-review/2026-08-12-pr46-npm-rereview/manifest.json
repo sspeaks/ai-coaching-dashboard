@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-08-12T22:35:35.859Z",
+  "command": "npm Playwright 1.61.1 manual capture: mockState=failed",
+  "outputRoot": ".squad/files/ux-review/2026-08-12-pr46-npm-rereview",
+  "viewports": [
+    {
+      "name": "phone-390x844",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "narrow-phone-360x800",
+      "width": 360,
+      "height": 800
+    },
+    {
+      "name": "desktop-1440x900",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "shots": [
+    {
+      "file": "phone-390x844/05-feedback-failed-error.png",
+      "viewport": "phone-390x844",
+      "state": "05-feedback-failed-error",
+      "description": "opened Feedback after processing failed; recovery guidance and actions are visible.",
+      "bytes": 219600
+    },
+    {
+      "file": "narrow-phone-360x800/05-feedback-failed-error.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "05-feedback-failed-error",
+      "description": "opened Feedback after processing failed; recovery guidance and actions are visible.",
+      "bytes": 211860
+    },
+    {
+      "file": "desktop-1440x900/05-feedback-failed-error.png",
+      "viewport": "desktop-1440x900",
+      "state": "05-feedback-failed-error",
+      "description": "opened Feedback after processing failed; recovery guidance and actions are visible.",
+      "bytes": 302104
+    }
+  ],
+  "caveats": [
+    "Captured with npm Playwright from this branch, not Nix dev shell, to keep browser method consistent while #49 is under revision."
+  ]
+}

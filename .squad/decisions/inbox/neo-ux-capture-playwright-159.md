@@ -1,4 +1,0 @@
-### 2026-08-12: UX capture pins npm Playwright to flake-pinned Nix Playwright 1.59.1
-**By:** Neo
-**What:** The UX screenshot harness now aligns npm `playwright`/`playwright-core` with the flake-pinned Nix `playwright-driver` by pinning npm to `1.59.1`, the version currently provided by this repository's `flake.lock`. The dev shell exposes `PLAYWRIGHT_NIX_DRIVER_VERSION`, and the harness fails before capture if the npm package version, Nix driver version, or Chromium browser revision drift apart.
-**Why:** Moving the flake to an arbitrary nixpkgs revision solely to chase npm `1.61.1` would make the whole repository's Nix inputs less predictable. Pinning npm down to the already-flake-pinned browser bundle keeps the browser binary declarative, keeps the npm lockfile honest, and turns future Nix bumps into loud failures instead of silent screenshot-rendering drift.

@@ -1,0 +1,267 @@
+{
+  "generatedAt": "2026-08-13T01:33:34.461Z",
+  "fixedRenderTime": "2026-08-12T12:00:00.000Z",
+  "baseUrl": "http://127.0.0.1:5175",
+  "viewports": [
+    {
+      "name": "phone-390x844",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "narrow-phone-360x800",
+      "width": 360,
+      "height": 800
+    },
+    {
+      "name": "desktop-1440x900",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "shots": [
+    {
+      "file": "phone-390x844/01-feedback-empty-first-run.png",
+      "viewport": "phone-390x844",
+      "state": "empty full-page"
+    },
+    {
+      "file": "phone-390x844/02-upload-ready-idle.png",
+      "viewport": "phone-390x844",
+      "state": "upload ready idle"
+    },
+    {
+      "file": "phone-390x844/03-upload-in-progress-uploading.png",
+      "viewport": "phone-390x844",
+      "state": "uploading rung on upload page"
+    },
+    {
+      "file": "phone-390x844/04-feedback-uploading.png",
+      "viewport": "phone-390x844",
+      "state": "uploading full-page"
+    },
+    {
+      "file": "phone-390x844/04-feedback-uploading-technical-details-collapsed.png",
+      "viewport": "phone-390x844",
+      "state": "uploading technical details collapsed"
+    },
+    {
+      "file": "phone-390x844/04-feedback-uploading-technical-details-open.png",
+      "viewport": "phone-390x844",
+      "state": "uploading technical details open"
+    },
+    {
+      "file": "phone-390x844/05-feedback-listening.png",
+      "viewport": "phone-390x844",
+      "state": "processing full-page"
+    },
+    {
+      "file": "phone-390x844/05-feedback-listening-technical-details-collapsed.png",
+      "viewport": "phone-390x844",
+      "state": "processing technical details collapsed"
+    },
+    {
+      "file": "phone-390x844/05-feedback-listening-technical-details-open.png",
+      "viewport": "phone-390x844",
+      "state": "processing technical details open"
+    },
+    {
+      "file": "phone-390x844/06-feedback-writing.png",
+      "viewport": "phone-390x844",
+      "state": "reconciling full-page"
+    },
+    {
+      "file": "phone-390x844/06-feedback-writing-technical-details-collapsed.png",
+      "viewport": "phone-390x844",
+      "state": "reconciling technical details collapsed"
+    },
+    {
+      "file": "phone-390x844/06-feedback-writing-technical-details-open.png",
+      "viewport": "phone-390x844",
+      "state": "reconciling technical details open"
+    },
+    {
+      "file": "phone-390x844/07-feedback-ready.png",
+      "viewport": "phone-390x844",
+      "state": "complete full-page"
+    },
+    {
+      "file": "phone-390x844/08-feedback-needs-help.png",
+      "viewport": "phone-390x844",
+      "state": "failed full-page"
+    },
+    {
+      "file": "phone-390x844/08-feedback-needs-help-technical-details-collapsed.png",
+      "viewport": "phone-390x844",
+      "state": "failed technical details collapsed"
+    },
+    {
+      "file": "phone-390x844/08-feedback-needs-help-technical-details-open.png",
+      "viewport": "phone-390x844",
+      "state": "failed technical details open"
+    },
+    {
+      "file": "narrow-phone-360x800/01-feedback-empty-first-run.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "empty full-page"
+    },
+    {
+      "file": "narrow-phone-360x800/02-upload-ready-idle.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "upload ready idle"
+    },
+    {
+      "file": "narrow-phone-360x800/03-upload-in-progress-uploading.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "uploading rung on upload page"
+    },
+    {
+      "file": "narrow-phone-360x800/04-feedback-uploading.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "uploading full-page"
+    },
+    {
+      "file": "narrow-phone-360x800/04-feedback-uploading-technical-details-collapsed.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "uploading technical details collapsed"
+    },
+    {
+      "file": "narrow-phone-360x800/04-feedback-uploading-technical-details-open.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "uploading technical details open"
+    },
+    {
+      "file": "narrow-phone-360x800/05-feedback-listening.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "processing full-page"
+    },
+    {
+      "file": "narrow-phone-360x800/05-feedback-listening-technical-details-collapsed.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "processing technical details collapsed"
+    },
+    {
+      "file": "narrow-phone-360x800/05-feedback-listening-technical-details-open.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "processing technical details open"
+    },
+    {
+      "file": "narrow-phone-360x800/06-feedback-writing.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "reconciling full-page"
+    },
+    {
+      "file": "narrow-phone-360x800/06-feedback-writing-technical-details-collapsed.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "reconciling technical details collapsed"
+    },
+    {
+      "file": "narrow-phone-360x800/06-feedback-writing-technical-details-open.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "reconciling technical details open"
+    },
+    {
+      "file": "narrow-phone-360x800/07-feedback-ready.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "complete full-page"
+    },
+    {
+      "file": "narrow-phone-360x800/08-feedback-needs-help.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "failed full-page"
+    },
+    {
+      "file": "narrow-phone-360x800/08-feedback-needs-help-technical-details-collapsed.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "failed technical details collapsed"
+    },
+    {
+      "file": "narrow-phone-360x800/08-feedback-needs-help-technical-details-open.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "failed technical details open"
+    },
+    {
+      "file": "desktop-1440x900/01-feedback-empty-first-run.png",
+      "viewport": "desktop-1440x900",
+      "state": "empty full-page"
+    },
+    {
+      "file": "desktop-1440x900/02-upload-ready-idle.png",
+      "viewport": "desktop-1440x900",
+      "state": "upload ready idle"
+    },
+    {
+      "file": "desktop-1440x900/03-upload-in-progress-uploading.png",
+      "viewport": "desktop-1440x900",
+      "state": "uploading rung on upload page"
+    },
+    {
+      "file": "desktop-1440x900/04-feedback-uploading.png",
+      "viewport": "desktop-1440x900",
+      "state": "uploading full-page"
+    },
+    {
+      "file": "desktop-1440x900/04-feedback-uploading-technical-details-collapsed.png",
+      "viewport": "desktop-1440x900",
+      "state": "uploading technical details collapsed"
+    },
+    {
+      "file": "desktop-1440x900/04-feedback-uploading-technical-details-open.png",
+      "viewport": "desktop-1440x900",
+      "state": "uploading technical details open"
+    },
+    {
+      "file": "desktop-1440x900/05-feedback-listening.png",
+      "viewport": "desktop-1440x900",
+      "state": "processing full-page"
+    },
+    {
+      "file": "desktop-1440x900/05-feedback-listening-technical-details-collapsed.png",
+      "viewport": "desktop-1440x900",
+      "state": "processing technical details collapsed"
+    },
+    {
+      "file": "desktop-1440x900/05-feedback-listening-technical-details-open.png",
+      "viewport": "desktop-1440x900",
+      "state": "processing technical details open"
+    },
+    {
+      "file": "desktop-1440x900/06-feedback-writing.png",
+      "viewport": "desktop-1440x900",
+      "state": "reconciling full-page"
+    },
+    {
+      "file": "desktop-1440x900/06-feedback-writing-technical-details-collapsed.png",
+      "viewport": "desktop-1440x900",
+      "state": "reconciling technical details collapsed"
+    },
+    {
+      "file": "desktop-1440x900/06-feedback-writing-technical-details-open.png",
+      "viewport": "desktop-1440x900",
+      "state": "reconciling technical details open"
+    },
+    {
+      "file": "desktop-1440x900/07-feedback-ready.png",
+      "viewport": "desktop-1440x900",
+      "state": "complete full-page"
+    },
+    {
+      "file": "desktop-1440x900/08-feedback-needs-help.png",
+      "viewport": "desktop-1440x900",
+      "state": "failed full-page"
+    },
+    {
+      "file": "desktop-1440x900/08-feedback-needs-help-technical-details-collapsed.png",
+      "viewport": "desktop-1440x900",
+      "state": "failed technical details collapsed"
+    },
+    {
+      "file": "desktop-1440x900/08-feedback-needs-help-technical-details-open.png",
+      "viewport": "desktop-1440x900",
+      "state": "failed technical details open"
+    }
+  ],
+  "notes": [
+    "Mouse independent PR #58 capture: all friendly status ladder rungs plus technical-detail collapsed/open checks."
+  ]
+}

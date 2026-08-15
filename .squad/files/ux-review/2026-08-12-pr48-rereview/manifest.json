@@ -1,0 +1,90 @@
+{
+  "generatedAt": "2026-08-12T22:22:09.157Z",
+  "command": "manual dev-shell capture for PR48 before/after Read feedback",
+  "outputRoot": ".squad/files/ux-review/2026-08-12-pr48-rereview",
+  "viewports": [
+    {
+      "name": "phone-390x844",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "narrow-phone-360x800",
+      "width": 360,
+      "height": 800
+    },
+    {
+      "name": "desktop-1440x900",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "shots": [
+    {
+      "file": "phone-390x844/07-read-feedback-before-tap-viewport.png",
+      "viewport": "phone-390x844",
+      "state": "07-read-feedback-before-tap-viewport",
+      "description": "collapsed recording-list view before tapping Read feedback.",
+      "bytes": 90860
+    },
+    {
+      "file": "phone-390x844/08-read-feedback-after-tap-viewport.png",
+      "viewport": "phone-390x844",
+      "state": "08-read-feedback-after-tap-viewport",
+      "description": "viewport immediately after tapping Read feedback.",
+      "bytes": 70611
+    },
+    {
+      "file": "phone-390x844/09-read-feedback-after-tap-fullpage.png",
+      "viewport": "phone-390x844",
+      "state": "09-read-feedback-after-tap-fullpage",
+      "description": "full page immediately after tapping Read feedback.",
+      "bytes": 174195
+    },
+    {
+      "file": "narrow-phone-360x800/07-read-feedback-before-tap-viewport.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "07-read-feedback-before-tap-viewport",
+      "description": "collapsed recording-list view before tapping Read feedback.",
+      "bytes": 83634
+    },
+    {
+      "file": "narrow-phone-360x800/08-read-feedback-after-tap-viewport.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "08-read-feedback-after-tap-viewport",
+      "description": "viewport immediately after tapping Read feedback.",
+      "bytes": 65392
+    },
+    {
+      "file": "narrow-phone-360x800/09-read-feedback-after-tap-fullpage.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "09-read-feedback-after-tap-fullpage",
+      "description": "full page immediately after tapping Read feedback.",
+      "bytes": 172017
+    },
+    {
+      "file": "desktop-1440x900/07-read-feedback-before-tap-viewport.png",
+      "viewport": "desktop-1440x900",
+      "state": "07-read-feedback-before-tap-viewport",
+      "description": "collapsed recording-list view before tapping Read feedback.",
+      "bytes": 125606
+    },
+    {
+      "file": "desktop-1440x900/08-read-feedback-after-tap-viewport.png",
+      "viewport": "desktop-1440x900",
+      "state": "08-read-feedback-after-tap-viewport",
+      "description": "viewport immediately after tapping Read feedback.",
+      "bytes": 198055
+    },
+    {
+      "file": "desktop-1440x900/09-read-feedback-after-tap-fullpage.png",
+      "viewport": "desktop-1440x900",
+      "state": "09-read-feedback-after-tap-fullpage",
+      "description": "full page immediately after tapping Read feedback.",
+      "bytes": 214535
+    }
+  ],
+  "caveats": [
+    "Captured with Nix dev shell Playwright browser path and mockState=complete. Before state clicks Choose another recording when needed to return to the list."
+  ]
+}

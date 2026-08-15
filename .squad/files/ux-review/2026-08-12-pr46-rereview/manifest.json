@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-08-12T22:19:46.603Z",
+  "command": "manual dev-shell capture for PR46 failed state because harness wait text changed",
+  "outputRoot": ".squad/files/ux-review/2026-08-12-pr46-rereview",
+  "viewports": [
+    {
+      "name": "phone-390x844",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "narrow-phone-360x800",
+      "width": 360,
+      "height": 800
+    },
+    {
+      "name": "desktop-1440x900",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "shots": [
+    {
+      "file": "phone-390x844/05-feedback-failed-error.png",
+      "viewport": "phone-390x844",
+      "state": "05-feedback-failed-error",
+      "description": "opened Feedback after processing failed; recovery guidance and actions are visible.",
+      "bytes": 219018
+    },
+    {
+      "file": "narrow-phone-360x800/05-feedback-failed-error.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "05-feedback-failed-error",
+      "description": "opened Feedback after processing failed; recovery guidance and actions are visible.",
+      "bytes": 212146
+    },
+    {
+      "file": "desktop-1440x900/05-feedback-failed-error.png",
+      "viewport": "desktop-1440x900",
+      "state": "05-feedback-failed-error",
+      "description": "opened Feedback after processing failed; recovery guidance and actions are visible.",
+      "bytes": 302104
+    }
+  ],
+  "caveats": [
+    "The stock ux:capture command reached PR46 but failed waiting for old failure copy; these screenshots are captured with the same Nix Playwright browser path and mockState=failed."
+  ]
+}

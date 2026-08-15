@@ -1,0 +1,109 @@
+{
+  "generatedAt": "2026-08-12T23:34:05.994Z",
+  "fixedRenderTime": "2026-08-12T12:00:00.000Z",
+  "command": "targeted mobile PR48 capture under nix develop",
+  "outputRoot": ".squad/files/ux-review/2026-08-12-pr48-rereview-2",
+  "viewports": [
+    {
+      "name": "phone-390x844",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "narrow-phone-360x800",
+      "width": 360,
+      "height": 800
+    }
+  ],
+  "shots": [
+    {
+      "file": "phone-390x844/01-feedback-empty-closed.png",
+      "viewport": "phone-390x844",
+      "state": "01-feedback-empty-closed",
+      "description": "Feedback with no recordings yet; no disclosure opened.",
+      "bytes": 101531
+    },
+    {
+      "file": "phone-390x844/02-feedback-ready-closed.png",
+      "viewport": "phone-390x844",
+      "state": "02-feedback-ready-closed",
+      "description": "Ready feedback session after returning to the closed list state.",
+      "bytes": 99389
+    },
+    {
+      "file": "phone-390x844/03-feedback-ready-open.png",
+      "viewport": "phone-390x844",
+      "state": "03-feedback-ready-open",
+      "description": "Ready feedback session after tapping Read feedback.",
+      "bytes": 174382
+    },
+    {
+      "file": "phone-390x844/04-feedback-loading-open.png",
+      "viewport": "phone-390x844",
+      "state": "04-feedback-loading-open",
+      "description": "Processing/loading disclosure after tapping See progress.",
+      "bytes": 155706
+    },
+    {
+      "file": "phone-390x844/05-feedback-failed-recovery.png",
+      "viewport": "phone-390x844",
+      "state": "05-feedback-failed-recovery",
+      "description": "Failed recording recovery disclosure for PR #46 regression check.",
+      "bytes": 225888
+    },
+    {
+      "file": "phone-390x844/06-upload-ready-privacy.png",
+      "viewport": "phone-390x844",
+      "state": "06-upload-ready-privacy",
+      "description": "Upload privacy disclosure for PR #50 narrow-phone regression check.",
+      "bytes": 219492
+    },
+    {
+      "file": "narrow-phone-360x800/01-feedback-empty-closed.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "01-feedback-empty-closed",
+      "description": "Feedback with no recordings yet; no disclosure opened.",
+      "bytes": 98255
+    },
+    {
+      "file": "narrow-phone-360x800/02-feedback-ready-closed.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "02-feedback-ready-closed",
+      "description": "Ready feedback session after returning to the closed list state.",
+      "bytes": 96199
+    },
+    {
+      "file": "narrow-phone-360x800/03-feedback-ready-open.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "03-feedback-ready-open",
+      "description": "Ready feedback session after tapping Read feedback.",
+      "bytes": 171939
+    },
+    {
+      "file": "narrow-phone-360x800/04-feedback-loading-open.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "04-feedback-loading-open",
+      "description": "Processing/loading disclosure after tapping See progress.",
+      "bytes": 153561
+    },
+    {
+      "file": "narrow-phone-360x800/05-feedback-failed-recovery.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "05-feedback-failed-recovery",
+      "description": "Failed recording recovery disclosure for PR #46 regression check.",
+      "bytes": 219220
+    },
+    {
+      "file": "narrow-phone-360x800/06-upload-ready-privacy.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "06-upload-ready-privacy",
+      "description": "Upload privacy disclosure for PR #50 narrow-phone regression check.",
+      "bytes": 214008
+    }
+  ],
+  "caveats": [
+    "Targeted PR #48 re-shoot; not a full app re-review.",
+    "Programmatic [tabindex=-1] focus outlines suppressed to match the deterministic harness caveat.",
+    "Pixels only prove layout/hierarchy/clipping/affordance, not runtime behavior."
+  ]
+}

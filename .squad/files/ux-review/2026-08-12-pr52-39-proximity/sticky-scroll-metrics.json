@@ -1,0 +1,562 @@
+[
+  {
+    "label": "phone-390x844-note1",
+    "scrollY": 2476,
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "audio": {
+      "x": 25,
+      "y": 12,
+      "width": 340,
+      "height": 91.1875,
+      "top": 12,
+      "right": 365,
+      "bottom": 103.1875,
+      "left": 25
+    },
+    "firstPlay": {
+      "x": 43.59375,
+      "y": 160.328125,
+      "width": 302.8125,
+      "height": 77.375,
+      "top": 160.328125,
+      "right": 346.40625,
+      "bottom": 237.703125,
+      "left": 43.59375
+    },
+    "main": {
+      "x": 8,
+      "y": -2124.609375,
+      "width": 374,
+      "height": 6705.890625,
+      "top": -2124.609375,
+      "right": 382,
+      "bottom": 4581.28125,
+      "left": 8
+    },
+    "overlap": [
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet",
+        "area": 31004
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet",
+        "area": 31004
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-grid",
+        "text": "COACH'S EXACT WORDS This is synthetic demo coaching: reset the vowel together be",
+        "area": 27613
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-field",
+        "text": "NEXT STEP Quartet: rehearse the tag slowly twice before the next full run.",
+        "area": 7925
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-field",
+        "text": "QUESTION TO CHECK Confirm whether the bass vowel is still too dark on the pickup",
+        "area": 19506
+      }
+    ]
+  },
+  {
+    "label": "phone-390x844-note2",
+    "scrollY": 4302,
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "audio": {
+      "x": 25,
+      "y": 12,
+      "width": 340,
+      "height": 91.1875,
+      "top": 12,
+      "right": 365,
+      "bottom": 103.1875,
+      "left": 25
+    },
+    "firstPlay": {
+      "x": 43.59375,
+      "y": -1665.671875,
+      "width": 302.8125,
+      "height": 77.375,
+      "top": -1665.671875,
+      "right": 346.40625,
+      "bottom": -1588.296875,
+      "left": 43.59375
+    },
+    "main": {
+      "x": 8,
+      "y": -3950.609375,
+      "width": 374,
+      "height": 6705.890625,
+      "top": -3950.609375,
+      "right": 382,
+      "bottom": 2755.28125,
+      "left": 8
+    },
+    "overlap": [
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet",
+        "area": 31004
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 2 Plan the breath before the phrase peak Checked COACHING TAKEAWAY The brea",
+        "area": 31004
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-grid",
+        "text": "COACH'S EXACT WORDS Synthetic demo coaching: take the shared breath earlier, the",
+        "area": 27613
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-field",
+        "text": "NEXT STEP Lead: cue the earlier breath in the next rehearsal run.",
+        "area": 13532
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-field",
+        "text": "QUESTION TO CHECK Not mentioned.",
+        "area": 13898
+      }
+    ]
+  },
+  {
+    "label": "phone-390x844-note3",
+    "scrollY": 6223,
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "audio": {
+      "x": 25,
+      "y": 12,
+      "width": 340,
+      "height": 91.1875,
+      "top": 12,
+      "right": 365,
+      "bottom": 103.1875,
+      "left": 25
+    },
+    "firstPlay": {
+      "x": 43.59375,
+      "y": -3586.671875,
+      "width": 302.8125,
+      "height": 77.375,
+      "top": -3586.671875,
+      "right": 346.40625,
+      "bottom": -3509.296875,
+      "left": 43.59375
+    },
+    "main": {
+      "x": 8,
+      "y": -5871.609375,
+      "width": 374,
+      "height": 6705.890625,
+      "top": -5871.609375,
+      "right": 382,
+      "bottom": 834.28125,
+      "left": 8
+    },
+    "overlap": [
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet",
+        "area": 31004
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 3 Keep the bass line supportive, not dominant Needs correction COACHING TAK",
+        "area": 31004
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-grid",
+        "text": "COACH'S EXACT WORDS Synthetic demo coaching: let the bass energize the chord wit",
+        "area": 27613
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-field",
+        "text": "NEXT STEP Bass: record one balance check at rehearsal tempo.",
+        "area": 1993
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-field",
+        "text": "QUESTION TO CHECK Decide whether this is a balance issue or a vowel mismatch in ",
+        "area": 25437
+      }
+    ]
+  },
+  {
+    "label": "phone-390x844-bottom",
+    "scrollY": 6277,
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "audio": {
+      "x": 25,
+      "y": 12,
+      "width": 340,
+      "height": 91.1875,
+      "top": 12,
+      "right": 365,
+      "bottom": 103.1875,
+      "left": 25
+    },
+    "firstPlay": {
+      "x": 43.59375,
+      "y": -3640.671875,
+      "width": 302.8125,
+      "height": 77.375,
+      "top": -3640.671875,
+      "right": 346.40625,
+      "bottom": -3563.296875,
+      "left": 43.59375
+    },
+    "main": {
+      "x": 8,
+      "y": -5925.609375,
+      "width": 374,
+      "height": 6705.890625,
+      "top": -5925.609375,
+      "right": 382,
+      "bottom": 780.28125,
+      "left": 8
+    },
+    "overlap": [
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet",
+        "area": 31004
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 3 Keep the bass line supportive, not dominant Needs correction COACHING TAK",
+        "area": 31004
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-grid",
+        "text": "COACH'S EXACT WORDS Synthetic demo coaching: let the bass energize the chord wit",
+        "area": 16901
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-field",
+        "text": "QUESTION TO CHECK Decide whether this is a balance issue or a vowel mismatch in ",
+        "area": 16488
+      },
+      {
+        "tag": "DIV",
+        "cls": "evidence-section",
+        "text": "SOURCE MOMENTS ▶ Play coach feedback at 3:31 Coach gives the vowel reset instruc",
+        "area": 5867
+      }
+    ]
+  },
+  {
+    "label": "narrow-phone-360x800-note1",
+    "scrollY": 2546,
+    "viewport": {
+      "w": 360,
+      "h": 800
+    },
+    "audio": {
+      "x": 25,
+      "y": 12,
+      "width": 310,
+      "height": 91.1875,
+      "top": 12,
+      "right": 335,
+      "bottom": 103.1875,
+      "left": 25
+    },
+    "firstPlay": {
+      "x": 43.59375,
+      "y": 160.328125,
+      "width": 272.8125,
+      "height": 92.375,
+      "top": 160.328125,
+      "right": 316.40625,
+      "bottom": 252.703125,
+      "left": 43.59375
+    },
+    "main": {
+      "x": 8,
+      "y": -2194.609375,
+      "width": 344,
+      "height": 6979.890625,
+      "top": -2194.609375,
+      "right": 352,
+      "bottom": 4785.28125,
+      "left": 8
+    },
+    "overlap": [
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet",
+        "area": 28268
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet",
+        "area": 28268
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-grid",
+        "text": "COACH'S EXACT WORDS This is synthetic demo coaching: reset the vowel together be",
+        "area": 24877
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-field",
+        "text": "NEXT STEP Quartet: rehearse the tag slowly twice before the next full run.",
+        "area": 1989
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-field",
+        "text": "QUESTION TO CHECK Confirm whether the bass vowel is still too dark on the pickup",
+        "area": 22706
+      }
+    ]
+  },
+  {
+    "label": "narrow-phone-360x800-note2",
+    "scrollY": 4495,
+    "viewport": {
+      "w": 360,
+      "h": 800
+    },
+    "audio": {
+      "x": 25,
+      "y": 12,
+      "width": 310,
+      "height": 91.1875,
+      "top": 12,
+      "right": 335,
+      "bottom": 103.1875,
+      "left": 25
+    },
+    "firstPlay": {
+      "x": 43.59375,
+      "y": -1788.671875,
+      "width": 272.8125,
+      "height": 92.375,
+      "top": -1788.671875,
+      "right": 316.40625,
+      "bottom": -1696.296875,
+      "left": 43.59375
+    },
+    "main": {
+      "x": 8,
+      "y": -4143.609375,
+      "width": 344,
+      "height": 6979.890625,
+      "top": -4143.609375,
+      "right": 352,
+      "bottom": 2836.28125,
+      "left": 8
+    },
+    "overlap": [
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet",
+        "area": 28268
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 2 Plan the breath before the phrase peak Checked COACHING TAKEAWAY The brea",
+        "area": 28268
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-grid",
+        "text": "COACH'S EXACT WORDS Synthetic demo coaching: take the shared breath earlier, the",
+        "area": 24877
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-field",
+        "text": "NEXT STEP Lead: cue the earlier breath in the next rehearsal run.",
+        "area": 12182
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-field",
+        "text": "QUESTION TO CHECK Not mentioned.",
+        "area": 12512
+      }
+    ]
+  },
+  {
+    "label": "narrow-phone-360x800-note3",
+    "scrollY": 6482,
+    "viewport": {
+      "w": 360,
+      "h": 800
+    },
+    "audio": {
+      "x": 25,
+      "y": 12,
+      "width": 310,
+      "height": 91.1875,
+      "top": 12,
+      "right": 335,
+      "bottom": 103.1875,
+      "left": 25
+    },
+    "firstPlay": {
+      "x": 43.59375,
+      "y": -3775.671875,
+      "width": 272.8125,
+      "height": 92.375,
+      "top": -3775.671875,
+      "right": 316.40625,
+      "bottom": -3683.296875,
+      "left": 43.59375
+    },
+    "main": {
+      "x": 8,
+      "y": -6130.609375,
+      "width": 344,
+      "height": 6979.890625,
+      "top": -6130.609375,
+      "right": 352,
+      "bottom": 849.28125,
+      "left": 8
+    },
+    "overlap": [
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet",
+        "area": 28268
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 3 Keep the bass line supportive, not dominant Needs correction COACHING TAK",
+        "area": 28268
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-grid",
+        "text": "COACH'S EXACT WORDS Synthetic demo coaching: let the bass energize the chord wit",
+        "area": 24877
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-field",
+        "text": "NEXT STEP Bass: record one balance check at rehearsal tempo.",
+        "area": 1794
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-field",
+        "text": "QUESTION TO CHECK Decide whether this is a balance issue or a vowel mismatch in ",
+        "area": 22901
+      }
+    ]
+  },
+  {
+    "label": "narrow-phone-360x800-bottom",
+    "scrollY": 6595,
+    "viewport": {
+      "w": 360,
+      "h": 800
+    },
+    "audio": {
+      "x": 25,
+      "y": 12,
+      "width": 310,
+      "height": 91.1875,
+      "top": 12,
+      "right": 335,
+      "bottom": 103.1875,
+      "left": 25
+    },
+    "firstPlay": {
+      "x": 43.59375,
+      "y": -3888.671875,
+      "width": 272.8125,
+      "height": 92.375,
+      "top": -3888.671875,
+      "right": 316.40625,
+      "bottom": -3796.296875,
+      "left": 43.59375
+    },
+    "main": {
+      "x": 8,
+      "y": -6243.609375,
+      "width": 344,
+      "height": 6979.890625,
+      "top": -6243.609375,
+      "right": 352,
+      "bottom": 736.28125,
+      "left": 8
+    },
+    "overlap": [
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet",
+        "area": 28268
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 3 Keep the bass line supportive, not dominant Needs correction COACHING TAK",
+        "area": 28268
+      },
+      {
+        "tag": "DIV",
+        "cls": "evidence-section",
+        "text": "SOURCE MOMENTS ▶ Play coach feedback at 3:31 Coach gives the vowel reset instruc",
+        "area": 21382
+      },
+      {
+        "tag": "UL",
+        "cls": "evidence-links",
+        "text": "▶ Play coach feedback at 3:31 Coach gives the vowel reset instruction ▶ Play aft",
+        "area": 15435
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "evidence-link evidence-link--play",
+        "text": "▶ Play coach feedback at 3:31 Coach gives the vowel reset instruction",
+        "area": 15435
+      }
+    ]
+  }
+]

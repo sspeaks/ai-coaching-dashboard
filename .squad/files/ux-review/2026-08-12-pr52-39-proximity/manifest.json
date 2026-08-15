@@ -1,0 +1,212 @@
+{
+  "generatedAt": "2026-08-13T00:28:50.113Z",
+  "fixedRenderTime": "2026-08-12T12:00:00.000Z",
+  "command": "fallback structural Playwright capture after ux:capture failed on failed-state text",
+  "outputRoot": "/home/sspeaks/projects/ai-coaching-dashboard/.squad/files/ux-review/2026-08-12-pr52-39-proximity",
+  "viewports": [
+    {
+      "name": "phone-390x844",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "narrow-phone-360x800",
+      "width": 360,
+      "height": 800
+    },
+    {
+      "name": "desktop-1440x900",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "shots": [
+    {
+      "file": "phone-390x844/01-feedback-empty-first-run.png",
+      "viewport": "phone-390x844",
+      "state": "01-feedback-empty-first-run",
+      "bytes": 102140
+    },
+    {
+      "file": "phone-390x844/02-upload-ready-idle.png",
+      "viewport": "phone-390x844",
+      "state": "02-upload-ready-idle",
+      "bytes": 219354
+    },
+    {
+      "file": "phone-390x844/03-upload-in-progress.png",
+      "viewport": "phone-390x844",
+      "state": "03-upload-in-progress",
+      "bytes": 227000
+    },
+    {
+      "file": "phone-390x844/04-feedback-processing-transcribing.png",
+      "viewport": "phone-390x844",
+      "state": "04-feedback-processing-transcribing",
+      "bytes": 163424
+    },
+    {
+      "file": "phone-390x844/05-feedback-failed-error.png",
+      "viewport": "phone-390x844",
+      "state": "05-feedback-failed-error",
+      "bytes": 233909
+    },
+    {
+      "file": "phone-390x844/06-feedback-awaiting-review.png",
+      "viewport": "phone-390x844",
+      "state": "06-feedback-awaiting-review",
+      "bytes": 640214
+    },
+    {
+      "file": "phone-390x844/07-feedback-reviewed-complete.png",
+      "viewport": "phone-390x844",
+      "state": "07-feedback-reviewed-complete",
+      "bytes": 638575
+    },
+    {
+      "file": "narrow-phone-360x800/01-feedback-empty-first-run.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "01-feedback-empty-first-run",
+      "bytes": 98608
+    },
+    {
+      "file": "narrow-phone-360x800/02-upload-ready-idle.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "02-upload-ready-idle",
+      "bytes": 213796
+    },
+    {
+      "file": "narrow-phone-360x800/03-upload-in-progress.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "03-upload-in-progress",
+      "bytes": 221510
+    },
+    {
+      "file": "narrow-phone-360x800/04-feedback-processing-transcribing.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "04-feedback-processing-transcribing",
+      "bytes": 160979
+    },
+    {
+      "file": "narrow-phone-360x800/05-feedback-failed-error.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "05-feedback-failed-error",
+      "bytes": 227252
+    },
+    {
+      "file": "narrow-phone-360x800/06-feedback-awaiting-review.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "06-feedback-awaiting-review",
+      "bytes": 637902
+    },
+    {
+      "file": "narrow-phone-360x800/07-feedback-reviewed-complete.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "07-feedback-reviewed-complete",
+      "bytes": 635865
+    },
+    {
+      "file": "desktop-1440x900/01-feedback-empty-first-run.png",
+      "viewport": "desktop-1440x900",
+      "state": "01-feedback-empty-first-run",
+      "bytes": 127438
+    },
+    {
+      "file": "desktop-1440x900/02-upload-ready-idle.png",
+      "viewport": "desktop-1440x900",
+      "state": "02-upload-ready-idle",
+      "bytes": 278546
+    },
+    {
+      "file": "desktop-1440x900/03-upload-in-progress.png",
+      "viewport": "desktop-1440x900",
+      "state": "03-upload-in-progress",
+      "bytes": 287451
+    },
+    {
+      "file": "desktop-1440x900/04-feedback-processing-transcribing.png",
+      "viewport": "desktop-1440x900",
+      "state": "04-feedback-processing-transcribing",
+      "bytes": 196135
+    },
+    {
+      "file": "desktop-1440x900/05-feedback-failed-error.png",
+      "viewport": "desktop-1440x900",
+      "state": "05-feedback-failed-error",
+      "bytes": 318373
+    },
+    {
+      "file": "desktop-1440x900/06-feedback-awaiting-review.png",
+      "viewport": "desktop-1440x900",
+      "state": "06-feedback-awaiting-review",
+      "bytes": 698364
+    },
+    {
+      "file": "desktop-1440x900/07-feedback-reviewed-complete.png",
+      "viewport": "desktop-1440x900",
+      "state": "07-feedback-reviewed-complete",
+      "bytes": 697690
+    },
+    {
+      "file": "phone-390x844/08-complete-scroll-note1.png",
+      "viewport": "phone-390x844",
+      "state": "08-complete-scroll-note1",
+      "bytes": 50105,
+      "description": "viewport screenshot after scrolling complete feedback to inspect sticky audio comfort"
+    },
+    {
+      "file": "phone-390x844/08-complete-scroll-note2.png",
+      "viewport": "phone-390x844",
+      "state": "08-complete-scroll-note2",
+      "bytes": 49084,
+      "description": "viewport screenshot after scrolling complete feedback to inspect sticky audio comfort"
+    },
+    {
+      "file": "phone-390x844/08-complete-scroll-note3.png",
+      "viewport": "phone-390x844",
+      "state": "08-complete-scroll-note3",
+      "bytes": 49592,
+      "description": "viewport screenshot after scrolling complete feedback to inspect sticky audio comfort"
+    },
+    {
+      "file": "phone-390x844/08-complete-scroll-bottom.png",
+      "viewport": "phone-390x844",
+      "state": "08-complete-scroll-bottom",
+      "bytes": 52626,
+      "description": "viewport screenshot after scrolling complete feedback to inspect sticky audio comfort"
+    },
+    {
+      "file": "narrow-phone-360x800/08-complete-scroll-note1.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "08-complete-scroll-note1",
+      "bytes": 47317,
+      "description": "viewport screenshot after scrolling complete feedback to inspect sticky audio comfort"
+    },
+    {
+      "file": "narrow-phone-360x800/08-complete-scroll-note2.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "08-complete-scroll-note2",
+      "bytes": 47825,
+      "description": "viewport screenshot after scrolling complete feedback to inspect sticky audio comfort"
+    },
+    {
+      "file": "narrow-phone-360x800/08-complete-scroll-note3.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "08-complete-scroll-note3",
+      "bytes": 47839,
+      "description": "viewport screenshot after scrolling complete feedback to inspect sticky audio comfort"
+    },
+    {
+      "file": "narrow-phone-360x800/08-complete-scroll-bottom.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "08-complete-scroll-bottom",
+      "bytes": 44620,
+      "description": "viewport screenshot after scrolling complete feedback to inspect sticky audio comfort"
+    }
+  ],
+  "caveats": [
+    "Captured with fallback Playwright path because npm run ux:capture waited for stale failed-state copy.",
+    "Fallback waits on structural page readiness, not the failed-state literal text.",
+    "Additional 08-complete-scroll-* images are viewport captures, not full-page captures, used to check sticky audio behavior while scrolling."
+  ]
+}

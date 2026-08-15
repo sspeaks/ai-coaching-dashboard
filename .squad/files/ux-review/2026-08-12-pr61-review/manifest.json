@@ -1,0 +1,316 @@
+{
+  "generatedAt": "2026-08-13T01:26:34.590Z",
+  "fixedRenderTime": "2026-08-12T12:00:00.000Z",
+  "viewports": [
+    {
+      "name": "phone-390x844",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "narrow-phone-360x800",
+      "width": 360,
+      "height": 800
+    },
+    {
+      "name": "desktop-1440x900",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "shots": [
+    {
+      "file": "phone-390x844/01-summary-fullpage-initial.png",
+      "viewport": "phone-390x844",
+      "state": "initial complete summary full page"
+    },
+    {
+      "file": "phone-390x844/02-first-summary-control-inactive-tap-position.png",
+      "viewport": "phone-390x844",
+      "state": "inactive first summary source control at tap position"
+    },
+    {
+      "file": "phone-390x844/03-first-summary-control-post-tap-active.png",
+      "viewport": "phone-390x844",
+      "state": "post-tap 1:14 active state with native controls"
+    },
+    {
+      "file": "phone-390x844/04-first-summary-post-tap-fullpage.png",
+      "viewport": "phone-390x844",
+      "state": "post-tap 1:14 full page"
+    },
+    {
+      "file": "phone-390x844/05-native-audio-controls-scroll-target-1-14.png",
+      "viewport": "phone-390x844",
+      "state": "native audio controls scroll target 1:14"
+    },
+    {
+      "file": "phone-390x844/06-second-summary-control-post-tap-active.png",
+      "viewport": "phone-390x844",
+      "state": "post-tap 2:12 active state with native controls"
+    },
+    {
+      "file": "phone-390x844/07-second-summary-post-tap-fullpage.png",
+      "viewport": "phone-390x844",
+      "state": "post-tap 2:12 full page"
+    },
+    {
+      "file": "phone-390x844/08-native-audio-controls-scroll-target-2-12.png",
+      "viewport": "phone-390x844",
+      "state": "native audio controls scroll target 2:12"
+    },
+    {
+      "file": "narrow-phone-360x800/01-summary-fullpage-initial.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "initial complete summary full page"
+    },
+    {
+      "file": "narrow-phone-360x800/02-first-summary-control-inactive-tap-position.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "inactive first summary source control at tap position"
+    },
+    {
+      "file": "narrow-phone-360x800/03-first-summary-control-post-tap-active.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "post-tap 1:14 active state with native controls"
+    },
+    {
+      "file": "narrow-phone-360x800/04-first-summary-post-tap-fullpage.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "post-tap 1:14 full page"
+    },
+    {
+      "file": "narrow-phone-360x800/05-native-audio-controls-scroll-target-1-14.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "native audio controls scroll target 1:14"
+    },
+    {
+      "file": "narrow-phone-360x800/06-second-summary-control-post-tap-active.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "post-tap 2:12 active state with native controls"
+    },
+    {
+      "file": "narrow-phone-360x800/07-second-summary-post-tap-fullpage.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "post-tap 2:12 full page"
+    },
+    {
+      "file": "narrow-phone-360x800/08-native-audio-controls-scroll-target-2-12.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "native audio controls scroll target 2:12"
+    },
+    {
+      "file": "desktop-1440x900/01-summary-fullpage-initial.png",
+      "viewport": "desktop-1440x900",
+      "state": "initial complete summary full page"
+    },
+    {
+      "file": "desktop-1440x900/02-first-summary-control-inactive-tap-position.png",
+      "viewport": "desktop-1440x900",
+      "state": "inactive first summary source control at tap position"
+    },
+    {
+      "file": "desktop-1440x900/03-first-summary-control-post-tap-active.png",
+      "viewport": "desktop-1440x900",
+      "state": "post-tap 1:14 active state with native controls"
+    },
+    {
+      "file": "desktop-1440x900/04-first-summary-post-tap-fullpage.png",
+      "viewport": "desktop-1440x900",
+      "state": "post-tap 1:14 full page"
+    },
+    {
+      "file": "desktop-1440x900/05-native-audio-controls-scroll-target-1-14.png",
+      "viewport": "desktop-1440x900",
+      "state": "native audio controls scroll target 1:14"
+    },
+    {
+      "file": "desktop-1440x900/06-second-summary-control-post-tap-active.png",
+      "viewport": "desktop-1440x900",
+      "state": "post-tap 2:12 active state with native controls"
+    },
+    {
+      "file": "desktop-1440x900/07-second-summary-post-tap-fullpage.png",
+      "viewport": "desktop-1440x900",
+      "state": "post-tap 2:12 full page"
+    },
+    {
+      "file": "desktop-1440x900/08-native-audio-controls-scroll-target-2-12.png",
+      "viewport": "desktop-1440x900",
+      "state": "native audio controls scroll target 2:12"
+    }
+  ],
+  "metrics": [
+    {
+      "viewport": "phone-390x844",
+      "state": "1:14",
+      "progress": {
+        "currentTime": 74,
+        "duration": 286,
+        "expectedPercent": 25.874125874125873,
+        "styleWidth": "25.8741%",
+        "renderedPercent": 25.869372475618164,
+        "trackWidth": 317.21875,
+        "fillWidth": 82.0625
+      },
+      "audio": {
+        "present": true,
+        "controls": true,
+        "display": "block",
+        "visibility": "visible",
+        "width": 317.21875,
+        "height": 40,
+        "top": 206.34375,
+        "bottom": 246.34375,
+        "viewport": {
+          "width": 390,
+          "height": 844,
+          "scrollY": 954
+        }
+      }
+    },
+    {
+      "viewport": "phone-390x844",
+      "state": "2:12",
+      "progress": {
+        "currentTime": 132,
+        "duration": 286,
+        "expectedPercent": 46.15384615384615,
+        "styleWidth": "46.1538%",
+        "renderedPercent": 46.15308836567826,
+        "trackWidth": 317.21875,
+        "fillWidth": 146.40625
+      },
+      "audio": {
+        "present": true,
+        "controls": true,
+        "display": "block",
+        "visibility": "visible",
+        "width": 317.21875,
+        "height": 40,
+        "top": 104.765625,
+        "bottom": 144.765625,
+        "viewport": {
+          "width": 390,
+          "height": 844,
+          "scrollY": 1234
+        }
+      }
+    },
+    {
+      "viewport": "narrow-phone-360x800",
+      "state": "1:14",
+      "progress": {
+        "currentTime": 74,
+        "duration": 286,
+        "expectedPercent": 25.874125874125873,
+        "styleWidth": "25.8741%",
+        "renderedPercent": 25.873136764225872,
+        "trackWidth": 287.21875,
+        "fillWidth": 74.3125
+      },
+      "audio": {
+        "present": true,
+        "controls": true,
+        "display": "block",
+        "visibility": "visible",
+        "width": 287.21875,
+        "height": 40,
+        "top": 184.34375,
+        "bottom": 224.34375,
+        "viewport": {
+          "width": 360,
+          "height": 800,
+          "scrollY": 976
+        }
+      }
+    },
+    {
+      "viewport": "narrow-phone-360x800",
+      "state": "2:12",
+      "progress": {
+        "currentTime": 132,
+        "duration": 286,
+        "expectedPercent": 46.15384615384615,
+        "styleWidth": "46.1538%",
+        "renderedPercent": 46.15384615384615,
+        "trackWidth": 287.21875,
+        "fillWidth": 132.5625
+      },
+      "audio": {
+        "present": true,
+        "controls": true,
+        "display": "block",
+        "visibility": "visible",
+        "width": 287.21875,
+        "height": 40,
+        "top": 104.765625,
+        "bottom": 144.765625,
+        "viewport": {
+          "width": 360,
+          "height": 800,
+          "scrollY": 1256
+        }
+      }
+    },
+    {
+      "viewport": "desktop-1440x900",
+      "state": "1:14",
+      "progress": {
+        "currentTime": 74,
+        "duration": 286,
+        "expectedPercent": 25.874125874125873,
+        "styleWidth": "25.8741%",
+        "renderedPercent": 25.87285287528006,
+        "trackWidth": 669.5,
+        "fillWidth": 173.21875
+      },
+      "audio": {
+        "present": true,
+        "controls": true,
+        "display": "block",
+        "visibility": "visible",
+        "width": 191.3125,
+        "height": 54,
+        "top": 442.0625,
+        "bottom": 496.0625,
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "viewport": "desktop-1440x900",
+      "state": "2:12",
+      "progress": {
+        "currentTime": 132,
+        "duration": 286,
+        "expectedPercent": 46.15384615384615,
+        "styleWidth": "46.1538%",
+        "renderedPercent": 46.15384615384615,
+        "trackWidth": 697.328125,
+        "fillWidth": 321.84375
+      },
+      "audio": {
+        "present": true,
+        "controls": true,
+        "display": "block",
+        "visibility": "visible",
+        "width": 163.484375,
+        "height": 54,
+        "top": 442.0625,
+        "bottom": 496.0625,
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "scrollY": 0
+        }
+      }
+    }
+  ],
+  "notes": [
+    "Mouse independent PR #61 capture: issue #54 summary source controls post-tap at 1:14 and 2:12 with native audio controls and rendered mini-playhead metrics."
+  ]
+}

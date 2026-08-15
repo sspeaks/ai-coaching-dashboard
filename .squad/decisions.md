@@ -34,87 +34,163 @@
 
 ### 2026-08-11T02:05:00Z: Concurrent agents MUST use separate git worktrees
 **By:** Scribe (from field experience)
-**What:** Running two or more agents in the same checkout caused two real defects this session: (1) a Scribe commit landed on a feature branch instead of `main`; (2) one agent's branch was silently stacked on another's unmerged commit (would have double-merged and muddied both reviews). A third agent misreported a test count because another's in-flight files were present in the shared working tree. Pattern for spawning: `git worktree add /home/sspeaks/projects/acd-issue{N} squad/{N}-{slug}`, remove when done. Verified this round: Morpheus and Trinity worked independently with separate worktrees and both landed clean commits.
+**What:** Running two or more agents in the same checkout caused wrong-branch commits, silently stacked branches, and misleading test counts. Spawn concurrent work in separate worktrees such as `/home/sspeaks/projects/acd-issue{N}` and remove them when done.
 **Why:** Git worktrees provide isolated working directories with independent staging areas, HEAD, and file state. Concurrent agent work in the same checkout creates race conditions on branch state, test runs, and file existence. Scribe and coordinators cannot reliably synchronize mutable checkout state across concurrent tasks without serializing commits.
 
 ### 2026-08-11T02:05:00Z: Guards must be proven to fire, not merely to produce correct output
-**By:** Scribe (from field experience)
-**What:** An untested log/warning line has no evidence it executes — this codebase shipped an unreachable warning on #30 that silently reintroduced the bug it guarded against. Tests for guard branches MUST assert on the log record (`caplog`), and reviewers must mutate the guard to confirm the test goes red. Demonstrated: PR #33 added `test_consolidation_singleton_truncates_long_topic` asserting caplog fired when title exceeded limit, catching edge case where bare `[:200]` slice appeared complete.
-**Why:** Code reviewers cannot visually verify control flow reaches a particular branch without executing it under test. Silent truncation, error fallbacks, and defensive rewrites often live in guard branches that aren't exercised by happy-path tests. Guards that produce correct output by accident (e.g., the slice happens to land at a word boundary) fail silently when input changes slightly.
+**By:** Scribe (from field experience), Switch
+**What:** Guard branches and behavior assertions must be proven to fail under mutation before they are trusted. For warning/log guards, assert on the log record (`caplog`) and mutate the guard to confirm the test goes red. For UI behavior guards, mutate the protected behavior or selector so the test visibly fails.
+**Why:** Code reviewers cannot visually verify control flow reaches a particular branch without executing it under test. Silent truncation, error fallbacks, defensive rewrites, and dynamic UI behaviors often pass happy-path tests while the intended guard never runs.
 
 ### 2026-08-11T02:05:00Z: Schema-boundary mismatches are a recurring bug class
 **By:** Scribe (from field experience)
-**What:** A value validated against one model's constraints passed into another model with tighter constraints raises an unhandled `ValidationError`. Found twice in one file: (1) `_coerce_summary` title field (200-char limit on fallback titles); (2) `_coerce_consolidation` canonical_topic field (300-char limit on singleton topics). Both fixed by truncating at storage boundary with `[:197]+"…"`. When adding cross-model field flows, check receiving constraint against sending constraint — lengths, enums, optionality, numeric bounds.
-**Why:** Schema-aware frameworks (Pydantic) define per-model validation. When one model produces a field that another model consumes, mismatches are common because constraints evolve independently. Catching them requires explicit trace of field flow: "topic produced by X with constraint Y passed to Z with constraint Z', check Z' >= Y".
+**What:** A value validated against one model's constraints passed into another model with tighter constraints raises an unhandled `ValidationError`. When adding cross-model field flows, check receiving constraint against sending constraint — lengths, enums, optionality, numeric bounds.
+**Why:** Schema-aware frameworks define per-model validation. When one model produces a field that another model consumes, mismatches are common because constraints evolve independently.
 
 ### 2026-08-11T02:05:00Z: Truncate user-facing text with `[:N-3] + "…"`, never a bare slice
 **By:** Scribe (from field experience)
-**What:** Applied to both `_coerce_summary` fallback titles and `_coerce_consolidation` singleton topics. Coaching text is qualifier-dense; "unless the tenors are still scooping" and "unless the tenors" are different instructions. A bare cut reads as a complete thought and can mislead users. The ellipsis signals continuation and directs the user to the audio moment.
-**Why:** Non-technical quartet members depend on coaching feedback for real-time vocal adjustment. Truncated text without visual indication becomes a silent contract violation — users read "feedback is XYZ" when the system stored "feedback is XYZ [truncated]". The `…` is cheap visual honesty.
+**What:** User-facing text truncation must reserve space for an ellipsis and append `…`; bare slicing is not acceptable.
+**Why:** Coaching text is qualifier-dense. A bare cut can read as a complete thought and mislead users; the ellipsis signals continuation and directs the user to the audio moment or detail source.
 
 ### 2026-08-11T02:05:00Z: Eval fixtures must default to failure, not permission
 **By:** Scribe (Switch original analysis from PR #34)
-**What:** The over-merge fixture originally listed must-stay-distinct pairs, so any unlisted pair could be merged undetected (Tier 1 strategy: "merging is permitted unless listed"). Inverted (#32) to generate the full C(n,2) matrix minus explicitly permitted merges (Tier 2: "merging is forbidden except listed"). With 11 entries, this produces 54 active distinct constraints automatically. Unlisted pairs automatically fail; new entries participate without manual pair enumeration.
-**Why:** Fixtures that enumerate known-bad cases only catch attacks someone already thought of. The full matrix closes the gap structurally, not incrementally. Attacks B, C, D, F (all unnamed at fixture authoring time) are now caught. Irreducible gap remains: fixture tests only the 11-entry quartet-coaching-01 session; production over-merges on novel sessions are not caught. Gap documented in `_coverage_notes`.
-
-### 2026-08-12: Mouse UX review remediation triage
-**By:** Morpheus
-**What:** Filed Mouse's 2026-08-12 screenshot-only UX review as nine separate Link-owned issues: #36 and #37 are `priority:p0` / `release:v0.4.0`; #38 and #39 are `priority:p1` / `release:v0.4.0`; #40 is `priority:p1` / `release:v0.5.0`; #41 and #42 are `priority:p2` / `release:v0.5.0`; #43 and #44 are `priority:p2` / `release:v0.6.0`. Only #43 also gets `type:bug` because it is a visibly clipped UI element.
-**Why:** Mouse's 🔴 verdict identifies two failed primary tasks: users cannot confidently jump to a critical audio moment (#36) or recover from a failed recording (#37), so those block v0.4.0. The note-reading/mobile-scroll defects (#38/#39) materially affect the same coaching journey and should land with the blocking fixes. Language, disclosure, review-control, and first-run polish remain important but can be staged into v0.5.0/v0.6.0 without hiding or vetoing Mouse's findings. Link owns the remediation; Trinity remains locked out by reviewer rejection protocol.
+**What:** Eval fixtures should generate the full C(n,2) matrix of forbidden merges and list only explicitly permitted merges as exceptions. Unlisted pairs must fail automatically; new entries must participate without manual pair enumeration.
+**Why:** Fixtures that enumerate known-bad cases only catch attacks someone already thought of. The full matrix closes the gap structurally, not incrementally.
 
 ### 2026-08-12: Timestamp jump and failure recovery block singer tasks
 **By:** Mouse
-**What:** First screenshot-only UX review is 🔴 Illegible because two primary singer tasks fail from pixels alone: timestamp chips do not clearly play/jump the source recording, and the failed-recording state does not provide an actionable recovery path.
-**Why:** The product promise depends on hearing the coach at critical timestamps and recovering from bad uploads. If timestamp controls look like citations and failures only say to check again after an unspecified issue is fixed, non-technical singers will stall.
+**What:** Timestamp playback and failed-recording recovery are primary singer tasks. If users cannot tell from the UI how to jump back to a coaching moment or recover from a failed recording, the experience is blocked.
+**Why:** The product promise depends on hearing the coach at critical timestamps and recovering from bad uploads. If timestamp controls look like citations and failures only say to wait after an unspecified issue is fixed, non-technical singers stall.
 
-### 2026-08-12T21-24-02: Added Mouse (UX Review Engineer) — reviews UI via screenshots only, no source code
+### 2026-08-12T21-24-02: Mouse reviews UI via screenshots only, no source code
 **By:** squad-coordinator
-**What:** Added Mouse (UX Review Engineer) — reviews UI via screenshots only, no source code
-**References:** Mouse, Trinity, Switch, Tank, .squad/agents/mouse/charter.md
-**Why:** Requested by Seth Speaks on 2026-08-12.
+**What:** Mouse is the UX Review Engineer. Mouse forms verdicts using only rendered screenshots at phone (390x844, 360x800) and desktop (1440x900) viewports. Source code may be read only after the verdict is written, and only to route fixes.
+**Why:** If a first-time user cannot figure out what to do from the pixels alone, that is a UI defect. Source knowledge must not rescue an ambiguous screenshot.
 
-**What:** Added Mouse as UX Review Engineer to the ai-coaching-dashboard squad.
-
-**Method (the defining constraint):** Mouse reviews the UI using ONLY rendered screenshots at phone (390x844, 360x800) and desktop (1440x900) viewports. While forming a verdict, Mouse may not read HTML, JSX/TSX, CSS, JS, DOM dumps, aria-labels, or any source. If a first-time user cannot figure out what to do from the pixels alone, that is a UI defect. Source code may only be read AFTER the verdict is written, and only to route the fix to the right file — the verdict never changes based on code.
-
-**Verdicts:** Legible (green) / Ambiguous (yellow) / Illegible (red). Any primary-task step that cannot be determined from screenshots is automatically red.
-
-**Boundaries:** Mouse does not implement fixes (Trinity owns UI implementation) and does not own functional/E2E correctness (Switch owns that). Mouse owns screenshot capture, comprehension verdicts, UX defect reports, and visual regression baselines under `.squad/files/ux-review/`.
-
-**Open dependency:** No headless-browser screenshot tooling (Playwright or equivalent) is installed in this repo as of 2026-08-12. Mouse cannot issue a real verdict until capture works against `apps/web`. "Couldn't capture" is never "passed."
-
-**Files changed:** `.squad/agents/mouse/charter.md`, `.squad/agents/mouse/history.md`, `.squad/team.md`, `.squad/routing.md`, `.squad/casting/registry.json`, `.squad/casting/history.json`.
-
-### 2026-08-12T21-46-34: UX review 🔴 — Trinity locked out per Reviewer Rejection Protocol; Link cast to own remediation
+### 2026-08-12T21-46-34: UX review rejections trigger author lockout by default
 **By:** squad-coordinator
-**What:** UX review 🔴 — Trinity locked out per Reviewer Rejection Protocol; Link cast to own remediation
-**References:** Mouse, Link, Trinity, Morpheus, .squad/files/ux-review/2026-08-12/REVIEW.md
-**Why:** Requested by Seth Speaks on 2026-08-12.
-
-**Context:** Mouse's first Screenshot-Only Comprehension Test returned 🔴 Illegible on the existing web UI (report: `.squad/files/ux-review/2026-08-12/REVIEW.md`). Two primary user tasks are unachievable from the screens alone: jumping back to a critical audio moment, and recovering from a failed recording.
-
-**Decision:** The Reviewer Rejection Protocol is enforced STRICTLY, even though this was a baseline audit of pre-existing UI rather than a rejection of a freshly-produced artifact. The user was offered the option to waive the lockout for Trinity and explicitly chose to cast a new agent instead.
-
-**Consequences:**
-1. Trinity (original author of the reviewed UI) is LOCKED OUT of all 9 UX remediation findings.
-2. Link was cast as Frontend Engineer (UX Remediation) — charter at `.squad/agents/link/charter.md`. Link owns rejected-UI revisions going forward; Trinity retains original feature implementation.
-3. All 9 findings are filed as individual GitHub issues labeled `squad:link` + `type:ux`, triaged by Morpheus.
-4. Mouse re-reviews from FRESH screenshots after fixes land. A described fix is never accepted in place of captured evidence.
-5. If Link's revision is itself rejected, Link is locked out of the next cycle and a third agent takes it.
-
-**Rationale for strict enforcement:** The value of the screenshot-only review is that it is adversarial and independent. Letting the original author fix their own rejected work reintroduces the exact bias the method exists to remove — the author knows what the control does, so they cannot see that the pixels fail to say it.
-
-**Precedent set:** UX review rejections trigger author lockout in this repo by default. Waiving it requires explicit user approval.
-
-### 2026-08-12: UX capture uses Nix Playwright browsers with npm Playwright driver
-**By:** Tank
-**What:** The web UX screenshot harness uses the npm `playwright` package pinned exactly to `1.61.1`, matching `nixpkgs#playwright-driver.version`. The flake dev shell declares `playwright-driver.browsers` and exports `PLAYWRIGHT_BROWSERS_PATH` plus `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`. The harness resolves Chromium from that Nix browser path and passes it as `executablePath`.
-**Why:** This keeps browser binaries declarative and avoids hand-installed global Playwright downloads. Passing the executable path also avoids npm/Nix Playwright revision mismatches while preserving a normal `npm run ux:capture` entry point for Mouse.
+**What:** The Reviewer Rejection Protocol applies strictly to UX screenshot rejections in this repo. Trinity was locked out of the rejected baseline UX remediation, Link was cast to own the revisions, and any later rejected revision locks out that revision's author for the next cycle unless Seth explicitly waives the lockout.
+**Why:** Screenshot-only review is adversarial and independent. Letting the original author fix rejected UI by default reintroduces the bias the method exists to remove: the author already knows what the control does.
 
 ### 2026-08-12: Mock UI states are pinned with `mockState` URLs
 **By:** Trinity
 **What:** In mock mode, screenshot-specific UI states are selected with deterministic `mockState` query parameters instead of time-based transitions. The upload form has a dedicated held `mockState=upload-progress`; session states use real backend state values or aliases that map to real state values.
 **Why:** Mouse reviews screenshots only, and Tank's harness needs stable URLs that render byte-identical content across runs without waiting for timers, uploads, or backend jobs.
+
+### 2026-08-12: Timestamp activation must keep visible now-playing feedback near the note
+**By:** Morpheus
+**What:** On phone, tapping a timestamp must not move focus away from the requesting note to the audio element. The selected timestamp changes to “Now playing…”, the requesting note gets an inline now-playing cue with a visible mini playhead, and the source-recording area mirrors the same cue when sticky/visible.
+**Why:** Mouse rejected PR #45 because labels made the pre-touch affordance obvious, but phone users still could not see what happened after touch. Open-feedback behavior owns the detail scroll/focus; timestamp play owns only in-note/player feedback.
+
+### 2026-08-12: UX capture determinism includes the first clean-checkout run
+**By:** Switch
+**What:** UX screenshot harness validation must compare the documented clean-checkout command's first output against subsequent outputs; warming caches before the determinism run is not enough.
+**Why:** PR #49's first clean `npm ci && ux:capture` output differed from later captures by 10 pixel-channel values in one desktop processing screenshot. Even tiny pixel drift can create false visual-regression gate failures if the first fresh-clone capture becomes a baseline.
+
+### 2026-08-12: UX capture must verify flake-local Playwright browser alignment
+**By:** Switch
+**What:** The UX screenshot harness must compare the npm Playwright package/browser revisions against the flake-pinned Nix `playwright-driver.browsers`, not against the user's registry `nixpkgs#`.
+**Why:** A harness can still produce screenshots under a browser/package mismatch, so the guard must fail loudly before Mouse treats captures as binding evidence.
+
+### 2026-08-12: UX capture dev shell owns Playwright browsers and fonts
+**By:** Tank
+**What:** UX screenshot capture runs from the flake dev shell with Nix `playwright-driver.browsers`, `PLAYWRIGHT_BROWSERS_PATH`, `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`, and an explicit fontconfig bundle for Noto, Liberation, DejaVu, CJK, and emoji fonts.
+**Why:** Mouse's screenshot gate must be reproducible on NixOS. Browser binaries must match npm Playwright, and missing fonts can silently corrupt screenshots even when Chromium launches.
+
+### 2026-08-12T17:49:51.136-07:00: First-run guide
+**By:** Link
+**What:** The empty feedback detail panel should become the first-run guide when there are no recordings: a large “Upload your first rehearsal recording” callout, primary upload button, and a short “What happens next” preview.
+**Why:** Mouse's desktop screenshot showed the original empty state left most of the page unused. Quartet singers need the blank space to explain the immediate action and the next result, while keeping the existing Feedback/Upload/Manage navigation visible.
+
+### 2026-08-12: Ledger notes lead with coaching takeaway
+**By:** Link, Switch
+**What:** `LedgerReview` note cards lead with a plain-language Coaching takeaway section. Confidence, uncertainty/demo warnings, and optional review controls stay discoverable but lower in the hierarchy behind appropriately labeled disclosures. Tests for this hierarchy must fail if warnings move ahead of the takeaway or warnings disappear entirely.
+**Why:** Issue #38 depends on content hierarchy, not mere presence. Singers need the coaching point before review mechanics while preserving warning and audit access.
+
+### 2026-08-12T17:49:51.136-07:00: Friendly status ladder for singer-facing recording state
+**By:** Link
+**What:** Primary singer-facing recording status uses one ladder everywhere: **Uploading**, **Listening to the recording**, **Writing coaching notes**, **Ready to read**, and **Needs help**. Backend states, transcript/provider terms, and failure diagnostics stay available only in collapsed technical details, management controls, or recovery detail copy.
+**Why:** Barbershop singers need to know whether the app is sending audio, listening, preparing notes, ready, or asking for help. Pipeline words like transcription, reconciliation, extraction, and failed/error are useful to operators but make the main path feel like a backend console.
+
+### 2026-08-12: Frontend guards use stable structure, not literal copy
+**By:** Link, Scribe
+**What:** Frontend tests and capture waits must use stable `data-testid` hooks or role-based queries rather than exact user-facing copy whenever the assertion is guarding behavior or structure. Copy text can be asserted only when the copy itself is the behavior under test.
+**Why:** Recovery/status copy is expected to evolve. Literal copy selectors can make guards brittle or, worse, let behavior protections pass vacuously after copy renames.
+
+### 2026-08-12: Feedback disclosure controls keep their target mounted
+**By:** Morpheus
+**What:** The mobile “Read feedback” disclosure pattern must keep the controlled feedback-detail region mounted in the DOM even when no recording is open. Buttons may keep `aria-controls="feedback-detail-panel"`; the region swaps between empty/loading/open content and receives focus only after the selected detail has loaded.
+**Why:** Issue #35 is a real user confusion report, so the disclosure semantics must be reliable for assistive technology as well as visual users. A dangling `aria-controls` reference after closing undermines the fix; keeping the region mounted also makes scroll/focus behavior predictable.
+
+### 2026-08-12: Interaction-feel gate for timestamp/source playback controls
+**By:** Morpheus
+**What:** Future UX gates for timestamp/source playback controls must include behavior verification after activation at real phone scroll positions, not only static pre-click screenshots.
+**Why:** Mouse's pixel gate can approve affordance/proximity while missing tap aftermath, sticky-control occupancy, or whether users can still pause/scrub immediately after activating a source moment.
+
+### 2026-08-12T17:49:51.136-07:00: Reset redundant local main divergence before PR review
+**By:** Morpheus
+**What:** Local `main` must match `origin/main` before reviewing or merging follow-on PRs. Preserve `.squad/` state separately when resetting stale local divergence.
+**Why:** Stale divergence caused scope-leaked diffs, misleading test counts, and red nixos-quality CI. Reviews must start from upstream truth; screenshots and green CI still require code-level verification before merge.
+
+### 2026-08-12T17:49:51.136-07:00: Merge P0 fixes before overlapping lower-priority UX PRs
+**By:** Morpheus
+**What:** When a batch contains a P0/release-blocking PR and lower-priority PRs touching overlapping UI regions or styles, merge the P0 first. After each merge, re-check every remaining PR's mergeability and CI on the new base before trusting its green status.
+**Why:** Individually verified PRs do not compose into a verified whole. Pre-existing green checks are invalid after any merge touching shared files; clean textual merges are not enough for user-visible UX defect classes.
+
+### 2026-08-12T17:49:51.136-07:00: Summary source playback requires real media-event behavior
+**By:** Morpheus
+**What:** Summary-level source playback is accepted only when active state is compact (button plus sticky Source recording player), native `audio[controls]` remains visible near the advice, playhead progress is derived from real media time/duration, and pause/end/error clearing is wired to media events with mutation-tested regression coverage.
+**Why:** PR #45 showed screenshots can hide hardcoded playhead values and stale active state. For source-playback UX, code review must prove dynamic media behavior rather than accepting a still image or green CI alone.
+
+### 2026-08-12T17:49:51.136-07:00: UX gates must catch zero-size interactive controls
+**By:** Morpheus, Mouse, Switch
+**What:** Code review for `type:ux` PRs must not stop at DOM presence or correct data flow. Interactive controls must be verified as user-visible at target viewports: non-zero rendered size, visible, and not offscreen. Switch's `ux:control-guard` from PR #62 is authoritative for the zero-height/hidden/clipped/offscreen interactive-control bug class; PR #61 retains the focused audio evidence.
+**Why:** PR #57 had correct React state, real currentTime/duration playhead logic, and an `audio[controls]` element in the DOM, but Mouse proved the phone native controls were effectively absent because Chromium laid the element out at 0px height. PR #62 proved the guard fails under that mutation and belongs in CI.
+
+### 2026-08-12T17:49:51.136-07:00: Type:ux PRs require both code and screenshot gates before merge
+**By:** Morpheus, Mouse, Switch
+**What:** A `type:ux` PR must not be merged until both independent gates have reported: code/behavior review and Mouse's screenshot-only UX review. Green CI plus a passing code review is insufficient, and screenshots alone are also insufficient.
+**Why:** PR #45 proved screenshots can miss hardcoded or stale dynamic behavior; PR #57 proved code review, 4 green CI checks, and 40 tests can miss a user-visible layout failure where native audio controls disappear on phone. The gates are complementary and both are required.
+
+### 2026-08-12T17:49:51.136-07:00: Optional note review controls stay below coaching content
+**By:** Mouse, Link
+**What:** Note review controls should be collapsed by default after coaching/source content, visibly labeled “Optional: check this note,” and expand to large phone-friendly controls without overflow, empty panels, or unexpected collapse.
+**Why:** The pattern keeps optional review discoverable without putting it in the main coaching path or distracting from reading.
+
+### 2026-08-12: Deletion confirmation honors pending provider-write sections
+**By:** Neo
+**What:** `confirm_deletion` must defer while a TRANSCRIBE job is RUNNING with a durable `pending_operation_kind` (`upload` or `queue_transcription`), even if the heartbeat-based active lease is momentarily stale. Once that job reaches a terminal non-running state, confirmation may proceed.
+**Why:** The provider-write marker is committed before non-idempotent upstream calls and cleared only with the durable outcome. Relying only on `updated_at >= lease_cutoff` lets heartbeat scheduling/SQLite timing delete a session while the worker is still inside the provider call, producing the observed 202-vs-204 race.
+
+### 2026-08-12: UX capture pins npm Playwright to flake-pinned Nix Playwright 1.59.1
+**By:** Neo
+**What:** The UX screenshot harness aligns npm `playwright`/`playwright-core` with the flake-pinned Nix `playwright-driver` by pinning npm to `1.59.1`, the version currently provided by this repository's `flake.lock`. The dev shell exposes `PLAYWRIGHT_NIX_DRIVER_VERSION`, and the harness fails before capture if the npm package version, Nix driver version, or Chromium browser revision drift apart.
+**Why:** Pinning npm down to the already-flake-pinned browser bundle keeps the browser binary declarative, keeps the npm lockfile honest, and turns future Nix bumps into loud failures instead of silent screenshot-rendering drift.
+
+### 2026-08-12T23:47:17Z: PR #45 code gate requires mutation-capable timestamp tests
+**By:** Switch, Trinity
+**What:** Timestamp playback reviews must include mutation-capable assertions and browser-real play-promise coverage. Tests should prove playhead percentages are event-derived, that hardcoded constants fail, and that switching timestamps while audio is already playing follows the resolved `audio.play()` promise without requiring a second `play` event.
+**Why:** This artifact previously passed screenshot/static tests with false playback state. Screenshot review cannot catch fabricated dynamic state, and a single fixed percentage assertion can re-encode a static playhead.
+
+### 2026-08-12: PR #52 proximity is CSS/pixel-gated beyond DOM visibility
+**By:** Switch
+**What:** Unit tests can constrain that summary source-moment controls are rendered and disabled when audio is unavailable, but they cannot prove phone visual proximity, scrolling comfort, or sticky audio/control overlap. Pixel-distance and layout claims remain Mouse screenshot gates.
+**Why:** The implementation change is mostly layout/CSS around summary moment controls. DOM tests mutation-prove visibility/disabled assertions, while actual phone proximity requires rendered evidence.
+
+### 2026-08-12: Ignore UX capture PNGs only
+**By:** Tank
+**What:** Repo-root `.gitignore` ignores `.squad/files/ux-review/**/*.png`.
+**Why:** UX capture PNGs are large, regenerable binaries that should not be swept into `git add -A`. The rule is image-only instead of a blanket `.squad/files/ux-review/` ignore so durable Mouse evidence such as `REVIEW.md` and `manifest.json` remains committable and existing tracked evidence stays untouched.
+
+### 2026-08-12T17:49:51.136-07:00: Summary source playback uses active buttons plus compact sticky player
+**By:** Trinity
+**What:** Summary-level source moments should not insert a full inline NowPlayingCue after activation. The tapped button becomes the local “Now playing source at mm:ss” confirmation, while the sticky Source recording player carries the native audio controls and compact progress cue. Full theme summaries are not passed into playback cue source labels.
+**Why:** The #54 regression came from combining always-visible summary source controls with a full-size cue that repeated the advice text. Keeping the confirmation in the button avoids layout jumps under repeated taps, preserves proximity to the advice, and keeps pause/scrub controls immediately reachable on phone.
+
+### 2026-08-12: Summary source moments stay visible by default
+**By:** Trinity
+**What:** Main summary cards show their source-moment play buttons directly beside the advice instead of hiding them behind a collapsed disclosure. The dense all-notes ledger remains the drill-down for audit/review details.
+**Why:** Issue #39 is about phone proximity between advice and audio. Keeping the play control in the same summary card preserves simplicity while reducing scroll/context loss; pixel proof remains Mouse's gate.
 
 ## Governance
 

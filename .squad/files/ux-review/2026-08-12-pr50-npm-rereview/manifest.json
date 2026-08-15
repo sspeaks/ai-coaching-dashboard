@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-08-12T22:37:32.475Z",
+  "command": "npm Playwright 1.61.1 manual capture: upload?mockState=empty",
+  "outputRoot": ".squad/files/ux-review/2026-08-12-pr50-npm-rereview",
+  "viewports": [
+    {
+      "name": "phone-390x844",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "narrow-phone-360x800",
+      "width": 360,
+      "height": 800
+    },
+    {
+      "name": "desktop-1440x900",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "shots": [
+    {
+      "file": "phone-390x844/02-upload-ready-idle.png",
+      "viewport": "phone-390x844",
+      "state": "02-upload-ready-idle",
+      "description": "opened Upload before choosing a recording; consent disclosure and recording-name guidance are visible.",
+      "bytes": 218659
+    },
+    {
+      "file": "narrow-phone-360x800/02-upload-ready-idle.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "02-upload-ready-idle",
+      "description": "opened Upload before choosing a recording; consent disclosure and recording-name guidance are visible.",
+      "bytes": 213195
+    },
+    {
+      "file": "desktop-1440x900/02-upload-ready-idle.png",
+      "viewport": "desktop-1440x900",
+      "state": "02-upload-ready-idle",
+      "description": "opened Upload before choosing a recording; consent disclosure and recording-name guidance are visible.",
+      "bytes": 278850
+    }
+  ],
+  "caveats": [
+    "PR50 branch does not include ux:capture script, so targeted upload screenshots were captured manually after npm install --no-save playwright@1.61.1."
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "generatedAt": "2026-08-12T22:40:35.882Z",
+  "fixedRenderTime": "2026-08-12T12:00:00.000Z",
+  "command": "cd apps/web && npm run ux:capture",
+  "outputRoot": ".squad/files/ux-review/link-pr49-proof-2",
+  "viewports": [
+    {
+      "name": "phone-390x844",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "narrow-phone-360x800",
+      "width": 360,
+      "height": 800
+    },
+    {
+      "name": "desktop-1440x900",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "shots": [
+    {
+      "file": "phone-390x844/01-feedback-empty-first-run.png",
+      "viewport": "phone-390x844",
+      "state": "01-feedback-empty-first-run",
+      "description": "opened Feedback before any recordings have been added.",
+      "bytes": 102140
+    },
+    {
+      "file": "phone-390x844/02-upload-ready-idle.png",
+      "viewport": "phone-390x844",
+      "state": "02-upload-ready-idle",
+      "description": "opened Upload before choosing a recording; the form is ready for a file.",
+      "bytes": 233077
+    },
+    {
+      "file": "phone-390x844/03-upload-in-progress.png",
+      "viewport": "phone-390x844",
+      "state": "03-upload-in-progress",
+      "description": "upload is partway through, progress is visible, and upload controls are disabled.",
+      "bytes": 239507
+    },
+    {
+      "file": "phone-390x844/04-feedback-processing-transcribing.png",
+      "viewport": "phone-390x844",
+      "state": "04-feedback-processing-transcribing",
+      "description": "opened Feedback while a recording is being transcribed; processing progress is visible.",
+      "bytes": 148768
+    },
+    {
+      "file": "phone-390x844/05-feedback-failed-error.png",
+      "viewport": "phone-390x844",
+      "state": "05-feedback-failed-error",
+      "description": "opened Feedback after processing failed; the error message and recovery guidance are visible.",
+      "bytes": 167464
+    },
+    {
+      "file": "phone-390x844/06-feedback-awaiting-review.png",
+      "viewport": "phone-390x844",
+      "state": "06-feedback-awaiting-review",
+      "description": "opened Feedback when coaching notes are ready but have not all been reviewed.",
+      "bytes": 526170
+    },
+    {
+      "file": "phone-390x844/07-feedback-reviewed-complete.png",
+      "viewport": "phone-390x844",
+      "state": "07-feedback-reviewed-complete",
+      "description": "opened Feedback after all coaching notes have been reviewed and the session is complete.",
+      "bytes": 524727
+    },
+    {
+      "file": "narrow-phone-360x800/01-feedback-empty-first-run.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "01-feedback-empty-first-run",
+      "description": "opened Feedback before any recordings have been added.",
+      "bytes": 98608
+    },
+    {
+      "file": "narrow-phone-360x800/02-upload-ready-idle.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "02-upload-ready-idle",
+      "description": "opened Upload before choosing a recording; the form is ready for a file.",
+      "bytes": 230557
+    },
+    {
+      "file": "narrow-phone-360x800/03-upload-in-progress.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "03-upload-in-progress",
+      "description": "upload is partway through, progress is visible, and upload controls are disabled.",
+      "bytes": 237107
+    },
+    {
+      "file": "narrow-phone-360x800/04-feedback-processing-transcribing.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "04-feedback-processing-transcribing",
+      "description": "opened Feedback while a recording is being transcribed; processing progress is visible.",
+      "bytes": 146247
+    },
+    {
+      "file": "narrow-phone-360x800/05-feedback-failed-error.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "05-feedback-failed-error",
+      "description": "opened Feedback after processing failed; the error message and recovery guidance are visible.",
+      "bytes": 164537
+    },
+    {
+      "file": "narrow-phone-360x800/06-feedback-awaiting-review.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "06-feedback-awaiting-review",
+      "description": "opened Feedback when coaching notes are ready but have not all been reviewed.",
+      "bytes": 530287
+    },
+    {
+      "file": "narrow-phone-360x800/07-feedback-reviewed-complete.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "07-feedback-reviewed-complete",
+      "description": "opened Feedback after all coaching notes have been reviewed and the session is complete.",
+      "bytes": 528258
+    },
+    {
+      "file": "desktop-1440x900/01-feedback-empty-first-run.png",
+      "viewport": "desktop-1440x900",
+      "state": "01-feedback-empty-first-run",
+      "description": "opened Feedback before any recordings have been added.",
+      "bytes": 127438
+    },
+    {
+      "file": "desktop-1440x900/02-upload-ready-idle.png",
+      "viewport": "desktop-1440x900",
+      "state": "02-upload-ready-idle",
+      "description": "opened Upload before choosing a recording; the form is ready for a file.",
+      "bytes": 288227
+    },
+    {
+      "file": "desktop-1440x900/03-upload-in-progress.png",
+      "viewport": "desktop-1440x900",
+      "state": "03-upload-in-progress",
+      "description": "upload is partway through, progress is visible, and upload controls are disabled.",
+      "bytes": 295263
+    },
+    {
+      "file": "desktop-1440x900/04-feedback-processing-transcribing.png",
+      "viewport": "desktop-1440x900",
+      "state": "04-feedback-processing-transcribing",
+      "description": "opened Feedback while a recording is being transcribed; processing progress is visible.",
+      "bytes": 180947
+    },
+    {
+      "file": "desktop-1440x900/05-feedback-failed-error.png",
+      "viewport": "desktop-1440x900",
+      "state": "05-feedback-failed-error",
+      "description": "opened Feedback after processing failed; the error message and recovery guidance are visible.",
+      "bytes": 204026
+    },
+    {
+      "file": "desktop-1440x900/06-feedback-awaiting-review.png",
+      "viewport": "desktop-1440x900",
+      "state": "06-feedback-awaiting-review",
+      "description": "opened Feedback when coaching notes are ready but have not all been reviewed.",
+      "bytes": 535134
+    },
+    {
+      "file": "desktop-1440x900/07-feedback-reviewed-complete.png",
+      "viewport": "desktop-1440x900",
+      "state": "07-feedback-reviewed-complete",
+      "description": "opened Feedback after all coaching notes have been reviewed and the session is complete.",
+      "bytes": 534591
+    }
+  ],
+  "caveats": [
+    "Only states reachable through the current mock client are captured.",
+    "No backend, real audio processing, or credentials are required."
+  ]
+}

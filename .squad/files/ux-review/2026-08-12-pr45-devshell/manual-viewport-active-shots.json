@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-08-12T22:16:09.520Z",
+  "shots": [
+    {
+      "file": "phone-390x844/09-feedback-after-play-viewport.png",
+      "viewport": "phone-390x844",
+      "state": "09-feedback-after-play-viewport",
+      "description": "viewport-only screenshot immediately after clicking first timestamp; page remains scrolled to the clicked note.",
+      "bytes": 81308
+    },
+    {
+      "file": "narrow-phone-360x800/09-feedback-after-play-viewport.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "09-feedback-after-play-viewport",
+      "description": "viewport-only screenshot immediately after clicking first timestamp; page remains scrolled to the clicked note.",
+      "bytes": 68761
+    },
+    {
+      "file": "desktop-1440x900/09-feedback-after-play-viewport.png",
+      "viewport": "desktop-1440x900",
+      "state": "09-feedback-after-play-viewport",
+      "description": "viewport-only screenshot immediately after clicking first timestamp; page remains scrolled to the clicked note.",
+      "bytes": 146142
+    }
+  ]
+}

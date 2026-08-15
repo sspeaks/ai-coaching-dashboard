@@ -36,3 +36,7 @@ node_modules/
 apps/web/dist/
 packages/web-client/dist/
 coverage/
+
+# UX review captures: PNGs are large (~185MB) and regenerable via `npm run ux:capture`.
+# Findings live in the committed REVIEW.md / manifest.json alongside them.
+.squad/files/ux-review/**/*.png

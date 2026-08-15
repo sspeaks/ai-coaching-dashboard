@@ -1,0 +1,1544 @@
+[
+  {
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "state": "06-feedback-awaiting-review",
+    "scrollHeight": 7121,
+    "sourceMomentEls": [
+      {
+        "tag": "DIV",
+        "cls": "",
+        "text": "Skip to main content PRIVATE QUARTET ARCHIVE Quartet coaching Signed in as demo-singer Sign out Demo mode. Everything on",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 7057.28125,
+          "top": 0,
+          "right": 390,
+          "bottom": 7057.28125,
+          "left": 0
+        }
+      },
+      {
+        "tag": "MAIN",
+        "cls": "app-shell",
+        "text": "Coaching feedback YOUR RECORDINGS Choose a coaching session Check for updates Synthetic demo awaiting review Ready synth",
+        "rect": {
+          "x": 8,
+          "y": 351.390625,
+          "width": 374,
+          "height": 6705.890625,
+          "top": 351.390625,
+          "right": 382,
+          "bottom": 7057.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "feedback-layout",
+        "text": "YOUR RECORDINGS Choose a coaching session Check for updates Synthetic demo awaiting review Ready synthetic-awaiting-revi",
+        "rect": {
+          "x": 8,
+          "y": 387.390625,
+          "width": 374,
+          "height": 6669.890625,
+          "top": 387.390625,
+          "right": 382,
+          "bottom": 7057.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "feedback-detail",
+        "text": "← Choose another recording RECORDING Synthetic demo awaiting review synthetic-awaiting-review.wav · Added Aug 12, 2026, ",
+        "rect": {
+          "x": 8,
+          "y": 841.65625,
+          "width": 374,
+          "height": 6215.625,
+          "top": 841.65625,
+          "right": 382,
+          "bottom": 7057.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "SECTION",
+        "cls": "panel detail-panel",
+        "text": "RECORDING Synthetic demo awaiting review synthetic-awaiting-review.wav · Added Aug 12, 2026, 11:30 AM Ready SOURCE RECOR",
+        "rect": {
+          "x": 8,
+          "y": 872.65625,
+          "width": 374,
+          "height": 6184.625,
+          "top": 872.65625,
+          "right": 382,
+          "bottom": 7057.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Not checked COACHING TAKEAWAY The quartet should agree on the target vowel sh",
+        "rect": {
+          "x": 25,
+          "y": 1317.359375,
+          "width": 340,
+          "height": 5722.921875,
+          "top": 1317.359375,
+          "right": 365,
+          "bottom": 7040.28125,
+          "left": 25
+        }
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 1 Match vowels before the final chord Not checked COACHING TAKEAWAY The quartet should agree on the target vowel sh",
+        "rect": {
+          "x": 25,
+          "y": 1317.359375,
+          "width": 340,
+          "height": 1976.640625,
+          "top": 1317.359375,
+          "right": 365,
+          "bottom": 3294,
+          "left": 25
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "evidence-section",
+        "text": "SOURCE MOMENTS ▶ Play coach feedback at 1:14 Coach gives the vowel reset instruction ▶ Play after attempt at 1:42 Quarte",
+        "rect": {
+          "x": 43.59375,
+          "y": 2614.53125,
+          "width": 302.8125,
+          "height": 200.34375,
+          "top": 2614.53125,
+          "right": 346.40625,
+          "bottom": 2814.875,
+          "left": 43.59375
+        }
+      }
+    ],
+    "audioEls": [
+      {
+        "tag": "DIV",
+        "cls": "audio-section",
+        "text": "SOURCE RECORDING Use any “▶ Play…” button in the notes to jump here.",
+        "rect": {
+          "x": 25,
+          "y": 1067.578125,
+          "width": 340,
+          "height": 91.1875,
+          "top": 1067.578125,
+          "right": 365,
+          "bottom": 1158.765625,
+          "left": 25
+        }
+      },
+      {
+        "tag": "P",
+        "cls": "audio-section__hint",
+        "text": "Use any “▶ Play…” button in the notes to jump here.",
+        "rect": {
+          "x": 42,
+          "y": 1096.96875,
+          "width": 306,
+          "height": 32,
+          "top": 1096.96875,
+          "right": 348,
+          "bottom": 1128.96875,
+          "left": 42
+        }
+      },
+      {
+        "tag": "AUDIO",
+        "cls": "",
+        "text": "Your browser does not support audio playback.",
+        "rect": {
+          "x": 42,
+          "y": 1144.96875,
+          "width": 306,
+          "height": 0,
+          "top": 1144.96875,
+          "right": 348,
+          "bottom": 1144.96875,
+          "left": 42
+        }
+      }
+    ],
+    "buttons": [
+      {
+        "text": "▶ Play coach feedback at 1:14 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 43.59375,
+          "y": 2636.328125,
+          "width": 302.8125,
+          "height": 77.375,
+          "top": 2636.328125,
+          "right": 346.40625,
+          "bottom": 2713.703125,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 1:42 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 43.59375,
+          "y": 2722.5,
+          "width": 302.8125,
+          "height": 92.375,
+          "top": 2722.5,
+          "right": 346.40625,
+          "bottom": 2814.875,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play coach feedback at 2:12 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 43.59375,
+          "y": 4461.96875,
+          "width": 302.8125,
+          "height": 77.375,
+          "top": 4461.96875,
+          "right": 346.40625,
+          "bottom": 4539.34375,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 2:40 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 43.59375,
+          "y": 4548.140625,
+          "width": 302.8125,
+          "height": 92.375,
+          "top": 4548.140625,
+          "right": 346.40625,
+          "bottom": 4640.515625,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play coach feedback at 3:31 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 43.59375,
+          "y": 6382.609375,
+          "width": 302.8125,
+          "height": 77.375,
+          "top": 6382.609375,
+          "right": 346.40625,
+          "bottom": 6459.984375,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 3:59 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 43.59375,
+          "y": 6468.78125,
+          "width": 302.8125,
+          "height": 92.375,
+          "top": 6468.78125,
+          "right": 346.40625,
+          "bottom": 6561.15625,
+          "left": 43.59375
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "state": "07-feedback-reviewed-complete",
+    "scrollHeight": 7121,
+    "sourceMomentEls": [
+      {
+        "tag": "DIV",
+        "cls": "",
+        "text": "Skip to main content PRIVATE QUARTET ARCHIVE Quartet coaching Signed in as demo-singer Sign out Demo mode. Everything on",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 7057.28125,
+          "top": 0,
+          "right": 390,
+          "bottom": 7057.28125,
+          "left": 0
+        }
+      },
+      {
+        "tag": "MAIN",
+        "cls": "app-shell",
+        "text": "Coaching feedback YOUR RECORDINGS Choose a coaching session Check for updates Synthetic demo completed review Ready synt",
+        "rect": {
+          "x": 8,
+          "y": 351.390625,
+          "width": 374,
+          "height": 6705.890625,
+          "top": 351.390625,
+          "right": 382,
+          "bottom": 7057.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "feedback-layout",
+        "text": "YOUR RECORDINGS Choose a coaching session Check for updates Synthetic demo completed review Ready synthetic-complete.wav",
+        "rect": {
+          "x": 8,
+          "y": 387.390625,
+          "width": 374,
+          "height": 6669.890625,
+          "top": 387.390625,
+          "right": 382,
+          "bottom": 7057.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "feedback-detail",
+        "text": "← Choose another recording RECORDING Synthetic demo completed review synthetic-complete.wav · Added Aug 12, 2026, 11:30 ",
+        "rect": {
+          "x": 8,
+          "y": 841.65625,
+          "width": 374,
+          "height": 6215.625,
+          "top": 841.65625,
+          "right": 382,
+          "bottom": 7057.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "SECTION",
+        "cls": "panel detail-panel",
+        "text": "RECORDING Synthetic demo completed review synthetic-complete.wav · Added Aug 12, 2026, 11:30 AM Ready SOURCE RECORDING U",
+        "rect": {
+          "x": 8,
+          "y": 872.65625,
+          "width": 374,
+          "height": 6184.625,
+          "top": 872.65625,
+          "right": 382,
+          "bottom": 7057.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet should agree on the target vowel shape ",
+        "rect": {
+          "x": 25,
+          "y": 1317.359375,
+          "width": 340,
+          "height": 5722.921875,
+          "top": 1317.359375,
+          "right": 365,
+          "bottom": 7040.28125,
+          "left": 25
+        }
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet should agree on the target vowel shape ",
+        "rect": {
+          "x": 25,
+          "y": 1317.359375,
+          "width": 340,
+          "height": 1976.640625,
+          "top": 1317.359375,
+          "right": 365,
+          "bottom": 3294,
+          "left": 25
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "evidence-section",
+        "text": "SOURCE MOMENTS ▶ Play coach feedback at 1:14 Coach gives the vowel reset instruction ▶ Play after attempt at 1:42 Quarte",
+        "rect": {
+          "x": 43.59375,
+          "y": 2614.53125,
+          "width": 302.8125,
+          "height": 200.34375,
+          "top": 2614.53125,
+          "right": 346.40625,
+          "bottom": 2814.875,
+          "left": 43.59375
+        }
+      }
+    ],
+    "audioEls": [
+      {
+        "tag": "DIV",
+        "cls": "audio-section",
+        "text": "SOURCE RECORDING Use any “▶ Play…” button in the notes to jump here.",
+        "rect": {
+          "x": 25,
+          "y": 1067.578125,
+          "width": 340,
+          "height": 91.1875,
+          "top": 1067.578125,
+          "right": 365,
+          "bottom": 1158.765625,
+          "left": 25
+        }
+      },
+      {
+        "tag": "P",
+        "cls": "audio-section__hint",
+        "text": "Use any “▶ Play…” button in the notes to jump here.",
+        "rect": {
+          "x": 42,
+          "y": 1096.96875,
+          "width": 306,
+          "height": 32,
+          "top": 1096.96875,
+          "right": 348,
+          "bottom": 1128.96875,
+          "left": 42
+        }
+      },
+      {
+        "tag": "AUDIO",
+        "cls": "",
+        "text": "Your browser does not support audio playback.",
+        "rect": {
+          "x": 42,
+          "y": 1144.96875,
+          "width": 306,
+          "height": 0,
+          "top": 1144.96875,
+          "right": 348,
+          "bottom": 1144.96875,
+          "left": 42
+        }
+      }
+    ],
+    "buttons": [
+      {
+        "text": "▶ Play coach feedback at 1:14 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 43.59375,
+          "y": 2636.328125,
+          "width": 302.8125,
+          "height": 77.375,
+          "top": 2636.328125,
+          "right": 346.40625,
+          "bottom": 2713.703125,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 1:42 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 43.59375,
+          "y": 2722.5,
+          "width": 302.8125,
+          "height": 92.375,
+          "top": 2722.5,
+          "right": 346.40625,
+          "bottom": 2814.875,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play coach feedback at 2:12 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 43.59375,
+          "y": 4461.96875,
+          "width": 302.8125,
+          "height": 77.375,
+          "top": 4461.96875,
+          "right": 346.40625,
+          "bottom": 4539.34375,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 2:40 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 43.59375,
+          "y": 4548.140625,
+          "width": 302.8125,
+          "height": 92.375,
+          "top": 4548.140625,
+          "right": 346.40625,
+          "bottom": 4640.515625,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play coach feedback at 3:31 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 43.59375,
+          "y": 6382.609375,
+          "width": 302.8125,
+          "height": 77.375,
+          "top": 6382.609375,
+          "right": 346.40625,
+          "bottom": 6459.984375,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 3:59 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 43.59375,
+          "y": 6468.78125,
+          "width": 302.8125,
+          "height": 92.375,
+          "top": 6468.78125,
+          "right": 346.40625,
+          "bottom": 6561.15625,
+          "left": 43.59375
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "w": 360,
+      "h": 800
+    },
+    "state": "06-feedback-awaiting-review",
+    "scrollHeight": 7395,
+    "sourceMomentEls": [
+      {
+        "tag": "DIV",
+        "cls": "",
+        "text": "Skip to main content PRIVATE QUARTET ARCHIVE Quartet coaching Signed in as demo-singer Sign out Demo mode. Everything on",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 360,
+          "height": 7331.28125,
+          "top": 0,
+          "right": 360,
+          "bottom": 7331.28125,
+          "left": 0
+        }
+      },
+      {
+        "tag": "MAIN",
+        "cls": "app-shell",
+        "text": "Coaching feedback YOUR RECORDINGS Choose a coaching session Check for updates Synthetic demo awaiting review Ready synth",
+        "rect": {
+          "x": 8,
+          "y": 351.390625,
+          "width": 344,
+          "height": 6979.890625,
+          "top": 351.390625,
+          "right": 352,
+          "bottom": 7331.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "feedback-layout",
+        "text": "YOUR RECORDINGS Choose a coaching session Check for updates Synthetic demo awaiting review Ready synthetic-awaiting-revi",
+        "rect": {
+          "x": 8,
+          "y": 387.390625,
+          "width": 344,
+          "height": 6943.890625,
+          "top": 387.390625,
+          "right": 352,
+          "bottom": 7331.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "feedback-detail",
+        "text": "← Choose another recording RECORDING Synthetic demo awaiting review synthetic-awaiting-review.wav · Added Aug 12, 2026, ",
+        "rect": {
+          "x": 8,
+          "y": 841.65625,
+          "width": 344,
+          "height": 6489.625,
+          "top": 841.65625,
+          "right": 352,
+          "bottom": 7331.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "SECTION",
+        "cls": "panel detail-panel",
+        "text": "RECORDING Synthetic demo awaiting review synthetic-awaiting-review.wav · Added Aug 12, 2026, 11:30 AM Ready SOURCE RECOR",
+        "rect": {
+          "x": 8,
+          "y": 872.65625,
+          "width": 344,
+          "height": 6458.625,
+          "top": 872.65625,
+          "right": 352,
+          "bottom": 7331.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Not checked COACHING TAKEAWAY The quartet should agree on the target vowel sh",
+        "rect": {
+          "x": 25,
+          "y": 1317.359375,
+          "width": 310,
+          "height": 5996.921875,
+          "top": 1317.359375,
+          "right": 335,
+          "bottom": 7314.28125,
+          "left": 25
+        }
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 1 Match vowels before the final chord Not checked COACHING TAKEAWAY The quartet should agree on the target vowel sh",
+        "rect": {
+          "x": 25,
+          "y": 1317.359375,
+          "width": 310,
+          "height": 2061.640625,
+          "top": 1317.359375,
+          "right": 335,
+          "bottom": 3379,
+          "left": 25
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "evidence-section",
+        "text": "SOURCE MOMENTS ▶ Play coach feedback at 1:14 Coach gives the vowel reset instruction ▶ Play after attempt at 1:42 Quarte",
+        "rect": {
+          "x": 43.59375,
+          "y": 2684.53125,
+          "width": 272.8125,
+          "height": 215.34375,
+          "top": 2684.53125,
+          "right": 316.40625,
+          "bottom": 2899.875,
+          "left": 43.59375
+        }
+      }
+    ],
+    "audioEls": [
+      {
+        "tag": "DIV",
+        "cls": "audio-section",
+        "text": "SOURCE RECORDING Use any “▶ Play…” button in the notes to jump here.",
+        "rect": {
+          "x": 25,
+          "y": 1067.578125,
+          "width": 310,
+          "height": 91.1875,
+          "top": 1067.578125,
+          "right": 335,
+          "bottom": 1158.765625,
+          "left": 25
+        }
+      },
+      {
+        "tag": "P",
+        "cls": "audio-section__hint",
+        "text": "Use any “▶ Play…” button in the notes to jump here.",
+        "rect": {
+          "x": 42,
+          "y": 1096.96875,
+          "width": 276,
+          "height": 32,
+          "top": 1096.96875,
+          "right": 318,
+          "bottom": 1128.96875,
+          "left": 42
+        }
+      },
+      {
+        "tag": "AUDIO",
+        "cls": "",
+        "text": "Your browser does not support audio playback.",
+        "rect": {
+          "x": 42,
+          "y": 1144.96875,
+          "width": 276,
+          "height": 0,
+          "top": 1144.96875,
+          "right": 318,
+          "bottom": 1144.96875,
+          "left": 42
+        }
+      }
+    ],
+    "buttons": [
+      {
+        "text": "▶ Play coach feedback at 1:14 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 43.59375,
+          "y": 2706.328125,
+          "width": 272.8125,
+          "height": 92.375,
+          "top": 2706.328125,
+          "right": 316.40625,
+          "bottom": 2798.703125,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 1:42 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 43.59375,
+          "y": 2807.5,
+          "width": 272.8125,
+          "height": 92.375,
+          "top": 2807.5,
+          "right": 316.40625,
+          "bottom": 2899.875,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play coach feedback at 2:12 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 43.59375,
+          "y": 4654.96875,
+          "width": 272.8125,
+          "height": 92.375,
+          "top": 4654.96875,
+          "right": 316.40625,
+          "bottom": 4747.34375,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 2:40 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 43.59375,
+          "y": 4756.140625,
+          "width": 272.8125,
+          "height": 92.375,
+          "top": 4756.140625,
+          "right": 316.40625,
+          "bottom": 4848.515625,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play coach feedback at 3:31 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 43.59375,
+          "y": 6641.609375,
+          "width": 272.8125,
+          "height": 92.375,
+          "top": 6641.609375,
+          "right": 316.40625,
+          "bottom": 6733.984375,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 3:59 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 43.59375,
+          "y": 6742.78125,
+          "width": 272.8125,
+          "height": 92.375,
+          "top": 6742.78125,
+          "right": 316.40625,
+          "bottom": 6835.15625,
+          "left": 43.59375
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "w": 360,
+      "h": 800
+    },
+    "state": "07-feedback-reviewed-complete",
+    "scrollHeight": 7395,
+    "sourceMomentEls": [
+      {
+        "tag": "DIV",
+        "cls": "",
+        "text": "Skip to main content PRIVATE QUARTET ARCHIVE Quartet coaching Signed in as demo-singer Sign out Demo mode. Everything on",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 360,
+          "height": 7331.28125,
+          "top": 0,
+          "right": 360,
+          "bottom": 7331.28125,
+          "left": 0
+        }
+      },
+      {
+        "tag": "MAIN",
+        "cls": "app-shell",
+        "text": "Coaching feedback YOUR RECORDINGS Choose a coaching session Check for updates Synthetic demo completed review Ready synt",
+        "rect": {
+          "x": 8,
+          "y": 351.390625,
+          "width": 344,
+          "height": 6979.890625,
+          "top": 351.390625,
+          "right": 352,
+          "bottom": 7331.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "feedback-layout",
+        "text": "YOUR RECORDINGS Choose a coaching session Check for updates Synthetic demo completed review Ready synthetic-complete.wav",
+        "rect": {
+          "x": 8,
+          "y": 387.390625,
+          "width": 344,
+          "height": 6943.890625,
+          "top": 387.390625,
+          "right": 352,
+          "bottom": 7331.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "feedback-detail",
+        "text": "← Choose another recording RECORDING Synthetic demo completed review synthetic-complete.wav · Added Aug 12, 2026, 11:30 ",
+        "rect": {
+          "x": 8,
+          "y": 841.65625,
+          "width": 344,
+          "height": 6489.625,
+          "top": 841.65625,
+          "right": 352,
+          "bottom": 7331.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "SECTION",
+        "cls": "panel detail-panel",
+        "text": "RECORDING Synthetic demo completed review synthetic-complete.wav · Added Aug 12, 2026, 11:30 AM Ready SOURCE RECORDING U",
+        "rect": {
+          "x": 8,
+          "y": 872.65625,
+          "width": 344,
+          "height": 6458.625,
+          "top": 872.65625,
+          "right": 352,
+          "bottom": 7331.28125,
+          "left": 8
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet should agree on the target vowel shape ",
+        "rect": {
+          "x": 25,
+          "y": 1317.359375,
+          "width": 310,
+          "height": 5996.921875,
+          "top": 1317.359375,
+          "right": 335,
+          "bottom": 7314.28125,
+          "left": 25
+        }
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet should agree on the target vowel shape ",
+        "rect": {
+          "x": 25,
+          "y": 1317.359375,
+          "width": 310,
+          "height": 2061.640625,
+          "top": 1317.359375,
+          "right": 335,
+          "bottom": 3379,
+          "left": 25
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "evidence-section",
+        "text": "SOURCE MOMENTS ▶ Play coach feedback at 1:14 Coach gives the vowel reset instruction ▶ Play after attempt at 1:42 Quarte",
+        "rect": {
+          "x": 43.59375,
+          "y": 2684.53125,
+          "width": 272.8125,
+          "height": 215.34375,
+          "top": 2684.53125,
+          "right": 316.40625,
+          "bottom": 2899.875,
+          "left": 43.59375
+        }
+      }
+    ],
+    "audioEls": [
+      {
+        "tag": "DIV",
+        "cls": "audio-section",
+        "text": "SOURCE RECORDING Use any “▶ Play…” button in the notes to jump here.",
+        "rect": {
+          "x": 25,
+          "y": 1067.578125,
+          "width": 310,
+          "height": 91.1875,
+          "top": 1067.578125,
+          "right": 335,
+          "bottom": 1158.765625,
+          "left": 25
+        }
+      },
+      {
+        "tag": "P",
+        "cls": "audio-section__hint",
+        "text": "Use any “▶ Play…” button in the notes to jump here.",
+        "rect": {
+          "x": 42,
+          "y": 1096.96875,
+          "width": 276,
+          "height": 32,
+          "top": 1096.96875,
+          "right": 318,
+          "bottom": 1128.96875,
+          "left": 42
+        }
+      },
+      {
+        "tag": "AUDIO",
+        "cls": "",
+        "text": "Your browser does not support audio playback.",
+        "rect": {
+          "x": 42,
+          "y": 1144.96875,
+          "width": 276,
+          "height": 0,
+          "top": 1144.96875,
+          "right": 318,
+          "bottom": 1144.96875,
+          "left": 42
+        }
+      }
+    ],
+    "buttons": [
+      {
+        "text": "▶ Play coach feedback at 1:14 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 43.59375,
+          "y": 2706.328125,
+          "width": 272.8125,
+          "height": 92.375,
+          "top": 2706.328125,
+          "right": 316.40625,
+          "bottom": 2798.703125,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 1:42 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 43.59375,
+          "y": 2807.5,
+          "width": 272.8125,
+          "height": 92.375,
+          "top": 2807.5,
+          "right": 316.40625,
+          "bottom": 2899.875,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play coach feedback at 2:12 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 43.59375,
+          "y": 4654.96875,
+          "width": 272.8125,
+          "height": 92.375,
+          "top": 4654.96875,
+          "right": 316.40625,
+          "bottom": 4747.34375,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 2:40 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 43.59375,
+          "y": 4756.140625,
+          "width": 272.8125,
+          "height": 92.375,
+          "top": 4756.140625,
+          "right": 316.40625,
+          "bottom": 4848.515625,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play coach feedback at 3:31 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 43.59375,
+          "y": 6641.609375,
+          "width": 272.8125,
+          "height": 92.375,
+          "top": 6641.609375,
+          "right": 316.40625,
+          "bottom": 6733.984375,
+          "left": 43.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 3:59 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 43.59375,
+          "y": 6742.78125,
+          "width": 272.8125,
+          "height": 92.375,
+          "top": 6742.78125,
+          "right": 316.40625,
+          "bottom": 6835.15625,
+          "left": 43.59375
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "w": 1440,
+      "h": 900
+    },
+    "state": "06-feedback-awaiting-review",
+    "scrollHeight": 4014,
+    "sourceMomentEls": [
+      {
+        "tag": "DIV",
+        "cls": "",
+        "text": "Skip to main content PRIVATE QUARTET ARCHIVE Quartet coaching Signed in as demo-singer Sign out Demo mode. Everything on",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 3950.3125,
+          "top": 0,
+          "right": 1440,
+          "bottom": 3950.3125,
+          "left": 0
+        }
+      },
+      {
+        "tag": "MAIN",
+        "cls": "app-shell",
+        "text": "Coaching feedback YOUR RECORDINGS Choose a coaching session Check for updates Synthetic demo awaiting review Ready synth",
+        "rect": {
+          "x": 20,
+          "y": 230.796875,
+          "width": 1400,
+          "height": 3719.515625,
+          "top": 230.796875,
+          "right": 1420,
+          "bottom": 3950.3125,
+          "left": 20
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "feedback-layout",
+        "text": "YOUR RECORDINGS Choose a coaching session Check for updates Synthetic demo awaiting review Ready synthetic-awaiting-revi",
+        "rect": {
+          "x": 20,
+          "y": 266.796875,
+          "width": 1400,
+          "height": 3683.515625,
+          "top": 266.796875,
+          "right": 1420,
+          "bottom": 3950.3125,
+          "left": 20
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "feedback-detail",
+        "text": "← Choose another recording RECORDING Synthetic demo awaiting review synthetic-awaiting-review.wav · Added Aug 12, 2026, ",
+        "rect": {
+          "x": 456,
+          "y": 266.796875,
+          "width": 964,
+          "height": 3683.515625,
+          "top": 266.796875,
+          "right": 1420,
+          "bottom": 3950.3125,
+          "left": 456
+        }
+      },
+      {
+        "tag": "SECTION",
+        "cls": "panel detail-panel",
+        "text": "RECORDING Synthetic demo awaiting review synthetic-awaiting-review.wav · Added Aug 12, 2026, 11:30 AM Ready SOURCE RECOR",
+        "rect": {
+          "x": 456,
+          "y": 297.796875,
+          "width": 964,
+          "height": 3652.515625,
+          "top": 297.796875,
+          "right": 1420,
+          "bottom": 3950.3125,
+          "left": 456
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Not checked COACHING TAKEAWAY The quartet should agree on the target vowel sh",
+        "rect": {
+          "x": 485,
+          "y": 638.96875,
+          "width": 906,
+          "height": 3282.34375,
+          "top": 638.96875,
+          "right": 1391,
+          "bottom": 3921.3125,
+          "left": 485
+        }
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 1 Match vowels before the final chord Not checked COACHING TAKEAWAY The quartet should agree on the target vowel sh",
+        "rect": {
+          "x": 485,
+          "y": 638.96875,
+          "width": 906,
+          "height": 1118.78125,
+          "top": 638.96875,
+          "right": 1391,
+          "bottom": 1757.75,
+          "left": 485
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "evidence-section",
+        "text": "SOURCE MOMENTS ▶ Play coach feedback at 1:14 Coach gives the vowel reset instruction ▶ Play after attempt at 1:42 Quarte",
+        "rect": {
+          "x": 503.59375,
+          "y": 1316.453125,
+          "width": 868.8125,
+          "height": 80.171875,
+          "top": 1316.453125,
+          "right": 1372.40625,
+          "bottom": 1396.625,
+          "left": 503.59375
+        }
+      }
+    ],
+    "audioEls": [
+      {
+        "tag": "DIV",
+        "cls": "audio-section",
+        "text": "SOURCE RECORDING Use any “▶ Play…” button in the notes to jump here.",
+        "rect": {
+          "x": 485,
+          "y": 419.78125,
+          "width": 906,
+          "height": 81.59375,
+          "top": 419.78125,
+          "right": 1391,
+          "bottom": 501.375,
+          "left": 485
+        }
+      },
+      {
+        "tag": "P",
+        "cls": "audio-section__hint",
+        "text": "Use any “▶ Play…” button in the notes to jump here.",
+        "rect": {
+          "x": 502,
+          "y": 460.375,
+          "width": 360.203125,
+          "height": 16,
+          "top": 460.375,
+          "right": 862.203125,
+          "bottom": 476.375,
+          "left": 502
+        }
+      },
+      {
+        "tag": "AUDIO",
+        "cls": "",
+        "text": "Your browser does not support audio playback.",
+        "rect": {
+          "x": 878.203125,
+          "y": 433.578125,
+          "width": 495.796875,
+          "height": 54,
+          "top": 433.578125,
+          "right": 1374,
+          "bottom": 487.578125,
+          "left": 878.203125
+        }
+      }
+    ],
+    "buttons": [
+      {
+        "text": "▶ Play coach feedback at 1:14 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 503.59375,
+          "y": 1338.25,
+          "width": 303.4375,
+          "height": 58.375,
+          "top": 1338.25,
+          "right": 807.03125,
+          "bottom": 1396.625,
+          "left": 503.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 1:42 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 815.828125,
+          "y": 1338.25,
+          "width": 347.765625,
+          "height": 58.375,
+          "top": 1338.25,
+          "right": 1163.59375,
+          "bottom": 1396.625,
+          "left": 815.828125
+        }
+      },
+      {
+        "text": "▶ Play coach feedback at 2:12 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 503.59375,
+          "y": 2420.03125,
+          "width": 303.4375,
+          "height": 58.375,
+          "top": 2420.03125,
+          "right": 807.03125,
+          "bottom": 2478.40625,
+          "left": 503.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 2:40 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 815.828125,
+          "y": 2420.03125,
+          "width": 347.765625,
+          "height": 58.375,
+          "top": 2420.03125,
+          "right": 1163.59375,
+          "bottom": 2478.40625,
+          "left": 815.828125
+        }
+      },
+      {
+        "text": "▶ Play coach feedback at 3:31 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 503.59375,
+          "y": 3501.8125,
+          "width": 303.4375,
+          "height": 58.375,
+          "top": 3501.8125,
+          "right": 807.03125,
+          "bottom": 3560.1875,
+          "left": 503.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 3:59 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 815.828125,
+          "y": 3501.8125,
+          "width": 347.765625,
+          "height": 58.375,
+          "top": 3501.8125,
+          "right": 1163.59375,
+          "bottom": 3560.1875,
+          "left": 815.828125
+        }
+      }
+    ]
+  },
+  {
+    "viewport": {
+      "w": 1440,
+      "h": 900
+    },
+    "state": "07-feedback-reviewed-complete",
+    "scrollHeight": 4014,
+    "sourceMomentEls": [
+      {
+        "tag": "DIV",
+        "cls": "",
+        "text": "Skip to main content PRIVATE QUARTET ARCHIVE Quartet coaching Signed in as demo-singer Sign out Demo mode. Everything on",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 3950.3125,
+          "top": 0,
+          "right": 1440,
+          "bottom": 3950.3125,
+          "left": 0
+        }
+      },
+      {
+        "tag": "MAIN",
+        "cls": "app-shell",
+        "text": "Coaching feedback YOUR RECORDINGS Choose a coaching session Check for updates Synthetic demo completed review Ready synt",
+        "rect": {
+          "x": 20,
+          "y": 230.796875,
+          "width": 1400,
+          "height": 3719.515625,
+          "top": 230.796875,
+          "right": 1420,
+          "bottom": 3950.3125,
+          "left": 20
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "feedback-layout",
+        "text": "YOUR RECORDINGS Choose a coaching session Check for updates Synthetic demo completed review Ready synthetic-complete.wav",
+        "rect": {
+          "x": 20,
+          "y": 266.796875,
+          "width": 1400,
+          "height": 3683.515625,
+          "top": 266.796875,
+          "right": 1420,
+          "bottom": 3950.3125,
+          "left": 20
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "feedback-detail",
+        "text": "← Choose another recording RECORDING Synthetic demo completed review synthetic-complete.wav · Added Aug 12, 2026, 11:30 ",
+        "rect": {
+          "x": 456,
+          "y": 266.796875,
+          "width": 964,
+          "height": 3683.515625,
+          "top": 266.796875,
+          "right": 1420,
+          "bottom": 3950.3125,
+          "left": 456
+        }
+      },
+      {
+        "tag": "SECTION",
+        "cls": "panel detail-panel",
+        "text": "RECORDING Synthetic demo completed review synthetic-complete.wav · Added Aug 12, 2026, 11:30 AM Ready SOURCE RECORDING U",
+        "rect": {
+          "x": 456,
+          "y": 297.796875,
+          "width": 964,
+          "height": 3652.515625,
+          "top": 297.796875,
+          "right": 1420,
+          "bottom": 3950.3125,
+          "left": 456
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "ledger-list",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet should agree on the target vowel shape ",
+        "rect": {
+          "x": 485,
+          "y": 638.96875,
+          "width": 906,
+          "height": 3282.34375,
+          "top": 638.96875,
+          "right": 1391,
+          "bottom": 3921.3125,
+          "left": 485
+        }
+      },
+      {
+        "tag": "ARTICLE",
+        "cls": "ledger-card",
+        "text": "NOTE 1 Match vowels before the final chord Checked COACHING TAKEAWAY The quartet should agree on the target vowel shape ",
+        "rect": {
+          "x": 485,
+          "y": 638.96875,
+          "width": 906,
+          "height": 1118.78125,
+          "top": 638.96875,
+          "right": 1391,
+          "bottom": 1757.75,
+          "left": 485
+        }
+      },
+      {
+        "tag": "DIV",
+        "cls": "evidence-section",
+        "text": "SOURCE MOMENTS ▶ Play coach feedback at 1:14 Coach gives the vowel reset instruction ▶ Play after attempt at 1:42 Quarte",
+        "rect": {
+          "x": 503.59375,
+          "y": 1316.453125,
+          "width": 868.8125,
+          "height": 80.171875,
+          "top": 1316.453125,
+          "right": 1372.40625,
+          "bottom": 1396.625,
+          "left": 503.59375
+        }
+      }
+    ],
+    "audioEls": [
+      {
+        "tag": "DIV",
+        "cls": "audio-section",
+        "text": "SOURCE RECORDING Use any “▶ Play…” button in the notes to jump here.",
+        "rect": {
+          "x": 485,
+          "y": 419.78125,
+          "width": 906,
+          "height": 81.59375,
+          "top": 419.78125,
+          "right": 1391,
+          "bottom": 501.375,
+          "left": 485
+        }
+      },
+      {
+        "tag": "P",
+        "cls": "audio-section__hint",
+        "text": "Use any “▶ Play…” button in the notes to jump here.",
+        "rect": {
+          "x": 502,
+          "y": 460.375,
+          "width": 360.203125,
+          "height": 16,
+          "top": 460.375,
+          "right": 862.203125,
+          "bottom": 476.375,
+          "left": 502
+        }
+      },
+      {
+        "tag": "AUDIO",
+        "cls": "",
+        "text": "Your browser does not support audio playback.",
+        "rect": {
+          "x": 878.203125,
+          "y": 433.578125,
+          "width": 495.796875,
+          "height": 54,
+          "top": 433.578125,
+          "right": 1374,
+          "bottom": 487.578125,
+          "left": 878.203125
+        }
+      }
+    ],
+    "buttons": [
+      {
+        "text": "▶ Play coach feedback at 1:14 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 503.59375,
+          "y": 1338.25,
+          "width": 303.4375,
+          "height": 58.375,
+          "top": 1338.25,
+          "right": 807.03125,
+          "bottom": 1396.625,
+          "left": 503.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 1:42 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 815.828125,
+          "y": 1338.25,
+          "width": 347.765625,
+          "height": 58.375,
+          "top": 1338.25,
+          "right": 1163.59375,
+          "bottom": 1396.625,
+          "left": 815.828125
+        }
+      },
+      {
+        "text": "▶ Play coach feedback at 2:12 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 503.59375,
+          "y": 2420.03125,
+          "width": 303.4375,
+          "height": 58.375,
+          "top": 2420.03125,
+          "right": 807.03125,
+          "bottom": 2478.40625,
+          "left": 503.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 2:40 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 815.828125,
+          "y": 2420.03125,
+          "width": 347.765625,
+          "height": 58.375,
+          "top": 2420.03125,
+          "right": 1163.59375,
+          "bottom": 2478.40625,
+          "left": 815.828125
+        }
+      },
+      {
+        "text": "▶ Play coach feedback at 3:31 Coach gives the vowel reset instruction",
+        "rect": {
+          "x": 503.59375,
+          "y": 3501.8125,
+          "width": 303.4375,
+          "height": 58.375,
+          "top": 3501.8125,
+          "right": 807.03125,
+          "bottom": 3560.1875,
+          "left": 503.59375
+        }
+      },
+      {
+        "text": "▶ Play after attempt at 3:59 Quartet repeats the passage after the adjustment",
+        "rect": {
+          "x": 815.828125,
+          "y": 3501.8125,
+          "width": 347.765625,
+          "height": 58.375,
+          "top": 3501.8125,
+          "right": 1163.59375,
+          "bottom": 3560.1875,
+          "left": 815.828125
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,284 @@
+{
+  "generatedAt": "2026-08-13T01:21:03.165Z",
+  "fixedRenderTime": "2026-08-12T12:00:00.000Z",
+  "command": "cd apps/web && npm run ux:capture",
+  "outputRoot": ".squad/files/ux-review/2026-08-12-pr60-review",
+  "viewports": [
+    {
+      "name": "phone-390x844",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "narrow-phone-360x800",
+      "width": 360,
+      "height": 800
+    },
+    {
+      "name": "desktop-1440x900",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "shots": [
+    {
+      "file": "phone-390x844/01-feedback-empty-first-run.png",
+      "viewport": "phone-390x844",
+      "state": "01-feedback-empty-first-run",
+      "description": "opened Feedback before any recordings have been added.",
+      "bytes": 94249
+    },
+    {
+      "file": "phone-390x844/02-upload-ready-idle.png",
+      "viewport": "phone-390x844",
+      "state": "02-upload-ready-idle",
+      "description": "opened Upload before choosing a recording; the form is ready for a file.",
+      "bytes": 187512
+    },
+    {
+      "file": "phone-390x844/03-upload-in-progress.png",
+      "viewport": "phone-390x844",
+      "state": "03-upload-in-progress",
+      "description": "upload is partway through, progress is visible, and upload controls are disabled.",
+      "bytes": 195070
+    },
+    {
+      "file": "phone-390x844/04-feedback-processing-transcribing.png",
+      "viewport": "phone-390x844",
+      "state": "04-feedback-processing-transcribing",
+      "description": "opened Feedback while a recording is being transcribed; processing progress is visible.",
+      "bytes": 154882
+    },
+    {
+      "file": "phone-390x844/05-feedback-failed-error.png",
+      "viewport": "phone-390x844",
+      "state": "05-feedback-failed-error",
+      "description": "opened Feedback after processing failed; the error message and recovery guidance are visible.",
+      "bytes": 205786
+    },
+    {
+      "file": "phone-390x844/06-feedback-awaiting-review.png",
+      "viewport": "phone-390x844",
+      "state": "06-feedback-awaiting-review",
+      "description": "opened Feedback when coaching notes are ready but have not all been reviewed.",
+      "bytes": 561370
+    },
+    {
+      "file": "phone-390x844/07-feedback-reviewed-complete.png",
+      "viewport": "phone-390x844",
+      "state": "07-feedback-reviewed-complete",
+      "description": "opened Feedback after all coaching notes have been reviewed and the session is complete.",
+      "bytes": 560057
+    },
+    {
+      "file": "narrow-phone-360x800/01-feedback-empty-first-run.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "01-feedback-empty-first-run",
+      "description": "opened Feedback before any recordings have been added.",
+      "bytes": 91277
+    },
+    {
+      "file": "narrow-phone-360x800/02-upload-ready-idle.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "02-upload-ready-idle",
+      "description": "opened Upload before choosing a recording; the form is ready for a file.",
+      "bytes": 185941
+    },
+    {
+      "file": "narrow-phone-360x800/03-upload-in-progress.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "03-upload-in-progress",
+      "description": "upload is partway through, progress is visible, and upload controls are disabled.",
+      "bytes": 193452
+    },
+    {
+      "file": "narrow-phone-360x800/04-feedback-processing-transcribing.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "04-feedback-processing-transcribing",
+      "description": "opened Feedback while a recording is being transcribed; processing progress is visible.",
+      "bytes": 152158
+    },
+    {
+      "file": "narrow-phone-360x800/05-feedback-failed-error.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "05-feedback-failed-error",
+      "description": "opened Feedback after processing failed; the error message and recovery guidance are visible.",
+      "bytes": 201761
+    },
+    {
+      "file": "narrow-phone-360x800/06-feedback-awaiting-review.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "06-feedback-awaiting-review",
+      "description": "opened Feedback when coaching notes are ready but have not all been reviewed.",
+      "bytes": 560593
+    },
+    {
+      "file": "narrow-phone-360x800/07-feedback-reviewed-complete.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "07-feedback-reviewed-complete",
+      "description": "opened Feedback after all coaching notes have been reviewed and the session is complete.",
+      "bytes": 558763
+    },
+    {
+      "file": "desktop-1440x900/01-feedback-empty-first-run.png",
+      "viewport": "desktop-1440x900",
+      "state": "01-feedback-empty-first-run",
+      "description": "opened Feedback before any recordings have been added.",
+      "bytes": 120506
+    },
+    {
+      "file": "desktop-1440x900/02-upload-ready-idle.png",
+      "viewport": "desktop-1440x900",
+      "state": "02-upload-ready-idle",
+      "description": "opened Upload before choosing a recording; the form is ready for a file.",
+      "bytes": 252516
+    },
+    {
+      "file": "desktop-1440x900/03-upload-in-progress.png",
+      "viewport": "desktop-1440x900",
+      "state": "03-upload-in-progress",
+      "description": "upload is partway through, progress is visible, and upload controls are disabled.",
+      "bytes": 261352
+    },
+    {
+      "file": "desktop-1440x900/04-feedback-processing-transcribing.png",
+      "viewport": "desktop-1440x900",
+      "state": "04-feedback-processing-transcribing",
+      "description": "opened Feedback while a recording is being transcribed; processing progress is visible.",
+      "bytes": 188002
+    },
+    {
+      "file": "desktop-1440x900/05-feedback-failed-error.png",
+      "viewport": "desktop-1440x900",
+      "state": "05-feedback-failed-error",
+      "description": "opened Feedback after processing failed; the error message and recovery guidance are visible.",
+      "bytes": 285193
+    },
+    {
+      "file": "desktop-1440x900/06-feedback-awaiting-review.png",
+      "viewport": "desktop-1440x900",
+      "state": "06-feedback-awaiting-review",
+      "description": "opened Feedback when coaching notes are ready but have not all been reviewed.",
+      "bytes": 635170
+    },
+    {
+      "file": "desktop-1440x900/07-feedback-reviewed-complete.png",
+      "viewport": "desktop-1440x900",
+      "state": "07-feedback-reviewed-complete",
+      "description": "opened Feedback after all coaching notes have been reviewed and the session is complete.",
+      "bytes": 634476
+    },
+    {
+      "file": "phone-390x844/08-note-review-disclosure-collapsed-closeup.png",
+      "viewport": "phone-390x844",
+      "state": "collapsed optional note-review disclosure closeup"
+    },
+    {
+      "file": "phone-390x844/09-note-review-disclosure-open-first.png",
+      "viewport": "phone-390x844",
+      "state": "first note-review disclosure open"
+    },
+    {
+      "file": "phone-390x844/10-note-review-disclosure-open-first-fullpage.png",
+      "viewport": "phone-390x844",
+      "state": "first note-review disclosure open full page"
+    },
+    {
+      "file": "phone-390x844/11-note-review-second-collapsed-after-first-open.png",
+      "viewport": "phone-390x844",
+      "state": "second disclosure collapsed while first remains open"
+    },
+    {
+      "file": "phone-390x844/12-note-review-disclosure-open-second.png",
+      "viewport": "phone-390x844",
+      "state": "second note-review disclosure open"
+    },
+    {
+      "file": "phone-390x844/13-note-review-two-disclosures-open-fullpage.png",
+      "viewport": "phone-390x844",
+      "state": "first and second disclosures open full page"
+    },
+    {
+      "file": "phone-390x844/14-note-review-second-reclosed.png",
+      "viewport": "phone-390x844",
+      "state": "second note-review disclosure re-closed"
+    },
+    {
+      "file": "narrow-phone-360x800/08-note-review-disclosure-collapsed-closeup.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "collapsed optional note-review disclosure closeup"
+    },
+    {
+      "file": "narrow-phone-360x800/09-note-review-disclosure-open-first.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "first note-review disclosure open"
+    },
+    {
+      "file": "narrow-phone-360x800/10-note-review-disclosure-open-first-fullpage.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "first note-review disclosure open full page"
+    },
+    {
+      "file": "narrow-phone-360x800/11-note-review-second-collapsed-after-first-open.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "second disclosure collapsed while first remains open"
+    },
+    {
+      "file": "narrow-phone-360x800/12-note-review-disclosure-open-second.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "second note-review disclosure open"
+    },
+    {
+      "file": "narrow-phone-360x800/13-note-review-two-disclosures-open-fullpage.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "first and second disclosures open full page"
+    },
+    {
+      "file": "narrow-phone-360x800/14-note-review-second-reclosed.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "second note-review disclosure re-closed"
+    },
+    {
+      "file": "desktop-1440x900/08-note-review-disclosure-collapsed-closeup.png",
+      "viewport": "desktop-1440x900",
+      "state": "collapsed optional note-review disclosure closeup"
+    },
+    {
+      "file": "desktop-1440x900/09-note-review-disclosure-open-first.png",
+      "viewport": "desktop-1440x900",
+      "state": "first note-review disclosure open"
+    },
+    {
+      "file": "desktop-1440x900/10-note-review-disclosure-open-first-fullpage.png",
+      "viewport": "desktop-1440x900",
+      "state": "first note-review disclosure open full page"
+    },
+    {
+      "file": "desktop-1440x900/11-note-review-second-collapsed-after-first-open.png",
+      "viewport": "desktop-1440x900",
+      "state": "second disclosure collapsed while first remains open"
+    },
+    {
+      "file": "desktop-1440x900/12-note-review-disclosure-open-second.png",
+      "viewport": "desktop-1440x900",
+      "state": "second note-review disclosure open"
+    },
+    {
+      "file": "desktop-1440x900/13-note-review-two-disclosures-open-fullpage.png",
+      "viewport": "desktop-1440x900",
+      "state": "first and second disclosures open full page"
+    },
+    {
+      "file": "desktop-1440x900/14-note-review-second-reclosed.png",
+      "viewport": "desktop-1440x900",
+      "state": "second note-review disclosure re-closed"
+    }
+  ],
+  "caveats": [
+    "Only states reachable through the current mock client are captured.",
+    "No backend, real audio processing, or credentials are required."
+  ],
+  "notes": [
+    "Additional Mouse PR #60 captures: note-review disclosure opened, sibling disclosure interaction, and re-closed state."
+  ]
+}

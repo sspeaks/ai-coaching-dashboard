@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-08-12T22:07:20.067Z",
+  "shots": [
+    {
+      "file": "phone-390x844/08-feedback-reviewed-after-play.png",
+      "viewport": "phone-390x844",
+      "state": "08-feedback-reviewed-after-play",
+      "description": "clicked the first Coach feedback timestamp in the reviewed-complete state.",
+      "bytes": 529894
+    },
+    {
+      "file": "narrow-phone-360x800/08-feedback-reviewed-after-play.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "08-feedback-reviewed-after-play",
+      "description": "clicked the first Coach feedback timestamp in the reviewed-complete state.",
+      "bytes": 533344
+    },
+    {
+      "file": "desktop-1440x900/08-feedback-reviewed-after-play.png",
+      "viewport": "desktop-1440x900",
+      "state": "08-feedback-reviewed-after-play",
+      "description": "clicked the first Coach feedback timestamp in the reviewed-complete state.",
+      "bytes": 540670
+    }
+  ]
+}

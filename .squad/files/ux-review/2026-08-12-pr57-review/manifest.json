@@ -1,0 +1,141 @@
+{
+  "generatedAt": "2026-08-13T01:06:58.088Z",
+  "fixedRenderTime": "2026-08-12T12:00:00.000Z",
+  "viewports": [
+    {
+      "name": "phone-390x844",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "narrow-phone-360x800",
+      "width": 360,
+      "height": 800
+    },
+    {
+      "name": "desktop-1440x900",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "shots": [
+    {
+      "file": "phone-390x844/01-summary-fullpage-initial.png",
+      "viewport": "phone-390x844",
+      "state": "initial full-page summary view"
+    },
+    {
+      "file": "phone-390x844/02-first-summary-control-inactive-tap-position.png",
+      "viewport": "phone-390x844",
+      "state": "first inactive summary source control at tap position"
+    },
+    {
+      "file": "phone-390x844/03-first-summary-control-post-tap-active.png",
+      "viewport": "phone-390x844",
+      "state": "post-tap active first timestamp at same note context"
+    },
+    {
+      "file": "phone-390x844/04-first-summary-post-tap-fullpage.png",
+      "viewport": "phone-390x844",
+      "state": "post-tap first timestamp full page"
+    },
+    {
+      "file": "phone-390x844/05-second-summary-control-post-tap-active.png",
+      "viewport": "phone-390x844",
+      "state": "post-tap active second timestamp at same note context"
+    },
+    {
+      "file": "phone-390x844/06-second-summary-post-tap-fullpage.png",
+      "viewport": "phone-390x844",
+      "state": "post-tap second timestamp full page"
+    },
+    {
+      "file": "phone-390x844/07-native-audio-controls-scroll-target.png",
+      "viewport": "phone-390x844",
+      "state": "native audio controls scroll target"
+    },
+    {
+      "file": "narrow-phone-360x800/01-summary-fullpage-initial.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "initial full-page summary view"
+    },
+    {
+      "file": "narrow-phone-360x800/02-first-summary-control-inactive-tap-position.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "first inactive summary source control at tap position"
+    },
+    {
+      "file": "narrow-phone-360x800/03-first-summary-control-post-tap-active.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "post-tap active first timestamp at same note context"
+    },
+    {
+      "file": "narrow-phone-360x800/04-first-summary-post-tap-fullpage.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "post-tap first timestamp full page"
+    },
+    {
+      "file": "narrow-phone-360x800/05-second-summary-control-post-tap-active.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "post-tap active second timestamp at same note context"
+    },
+    {
+      "file": "narrow-phone-360x800/06-second-summary-post-tap-fullpage.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "post-tap second timestamp full page"
+    },
+    {
+      "file": "narrow-phone-360x800/07-native-audio-controls-scroll-target.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "native audio controls scroll target"
+    },
+    {
+      "file": "desktop-1440x900/01-summary-fullpage-initial.png",
+      "viewport": "desktop-1440x900",
+      "state": "initial full-page summary view"
+    },
+    {
+      "file": "desktop-1440x900/02-first-summary-control-inactive-tap-position.png",
+      "viewport": "desktop-1440x900",
+      "state": "first inactive summary source control at tap position"
+    },
+    {
+      "file": "desktop-1440x900/03-first-summary-control-post-tap-active.png",
+      "viewport": "desktop-1440x900",
+      "state": "post-tap active first timestamp at same note context"
+    },
+    {
+      "file": "desktop-1440x900/04-first-summary-post-tap-fullpage.png",
+      "viewport": "desktop-1440x900",
+      "state": "post-tap first timestamp full page"
+    },
+    {
+      "file": "desktop-1440x900/05-second-summary-control-post-tap-active.png",
+      "viewport": "desktop-1440x900",
+      "state": "post-tap active second timestamp at same note context"
+    },
+    {
+      "file": "desktop-1440x900/06-second-summary-post-tap-fullpage.png",
+      "viewport": "desktop-1440x900",
+      "state": "post-tap second timestamp full page"
+    },
+    {
+      "file": "desktop-1440x900/07-native-audio-controls-scroll-target.png",
+      "viewport": "desktop-1440x900",
+      "state": "native audio controls scroll target"
+    },
+    {
+      "file": "phone-390x844/08-second-summary-direct-post-tap-active.png",
+      "viewport": "phone-390x844",
+      "state": "direct post-tap second timestamp active state"
+    },
+    {
+      "file": "narrow-phone-360x800/08-second-summary-direct-post-tap-active.png",
+      "viewport": "narrow-phone-360x800",
+      "state": "direct post-tap second timestamp active state"
+    }
+  ],
+  "notes": [
+    "Focused PR #57 screenshot capture: summary source controls at tap position, post-tap active state, second timestamp state, and native-control reachability."
+  ]
+}
