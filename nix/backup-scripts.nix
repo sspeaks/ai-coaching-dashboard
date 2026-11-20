@@ -883,11 +883,13 @@ in
             if ! prepare_replacement_database; then
               return 1
             fi
+            # The admin prefix runs pg_restore as postgres, which cannot enter
+            # the root-only recovery directory, so this shell opens the dump.
             if ! run_admin_pg_restore \
               --exit-on-error \
               --single-transaction \
               --dbname="$replacement_database" \
-              "$dump_file"; then
+              < "$dump_file"; then
               return 1
             fi
             if ! apply_database_metadata; then

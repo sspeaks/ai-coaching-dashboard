@@ -354,16 +354,23 @@ restart `podman-speakr`, browse to `http://127.0.0.1:8899` through the tunnel,
 and sign in with the initial account. The first account created from these
 variables is the administrator.
 
-Create the integration credential while signed in as the account that should
-own dashboard-created recordings:
+The integration credential is declarative. Generate a random token, for
+example `openssl rand -base64 32 | tr '+/' '-_' | tr -d '='`, and store it as
+`EVIDENCE_SPEAKR_API_TOKEN` in both `evidence-api.env` and
+`evidence-worker.env`. Never put it in browser code or Nix. The
+`ai-coaching-speakr-provision` unit runs whenever Speakr, the API, or the
+worker starts. It registers that token in Speakr's database for
+`services.aiCoaching.speakr.provision.user`, which defaults to Speakr's
+`ADMIN_USERNAME`, and that account owns dashboard-created recordings. Speakr
+keeps tokens only in its own database. Without this unit, a fresh Speakr volume,
+a restore of an older Speakr database, or a rebuilt host would leave the
+configured token unknown, and every upload would fail with HTTP 401.
 
-1. Open **Account Settings → API Tokens**.
-2. Create a descriptively named token such as `ai-coaching-evidence`.
-3. Choose the operator's expiration policy and copy the token immediately; it
-   is shown only once and has the same access as that user.
-4. Store it as `EVIDENCE_SPEAKR_API_TOKEN` in both `evidence-api.env` and
-   `evidence-worker.env`. Never put it in browser code or Nix.
-5. Restart `podman-evidence-api` and `podman-evidence-worker`.
+To rotate the token, change it in both files and restart the two services. The
+old token stays valid in Speakr until it is revoked there. To revoke a token,
+use **Account Settings → API Tokens** in Speakr. The unit never
+re-enables a revoked or expired token: it fails and names the env files to
+rotate. Check it with `systemctl status ai-coaching-speakr-provision`.
 
 In **Account Settings → Webhooks**, create a webhook targeting
 `https://<dashboard-domain>/api/webhooks/speakr`, select the recording lifecycle

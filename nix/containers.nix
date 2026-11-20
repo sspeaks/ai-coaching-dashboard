@@ -39,6 +39,28 @@ let
     EVIDENCE_EXTRACTION_PROVIDER = "http_json";
     EVIDENCE_EXTRACTION_ENDPOINT = "http://extraction-gateway:${toString cfg.extractionGateway.containerPort}/";
   };
+  # Speakr keeps API tokens only in its own database, so a fresh or replaced
+  # Speakr volume silently invalidates EVIDENCE_SPEAKR_API_TOKEN (every
+  # upload then fails with HTTP 401). This unit re-registers the configured
+  # token whenever Speakr or a token consumer (re)starts.
+  provisionUnitName = "ai-coaching-speakr-provision";
+  tokenConsumerUnits =
+    (lib.optional cfg.evidenceApi.enable "podman-evidence-api.service")
+    ++ (lib.optional cfg.evidenceWorker.enable "podman-evidence-worker.service");
+  provisionEnabled = cfg.speakr.enable && cfg.speakr.provision.enable && tokenConsumerUnits != [ ];
+  provisionConfig = pkgs.writeText "${provisionUnitName}.json" (
+    builtins.toJSON {
+      podman = "${config.virtualisation.podman.package}/bin/podman";
+      container = "speakr";
+      innerScript = "${./speakr-provision.py}";
+      # toString: reference secret files by path, never copy them to the store.
+      tokenFiles = map toString (
+        (lib.optionals cfg.evidenceApi.enable cfg.evidenceApi.environmentFiles)
+        ++ (lib.optionals cfg.evidenceWorker.enable cfg.evidenceWorker.environmentFiles)
+      );
+      inherit (cfg.speakr.provision) user readyTimeoutSeconds;
+    }
+  );
   apiEnvironment = evidenceEnvironment // {
     AI_COACHING_GATEWAY_LISTEN_ADDRESS = "0.0.0.0:${toString cfg.evidenceApi.containerPort}";
     AI_COACHING_GATEWAY_BACKEND_ADDRESS = "127.0.0.1:18000";
@@ -153,6 +175,40 @@ in
         type = lib.types.attrsOf lib.types.str;
         default = { };
         description = "Additional non-secret environment variables passed to the Speakr container.";
+      };
+
+      provision = {
+        enable = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = ''
+            Register the evidence API/worker's `EVIDENCE_SPEAKR_API_TOKEN`
+            (read from their environment files) as a Speakr API token
+            whenever Speakr, the API, or the worker starts. Speakr stores
+            tokens only in its own database, so without this a fresh or
+            replaced Speakr volume makes every upload fail with HTTP 401.
+            A token that was revoked or has expired in Speakr is never
+            re-enabled: the `ai-coaching-speakr-provision` unit fails
+            instead, and the token must be rotated.
+          '';
+        };
+
+        user = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          example = "coaching-bot";
+          description = ''
+            Speakr username that owns the registered token, and therefore
+            the recordings the evidence services upload. Defaults to
+            Speakr's `ADMIN_USERNAME`, or failing that its first admin.
+          '';
+        };
+
+        readyTimeoutSeconds = lib.mkOption {
+          type = lib.types.ints.positive;
+          default = 300;
+          description = "How long to wait for Speakr to create its database and admin user.";
+        };
       };
     };
 
@@ -444,6 +500,38 @@ in
     systemd.services = lib.mkMerge [
       { ${networkServiceName} = networkServiceDefinition; }
       (lib.mkIf cfg.speakr.enable { podman-speakr = commonServiceOverrides; })
+      (lib.mkIf provisionEnabled {
+        ${provisionUnitName} = {
+          description = "Register the evidence services' API token in Speakr";
+          # Started with Speakr and before the token consumers; PartOf
+          # re-runs it whenever any of them restarts (restore, secret rotation).
+          wantedBy = [ "podman-speakr.service" ];
+          requires = [ "podman-speakr.service" ];
+          after = [ "podman-speakr.service" ];
+          before = tokenConsumerUnits;
+          partOf = [ "podman-speakr.service" ] ++ tokenConsumerUnits;
+          unitConfig.ConditionPathExists = "!${restoreMarker}";
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+            ExecStart = "${pkgs.python3.interpreter} ${./speakr-provision-runner.py} ${provisionConfig}";
+            TimeoutStartSec = cfg.speakr.provision.readyTimeoutSeconds + 60;
+            UMask = "0077";
+          };
+        };
+      })
+      (lib.mkIf (provisionEnabled && cfg.evidenceApi.enable) {
+        podman-evidence-api = {
+          wants = [ "${provisionUnitName}.service" ];
+          after = [ "${provisionUnitName}.service" ];
+        };
+      })
+      (lib.mkIf (provisionEnabled && cfg.evidenceWorker.enable) {
+        podman-evidence-worker = {
+          wants = [ "${provisionUnitName}.service" ];
+          after = [ "${provisionUnitName}.service" ];
+        };
+      })
       (lib.mkIf cfg.evidenceApi.enable {
         podman-evidence-api = lib.mkMerge [
           commonServiceOverrides
