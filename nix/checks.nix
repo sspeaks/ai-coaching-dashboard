@@ -143,6 +143,20 @@ let
   backupScripts = import ./backup-scripts.nix { inherit lib pkgs; };
   fakeSystemctl = pkgs.writeShellScriptBin "systemctl" (builtins.readFile ./fake-systemctl.sh);
   fakePgDump = pkgs.writeShellScriptBin "pg_dump" (builtins.readFile ./fake-pg-dump.sh);
+  # Production runs admin commands as postgres via runuser, and postgres cannot
+  # enter the root-only recovery directory. The build sandbox cannot switch
+  # users, so the checks refuse any admin-command argument naming a path there.
+  adminCommandGuard = pkgs.writeShellScript "ai-coaching-admin-command-guard" ''
+    for arg in "$@"; do
+      case "$arg" in
+        */.restore-recovery-*)
+          echo "admin command was given a path in the root-only recovery directory: $arg" >&2
+          exit 97
+          ;;
+      esac
+    done
+    exec "$@"
+  '';
   fakePgRestore = pkgs.writeShellScriptBin "pg_restore" (builtins.readFile ./fake-pg-restore.sh);
   fakePsql = pkgs.writeShellScriptBin "psql" (builtins.readFile ./fake-psql.sh);
   fakePgTools = pkgs.symlinkJoin {
@@ -167,7 +181,7 @@ let
     username = "evidence";
     databaseName = "evidence";
     passwordFile = "${backupCheckData}/pg-password";
-    adminCommandPrefix = [ ];
+    adminCommandPrefix = [ "${adminCommandGuard}" ];
     adminHost = "127.0.0.1";
     adminUsername = "postgres";
     adminDatabase = "postgres";
@@ -202,7 +216,7 @@ let
     username = realPgUsername;
     databaseName = realPgDatabaseName;
     passwordFile = "${realPgCheckData}/pg-password";
-    adminCommandPrefix = [ ];
+    adminCommandPrefix = [ "${adminCommandGuard}" ];
     adminHost = realPgSocket;
     adminUsername = realPgAdminUsername;
     adminDatabase = "postgres";
@@ -1137,6 +1151,57 @@ in
 
     touch "$out"
   '';
+
+  speakr-token-provision =
+    let
+      unit = deployConfig.systemd.services.ai-coaching-speakr-provision;
+      provisionUnit = "ai-coaching-speakr-provision.service";
+      consumers = [
+        "podman-evidence-api"
+        "podman-evidence-worker"
+      ];
+      disabledProvision =
+        (lib.nixosSystem {
+          inherit system;
+          specialArgs.inputs.ai-coaching-dashboard = self;
+          modules = [
+            self.nixosModules.aiCoaching
+            (import ../deploy/example-configuration.nix)
+            (import ../deploy/eval-only-stub-hardware.nix)
+            { services.aiCoaching.speakr.provision.enable = false; }
+          ];
+        }).config.systemd.services;
+      python = pkgs.python3.withPackages (ps: [ ps.sqlalchemy ]);
+    in
+    assert builtins.elem "podman-speakr.service" unit.wantedBy;
+    assert builtins.elem "podman-speakr.service" unit.requires;
+    assert builtins.elem "podman-speakr.service" unit.after;
+    assert unit.partOf == [ "podman-speakr.service" ] ++ map (u: "${u}.service") consumers;
+    assert unit.before == map (u: "${u}.service") consumers;
+    assert unit.unitConfig.ConditionPathExists == writerRestoreCondition;
+    assert lib.all (
+      u:
+      builtins.elem provisionUnit deployConfig.systemd.services.${u}.wants
+      && builtins.elem provisionUnit deployConfig.systemd.services.${u}.after
+    ) consumers;
+    assert !(disabledProvision ? ai-coaching-speakr-provision);
+    assert !(builtins.elem provisionUnit disabledProvision.podman-evidence-worker.after);
+    pkgs.runCommand "ai-coaching-speakr-token-provision" { } ''
+      set -euo pipefail
+      config=$(sed -n 's/^ExecStart=.* \(\/nix\/store\/[^ ]*\.json\)$/\1/p' \
+        ${deployConfig.systemd.units."${provisionUnit}".unit}/${provisionUnit})
+      test -n "$config"
+      # Secrets are referenced by path only; nothing secret lands in the store.
+      grep -F '"tokenFiles":["/var/lib/ai-coaching/secrets/evidence-api.env","/var/lib/ai-coaching/secrets/evidence-worker.env"]' "$config"
+      grep -F '"container":"speakr"' "$config"
+
+      cd "$TMPDIR"
+      SPEAKR_PROVISION_SOURCE=${./speakr-provision.py} \
+      SPEAKR_PROVISION_RUNNER_SOURCE=${./speakr-provision-runner.py} \
+      SPEAKR_PROVISION_SCHEMA=${./speakr-provision-schema.sql} \
+        ${python}/bin/python ${./speakr-provision_test.py}
+      touch "$out"
+    '';
 
   image-pin-assertions =
     assert !badRegistryPin.success;

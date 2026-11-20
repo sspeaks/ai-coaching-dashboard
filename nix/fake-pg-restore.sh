@@ -16,9 +16,14 @@ for arg in "$@"; do
   esac
 done
 
-# The dump file is always the final positional argument in both the
-# structural-validation (--list) and real restore invocations.
+# Like pg_restore, read the dump from the final positional argument, or from
+# stdin when the arguments end in an option (the restore passes it on stdin).
 dump_file="${*: -1}"
+if [ "$#" -eq 0 ] || [ "${dump_file#-}" != "$dump_file" ]; then
+  dump_file=$(mktemp)
+  trap 'rm -f -- "$dump_file"' EXIT
+  cat > "$dump_file"
+fi
 
 printf 'PG_RESTORE %s %s\n' "$mode" "$*" >> "$FAKE_PG_LOG"
 
